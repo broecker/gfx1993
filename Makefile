@@ -1,8 +1,8 @@
 CXX := clang++
 LDD := g++
 
-TARGET	:= strikemission
-SRC		:= main.cpp Message.cpp Engine.cpp Entity.cpp
+TARGET	:= srender
+SRC	:= main.cpp Renderer.cpp Line.cpp RenderTarget.cpp Viewport.cpp
 OBJS	:= ${SRC:.cpp=.o} 
 
 CCFLAGS := -I/usr/local/include -Wall -O2
