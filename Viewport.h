@@ -14,6 +14,8 @@ public:
 	bool isInside(const glm::ivec2& p) const;
 	bool isInside(const Line2D& line) const;
 
+	glm::vec3 calculateWindowCoordinates(const glm::vec3& ndc) const;
+
 protected:
 	glm::ivec2		origin;
 	glm::ivec2		size;

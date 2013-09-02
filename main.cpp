@@ -1,5 +1,7 @@
 #include <iostream>
 #include <glm/glm.hpp>
+#include <glm/ext.hpp>
+#include <glm/gtx/transform.hpp>
 
 #include <GL/glut.h>
 
@@ -9,12 +11,18 @@
 #include "RenderTarget.h"
 #include "Colour.h"
 #include "Line.h"
+#include "Vertex.h"
 
 Renderer*		renderer;
 
 unsigned int 	texture;
 
-unsigned int 	width = 64, height = 64;
+unsigned int 	width = 320, height = 240;
+
+VertexList points; 
+
+bool rotate = true;
+float rotationAngle = 0.f;
 
 float animateBG = 0.f;
 Colour bgColours[2];
@@ -61,6 +69,13 @@ static void idle()
 
 
 
+	if (rotate)
+	{
+		rotationAngle += 5*dt;
+		glm::mat4 rotate = glm::rotate(rotationAngle, 0.f, 1.f, 0.f);
+		renderer->viewMatrix = rotate;
+	}
+
 	animateBG += dt;
 	if (animateBG > 3.f)
 	{
@@ -78,6 +93,9 @@ static void idle()
 
 	renderer->setClearColour( Colour::lerp(bgColours[0], bgColours[1], animateBG/3.f));
 
+	renderer->clearBuffers();
+	renderer->drawPoints( points );
+
 	glutPostRedisplay();
 }
 
@@ -88,6 +106,9 @@ static void keyboard(unsigned char key, int x, int y)
 
 	if (key == 'c')
 		renderer->clearBuffers();
+
+	if (key == 'r')
+		rotate = !rotate;
 
 	if (key == ' ')
 	{
@@ -114,6 +135,28 @@ static void keyboard(unsigned char key, int x, int y)
 		std::clog << "Drawing line from (" << x1 << "," << y1 << ") to (" << x2 << "," << y2 << ")" << std::endl;
 	}
 
+	if (key == 'p')
+	{
+		size_t pcount = 25;
+		points.clear();
+		points.reserve( pcount );
+
+		for (int i = 0; i < pcount; ++i)
+		{
+			float x = (float)rand() / RAND_MAX;
+			float y = (float)rand() / RAND_MAX;
+			float z = (float)rand() / RAND_MAX;
+
+			float r = (float)rand() / RAND_MAX;
+			float g = (float)rand() / RAND_MAX;
+			float b = 1.f - r - g;
+
+			points.push_back( Vertex(glm::vec4(x,y,z,1.f), glm::vec4(r,g,b,1.f)));
+		
+			std::clog << "Created point at (" << x << "," << y << "," << z << ")" << std::endl; 
+		}
+
+	}
 
 }
 

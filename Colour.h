@@ -1,6 +1,8 @@
 #ifndef COLOuR_INCLUDED
 #define COLOuR_INCLUDED
 
+#include <glm/glm.hpp>
+
 struct Colour
 {
 	float		r, g, b, a;
@@ -8,6 +10,8 @@ struct Colour
 	inline Colour(float R=0.f, float G=0.f, float B=0.f, float A=1.f) : r(R), g(G), b(B), a(A)
 	{
 	}
+
+	inline Colour(const glm::vec4& v) : r(v.x), g(v.y), b(v.z), a(v.w) {}
 
 	inline void setBlack()
 	{

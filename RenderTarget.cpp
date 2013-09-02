@@ -44,7 +44,7 @@ bool RenderTarget::putPixel(unsigned int x, unsigned int y, float z, const Colou
 	if (x > width-1 || y > height-1)
 		throw OutofBoundsException(x, y);
 
-	if (depth[y*width+x] < z)
+	if (depth[y*width+x] > z)
 	{
 		pixels[y*width+x].set(c);
 		depth[y*width+x] = z;

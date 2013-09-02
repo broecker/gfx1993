@@ -3,6 +3,8 @@
 
 #include <glm/glm.hpp>
 
+#include "Vertex.h"
+
 struct Line2D
 {
 	// two end positions
