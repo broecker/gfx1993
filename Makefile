@@ -2,10 +2,10 @@ CXX := clang++
 LDD := g++
 
 TARGET	:= srender
-SRC	:= main.cpp Renderer.cpp Line.cpp RenderTarget.cpp Viewport.cpp
+SRC	:= main.cpp Line.cpp Renderer.cpp Framebuffer.cpp Depthbuffer.cpp Viewport.cpp Shader.cpp Plane.cpp Frustum.cpp
 OBJS	:= ${SRC:.cpp=.o} 
 
-CCFLAGS := -I/usr/local/include -Wall -O2
+CCFLAGS := -I/usr/local/include -Wall -O0 -g
 LDDFLAGS := -L/usr/local/lib
 LIBS :=  -lGLEW -lGL -lGLU -lglut
 

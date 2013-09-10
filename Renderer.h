@@ -1,49 +1,25 @@
 #ifndef RENDERER_INCLUDED
 #define RENDERER_INCLUDED
 
-#include <glm/glm.hpp>
-
-#include "Colour.h"
 #include "Vertex.h"
 
-class RenderTarget;
-class Viewport;
-
-struct Line2D;
+class Framebuffer;
+class Depthbuffer;
+class VertexShader;
 
 class Renderer
 {
 public:
-	Renderer(unsigned int width, unsigned int height);
-	virtual ~Renderer();
+	VertexShader*	vertexShader;
 
+	Framebuffer*	framebuffer;
+	Depthbuffer* 	depthbuffer;
 
-	void clearBuffers();
+	unsigned int drawLines(const VertexList& vertices, const IndexList& indices) const;
 
-	void setClearColour(const Colour& c) { clearColour = c; }
+private:
+	void bresenhamLine();
 
-
-	inline const RenderTarget& getRenderTarget() const { return *renderTarget; }
-
-
-	void drawPoints(const VertexList& vertices);
-
-
-	void drawPixel(unsigned int x, unsigned int y, const Colour& c);
- 	void drawLine(const Line2D& line);
-
-
-
- 	glm::mat4		modelMatrix;
- 	glm::mat4		viewMatrix;
- 	glm::mat4		projectionMatrix;
-
-protected:
- 	RenderTarget*	renderTarget;
- 	Viewport*		viewport;
-
- 	Colour			clearColour;
 };
-
 
 #endif

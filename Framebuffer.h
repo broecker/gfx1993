@@ -18,7 +18,7 @@ public:
 
 	inline unsigned int getWidth() const { return width; }
 	inline unsigned int getHeight() const { return height; }
-	inline const Colour* getData() const { return data; }
+	inline const Colour* getPixels() const { return data; }
 
 
 protected:

@@ -7,19 +7,27 @@
 
 #include <cstdlib>
 
-#include "Renderer.h"
-#include "RenderTarget.h"
+#include "Framebuffer.h"
+#include "Depthbuffer.h"
 #include "Colour.h"
 #include "Line.h"
 #include "Vertex.h"
-
-Renderer*		renderer;
+#include "Shader.h"
+#include "Renderer.h"
 
 unsigned int 	texture;
 
 unsigned int 	width = 320, height = 240;
 
-VertexList points; 
+VertexList 	vertices; 
+IndexList	indices;
+
+Framebuffer*	framebuffer;
+Depthbuffer*	depthbuffer;
+
+Renderer*		renderer;
+VertexShader*	vertexTransform;
+
 
 bool rotate = true;
 float rotationAngle = 0.f;
@@ -27,21 +35,32 @@ float rotationAngle = 0.f;
 float animateBG = 0.f;
 Colour bgColours[2];
 
+static void setRandomBgColour(unsigned int index) 
+{
+	if (index > 1)
+		return;
+
+	float r = (float)rand()/RAND_MAX;
+	float g = (float)rand()/RAND_MAX;
+	float b = 1.f - r - g;
+
+	bgColours[index].set(r,g,b,1.f);
+}
+
 static void display()
 {
 	glBindTexture(GL_TEXTURE_2D, texture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, renderer->getRenderTarget().getPixels());
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, framebuffer->getPixels());
 
 	glEnable(GL_TEXTURE_2D);
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
-	static int vertices[] = {0,0, 1,0, 1,1, 0,1};
+	const int vertices[] = {0,0, 1,0, 1,1, 0,1};
 	glVertexPointer(2, GL_INT, 0, vertices);
 	glTexCoordPointer(2, GL_INT, 0, vertices);
 
 	glDrawArrays(GL_QUADS, 0, 4);
-
 
 	glutSwapBuffers();
 }
@@ -73,28 +92,24 @@ static void idle()
 	{
 		rotationAngle += 5*dt;
 		glm::mat4 rotate = glm::rotate(rotationAngle, 0.f, 1.f, 0.f);
-		renderer->viewMatrix = rotate;
+		DefaultVertexTransform* dvt = reinterpret_cast<DefaultVertexTransform*>(renderer->vertexShader);
+		dvt->modelViewMatrix = rotate;
 	}
 
 	animateBG += dt;
 	if (animateBG > 3.f)
 	{
 		bgColours[0].set(bgColours[1]);
-		
-		float r = (float)rand()/RAND_MAX;
-		float g = (float)rand()/RAND_MAX;
-		float b = 1.f - r - g;
-
-		bgColours[1].set(r, g, b, 1.f);
-
-
+		setRandomBgColour( 1 );
 		animateBG = 0.f;
 	}
 
-	renderer->setClearColour( Colour::lerp(bgColours[0], bgColours[1], animateBG/3.f));
+	
+	// clear the buffers	
+	Colour clearColour = Colour::lerp(bgColours[0], bgColours[1], animateBG/3.f);
+	framebuffer->clear( clearColour );
+	depthbuffer->clear();
 
-	renderer->clearBuffers();
-	renderer->drawPoints( points );
 
 	glutPostRedisplay();
 }
@@ -103,9 +118,6 @@ static void keyboard(unsigned char key, int x, int y)
 {
 	if (key == 27)
 		exit(0);
-
-	if (key == 'c')
-		renderer->clearBuffers();
 
 	if (key == 'r')
 		rotate = !rotate;
@@ -116,30 +128,15 @@ static void keyboard(unsigned char key, int x, int y)
 		unsigned int y = rand()%height;
 		unsigned int c = (float)rand()/RAND_MAX;
 
-		renderer->drawPixel(x, y, Colour((float)x/width, (float)y/height, c));
-
 		std::clog << "Putting pixel at " << x << "," << y << std::endl;
 
-	}
-
-	if (key == 'l')
-	{
-		unsigned int x1 = rand()%width;
-		unsigned int y1 = rand()%height;
-		unsigned int x2 = rand()%width;
-		unsigned int y2 = rand()%height;
-
-		Line2D line(glm::vec2(x1, y1), glm::vec2(x2, y2));
-		renderer->drawLine(line);
-	
-		std::clog << "Drawing line from (" << x1 << "," << y1 << ") to (" << x2 << "," << y2 << ")" << std::endl;
 	}
 
 	if (key == 'p')
 	{
 		size_t pcount = 25;
-		points.clear();
-		points.reserve( pcount );
+		vertices.clear();
+		vertices.reserve( pcount );
 
 		for (int i = 0; i < pcount; ++i)
 		{
@@ -151,7 +148,7 @@ static void keyboard(unsigned char key, int x, int y)
 			float g = (float)rand() / RAND_MAX;
 			float b = 1.f - r - g;
 
-			points.push_back( Vertex(glm::vec4(x,y,z,1.f), glm::vec4(r,g,b,1.f)));
+			vertices.push_back( Vertex(glm::vec4(x,y,z,1.f), glm::vec4(r,g,b,1.f)));
 		
 			std::clog << "Created point at (" << x << "," << y << "," << z << ")" << std::endl; 
 		}
@@ -162,7 +159,8 @@ static void keyboard(unsigned char key, int x, int y)
 
 static void cleanup()
 {
-
+	delete framebuffer;
+	delete depthbuffer;
 }
 
 int main(int argc, char** argv)
@@ -179,7 +177,26 @@ int main(int argc, char** argv)
 
 	atexit(cleanup);
 
-	renderer = new Renderer(width, height);
+	srand( time(0) );
+
+
+	//renderer = new Renderer(width, height);
+
+	framebuffer = new Framebuffer(width, height);
+	depthbuffer = new Depthbuffer(width, height);
+	renderer = new Renderer;
+
+
+	DefaultVertexTransform* dvt = new DefaultVertexTransform;
+	dvt->modelViewMatrix = glm::mat4(1.f);
+	dvt->projectionMatrix = glm::perspective(45.f, 1.3f, 1.f, 100.f);
+	renderer->vertexShader = dvt;
+
+
+	setRandomBgColour( 0 );
+	setRandomBgColour( 1 );
+
+
 
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);

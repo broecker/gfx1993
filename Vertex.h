@@ -13,5 +13,6 @@ struct Vertex
 };
 
 typedef std::vector<Vertex> VertexList;
+typedef std::vector<unsigned int> IndexList;
 
 #endif
