@@ -14,6 +14,7 @@
 #include "Vertex.h"
 #include "Shader.h"
 #include "Renderer.h"
+#include "Viewport.h"
 
 unsigned int 	texture;
 
@@ -27,6 +28,8 @@ Depthbuffer*	depthbuffer;
 
 Renderer*		renderer;
 VertexShader*	vertexTransform;
+
+Viewport*		viewport;
 
 
 bool rotate = true;
@@ -110,6 +113,17 @@ static void idle()
 	framebuffer->clear( clearColour );
 	depthbuffer->clear();
 
+	try
+	{
+		unsigned int pts = renderer->drawPoints( vertices );
+		//std::clog << "Drew " << pts << " points.\n";
+
+	}
+	catch (const char* txt)
+	{
+		std::cerr << "Render error :\"" << txt << "\"\n";
+	}
+
 
 	glutPostRedisplay();
 }
@@ -135,9 +149,6 @@ static void keyboard(unsigned char key, int x, int y)
 	if (key == 'p')
 	{
 		size_t pcount = 25;
-		vertices.clear();
-		vertices.reserve( pcount );
-
 		for (int i = 0; i < pcount; ++i)
 		{
 			float x = (float)rand() / RAND_MAX;
@@ -153,6 +164,13 @@ static void keyboard(unsigned char key, int x, int y)
 			std::clog << "Created point at (" << x << "," << y << "," << z << ")" << std::endl; 
 		}
 
+		std::clog << "Created " << vertices.size() << " vertices.\n";
+
+	}
+
+	if (key == 'c')
+	{
+		vertices.clear();
 	}
 
 }
@@ -161,6 +179,11 @@ static void cleanup()
 {
 	delete framebuffer;
 	delete depthbuffer;
+
+	delete vertexTransform;
+	delete renderer;
+
+	delete viewport;
 }
 
 int main(int argc, char** argv)
@@ -179,18 +202,42 @@ int main(int argc, char** argv)
 
 	srand( time(0) );
 
-
-	//renderer = new Renderer(width, height);
+	renderer = new Renderer;
+	viewport = new Viewport(0, 0, width, height);
+	renderer->viewport = viewport;
 
 	framebuffer = new Framebuffer(width, height);
-	depthbuffer = new Depthbuffer(width, height);
-	renderer = new Renderer;
+	renderer->framebuffer = framebuffer;
 
+	depthbuffer = new Depthbuffer(width, height);
+	renderer->depthbuffer = depthbuffer;
 
 	DefaultVertexTransform* dvt = new DefaultVertexTransform;
-	dvt->modelViewMatrix = glm::mat4(1.f);
-	dvt->projectionMatrix = glm::perspective(45.f, 1.3f, 1.f, 100.f);
 	renderer->vertexShader = dvt;
+
+	dvt->modelViewMatrix = glm::mat4(1.f);
+	dvt->modelViewMatrix[3] = glm::vec4(0, 0, 10.f, 1);
+	dvt->projectionMatrix = glm::perspective(45.f, 1.3f, 1.f, 100.f);
+
+	/*
+	float l = 0.f;
+	float r = 1.f;
+	float b = 0.f;
+	float t = 1.f;
+	float n = 0.f;
+	float f = 1.f;
+
+	float tx = -(r+l)/(r-l);
+	float ty = -(t+b)/(t-b);
+	float tz = -(f+n)/(f-n);
+
+
+	dvt->projectionMatrix = glm::mat4(	glm::vec4(2.f/(r-l), 0, 0, 0), 
+										glm::vec4(0, 2.f/(t-b), 0, 0),
+										glm::vec4(0, 0, -2.f/(f-n), 0.f),
+										glm::vec4(tx, ty, tz, 1.f));
+	*/
+	
 
 
 	setRandomBgColour( 0 );
