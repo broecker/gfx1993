@@ -205,6 +205,31 @@ static void keyboard(unsigned char key, int x, int y)
 	if (key == 'c')
 	{
 		vertices.clear();
+		indices.clear();
+
+		// create a cube
+		vertices.push_back( Vertex( glm::vec4(-1,  1, 1, 1) ) );
+		vertices.push_back( Vertex( glm::vec4(-1, -1, 1, 1) ) );
+		vertices.push_back( Vertex( glm::vec4( 1, -1, 1, 1) ) );
+		vertices.push_back( Vertex( glm::vec4( 1,  1, 1, 1) ) );
+		vertices.push_back( Vertex( glm::vec4(-1,  1, -1, 1) ) );
+		vertices.push_back( Vertex( glm::vec4(-1, -1, -1, 1) ) );
+		vertices.push_back( Vertex( glm::vec4( 1, -1, -1, 1) ) );
+		vertices.push_back( Vertex( glm::vec4( 1,  1, -1, 1) ) );
+
+		indices.push_back(0); indices.push_back(1);
+		indices.push_back(1); indices.push_back(2);
+		indices.push_back(2); indices.push_back(3);
+		indices.push_back(3); indices.push_back(0);
+		indices.push_back(4); indices.push_back(5);
+		indices.push_back(5); indices.push_back(6);
+		indices.push_back(6); indices.push_back(7);
+		indices.push_back(7); indices.push_back(4);
+		indices.push_back(0); indices.push_back(4);
+		indices.push_back(1); indices.push_back(5);
+		indices.push_back(2); indices.push_back(6);
+		indices.push_back(3); indices.push_back(7);
+
 	}
 
 }
@@ -250,27 +275,8 @@ int main(int argc, char** argv)
 	renderer->vertexShader = dvt;
 
 	dvt->modelMatrix = glm::mat4(1.f);
-	dvt->viewMatrix[3] = glm::vec4(0, 0, -10.f, 1);
+	dvt->viewMatrix[3] = glm::vec4(0, 0, -5.f, 1);
 	dvt->projectionMatrix = glm::perspective(45.f, 1.3f, 1.f, 100.f);
-
-	/*
-	float l = 0.f;
-	float r = 1.f;
-	float b = 0.f;
-	float t = 1.f;
-	float n = 0.f;
-	float f = 1.f;
-
-	float tx = -(r+l)/(r-l);
-	float ty = -(t+b)/(t-b);
-	float tz = -(f+n)/(f-n);
-
-
-	dvt->projectionMatrix = glm::mat4(	glm::vec4(2.f/(r-l), 0, 0, 0), 
-										glm::vec4(0, 2.f/(t-b), 0, 0),
-										glm::vec4(0, 0, -2.f/(f-n), 0.f),
-										glm::vec4(tx, ty, tz, 1.f));
-	*/
 	
 	fragmentShader = new InputColourShader;
 	renderer->fragmentShader = fragmentShader;

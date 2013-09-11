@@ -8,6 +8,7 @@
 #include "Line.h"
 #include "Frustum.h"
 #include "ShadingGeometry.h"
+#include "RenderPrimitive.h"
 
 #include <algorithm>
 #include <iostream>
@@ -110,12 +111,12 @@ unsigned int Renderer::drawLines(const VertexList& vertices, const IndexList& in
 	if (!vertexShader)
 		throw "Vertex shader missing!";
 	
+	if (!fragmentShader)
+		throw "Fragment shader missing!";
+
 	if (!viewport)
 		throw "Viewport is missing!";
 			
-	if (!frustum)
-		throw "Frustum is missing!";
-
 
 	// transform vertices
 	VertexOutList transformedVertices( vertices.size() );
@@ -123,9 +124,34 @@ unsigned int Renderer::drawLines(const VertexList& vertices, const IndexList& in
 
 	std::transform(vertices.begin(), vertices.end(), transformedVertices.begin(), vertexTransform);
 
-		
+	// build lines
+	LinePrimitiveList lines;
+	for (int i = 0; i < indices.size(); i += 2)
+	{
+		const VertexOut& a = transformedVertices[ indices[i+0] ];
+		const VertexOut& b = transformedVertices[ indices[i+1] ];
+		lines.push_back( LinePrimitive(a, b) );
+	}
 	
-		
+	LinePrimitiveList::iterator l = lines.begin();
+	while( l != lines.end() )
+	{
+		// clip and cull lines here
+
+
+		// depth test
+
+
+		// rasterise
+
+		// create shading geometry
+
+		// fragment shader
+
+
+
+		++l;
+	}
 
 	return linesDrawn;
 }

@@ -12,6 +12,7 @@ struct Vertex
 	glm::vec2	texcoord; 
 
 	inline Vertex() : position(0,0,0,1), normal(0,0,0), colour(1,1,1,1), texcoord(0,0) {}
+	inline Vertex(const glm::vec4& pos) : position(pos), normal(0,0,0), colour(0,0,0,1), texcoord(0,0) {}
 	inline Vertex(const glm::vec4& pos, const glm::vec3& n, const glm::vec4& col, const glm::vec2& tc) : 
 		position(pos), normal(n), colour(col), texcoord(tc) {}
 	
