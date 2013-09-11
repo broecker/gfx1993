@@ -42,21 +42,6 @@ Viewport*		viewport;
 bool rotate = false;
 float rotationAngle = 0.f;
 
-float animateBG = 0.f;
-Colour bgColours[2];
-
-static void setRandomBgColour(unsigned int index) 
-{
-	if (index > 1)
-		return;
-
-	float r = (float)rand()/RAND_MAX;
-	float g = (float)rand()/RAND_MAX;
-	float b = 1.f - r - g;
-
-	bgColours[index].set(r,g,b,1.f);
-}
-
 static void display()
 {
 	glBindTexture(GL_TEXTURE_2D, texture);
@@ -106,17 +91,9 @@ static void idle()
 		dvt->modelMatrix = rotate;
 	}
 
-	animateBG += dt;
-	if (animateBG > 3.f)
-	{
-		bgColours[0].set(bgColours[1]);
-		setRandomBgColour( 1 );
-		animateBG = 0.f;
-	}
-
 	
 	// clear the buffers	
-	Colour clearColour = Colour::lerp(bgColours[0], bgColours[1], animateBG/3.f);
+	Colour clearColour(0, 0, 0.2f, 1.f);
 	framebuffer->clear( clearColour );
 	depthbuffer->clear();
 
@@ -217,6 +194,16 @@ static void keyboard(unsigned char key, int x, int y)
 		vertices.push_back( Vertex( glm::vec4( 1, -1, -1, 1) ) );
 		vertices.push_back( Vertex( glm::vec4( 1,  1, -1, 1) ) );
 
+		for (int i = 0; i < 8; ++i)
+		{
+			float r = (float)rand() / RAND_MAX;
+			float g = (float)rand() / RAND_MAX;
+			float b = 1.f - (r+g);
+			vertices[i].colour.r = r; 
+			vertices[i].colour.g = g; 
+			vertices[i].colour.b = b; 
+		}
+
 		indices.push_back(0); indices.push_back(1);
 		indices.push_back(1); indices.push_back(2);
 		indices.push_back(2); indices.push_back(3);
@@ -229,7 +216,7 @@ static void keyboard(unsigned char key, int x, int y)
 		indices.push_back(1); indices.push_back(5);
 		indices.push_back(2); indices.push_back(6);
 		indices.push_back(3); indices.push_back(7);
-
+		
 	}
 
 }
@@ -283,11 +270,6 @@ int main(int argc, char** argv)
 
 
 	vertices.push_back( Vertex(glm::vec4(0,0,0,1), glm::vec3(0,0,1), glm::vec4(1,1,1,1), glm::vec2(0,0)) );
-	
-	setRandomBgColour( 0 );
-	setRandomBgColour( 1 );
-
-
 
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);

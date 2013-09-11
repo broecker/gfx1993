@@ -11,6 +11,10 @@
 
 #include <iostream>
 
+inline std::ostream& operator << (std::ostream& os, const glm::ivec2& v)
+{
+	return os << "(" << v.x << "," << v.y << ")";
+}
 
 inline std::ostream& operator << (std::ostream& os, const glm::vec4& v)
 {

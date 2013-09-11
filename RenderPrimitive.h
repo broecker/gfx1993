@@ -17,7 +17,7 @@ struct PointPrimitive
 	VertexOut	p;
 	inline PointPrimitive(const VertexOut& o) : p(o) {}
 
-	ShadingGeometry interpolate(float d) const;
+	ShadingGeometry rasterise() const;
 
 	ClipResult clipToNDC() const;
 
@@ -29,7 +29,8 @@ struct LinePrimitive
 
 	inline LinePrimitive(const VertexOut& a_, const VertexOut& b_) : a(a_), b(b_) {};
 
-	ShadingGeometry interpolate(float d) const;
+	ShadingGeometry rasterise(float d) const;
+
 
 	ClipResult clipToNDC();
 };

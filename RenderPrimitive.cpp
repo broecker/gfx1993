@@ -1,5 +1,7 @@
 #include "RenderPrimitive.h"
 
+using namespace glm;
+
 
 ClipResult PointPrimitive::clipToNDC() const
 {
@@ -11,7 +13,7 @@ ClipResult PointPrimitive::clipToNDC() const
 		return DISCARD;
 }
 
-ShadingGeometry PointPrimitive::interpolate(float d) const
+ShadingGeometry PointPrimitive::rasterise() const
 {
 	ShadingGeometry result;
 	result.position = p.worldPosition;
@@ -24,5 +26,16 @@ ShadingGeometry PointPrimitive::interpolate(float d) const
 
 ClipResult LinePrimitive::clipToNDC()
 {
+	return KEEP;
+}
 
+ShadingGeometry LinePrimitive::rasterise(float d) const
+{
+	ShadingGeometry result;
+	result.position = mix(a.worldPosition, b.worldPosition, d);
+	result.normal = normalize(mix(a.worldNormal, b.worldNormal, d));
+	result.colour = mix(a.colour, b.colour, d);
+	result.texcoord = mix(a.texcoord, b.texcoord, d);
+
+	return result;
 }

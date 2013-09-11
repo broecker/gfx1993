@@ -105,7 +105,7 @@ unsigned int Renderer::drawPoints(const VertexList& vertices) const
 
 
 		// calculate shading geometry
-		ShadingGeometry sgeo = p.interpolate(0.f);
+		ShadingGeometry sgeo = p.rasterise();
 		sgeo.windowCoord = ivec2(pos_win);
 		sgeo.depth = pos_win.z;
 
@@ -148,6 +148,7 @@ unsigned int Renderer::drawLines(const VertexList& vertices, const IndexList& in
 		const VertexOut& a = transformedVertices[ indices[i+0] ];
 		const VertexOut& b = transformedVertices[ indices[i+1] ];
 		lines.push_back( LinePrimitive(a, b) );
+	
 	}
 	
 	for(LinePrimitiveList::iterator l = lines.begin(); l != lines.end(); ++l)
@@ -161,24 +162,63 @@ unsigned int Renderer::drawLines(const VertexList& vertices, const IndexList& in
 			continue;
 		}
 
+		// bresenham line
+		{
+			// point a
+			const vec4& posA_clip = l->a.clipPosition;
+			const vec3 posA_ndc = vec3(posA_clip) / posA_clip.w;
+			const vec3 posA_win = viewport->calculateWindowCoordinates( posA_ndc );
 
-		// rasterise
+			// point b
+			const vec4& posB_clip = l->b.clipPosition;
+			const vec3 posB_ndc = vec3(posB_clip) / posB_clip.w;
+			const vec3 posB_win = viewport->calculateWindowCoordinates( posB_ndc );
 
-		// depth test
+			ivec2 a = ivec2(posA_win);
+			ivec2 b = ivec2(posB_win);
 
-		// create shading geometry
+			ivec2 d = b-a;
 
-		// fragment shader
+			float lineLength = length(d); 
+			unsigned int positionCounter = 0;
+	
+			int dx = abs(a.x-b.x), sx = a.x<b.x ? 1 : -1;
+			int dy = abs(a.y-b.y), sy = a.y<b.y ? 1 : -1; 
+			int err = (dx>dy ? dx : -dy)/2, e2;
+
+			for(;;)
+			{
+				float delta = std::min(1.f, positionCounter/lineLength);
+				float depth = mix(posA_win.z, posB_win.z, delta);
+
+				if (!depthbuffer || (depthbuffer && depthbuffer->conditionalPlot(a.x, a.y, depth)))
+				{			
+					ShadingGeometry sgeo = l->rasterise( positionCounter/lineLength );
+					sgeo.windowCoord = a;
+					sgeo.depth = depth;
+
+					Colour c = fragmentShader->shadeSingle(sgeo);
+					framebuffer->plot(a, c);
+				}
+
+				if (a.x==b.x && a.y==b.y) 
+					break;
+				e2 = err;
+				if (e2 >-dx) { err -= dy; a.x += sx; }
+				if (e2 < dy) { err += dx; a.y += sy; }
+		
+				++positionCounter;
+			}
 
 
-
-		++l;
+			++linesDrawn;
+		}
 	}
 
 	return linesDrawn;
 }
 
-void Renderer::bresenhamLine(glm::ivec2 a, glm::ivec2 b, glm::vec4 colour)
+void Renderer::bresenhamLine(glm::ivec2 a, glm::ivec2 b, glm::vec4 colour) const
 {
 	if (!framebuffer)
 		throw "Framebuffer missing!";
