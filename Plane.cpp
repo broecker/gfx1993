@@ -38,6 +38,9 @@ bool Plane::clip(const Line3D& in, Line3D& front, Line3D& back) const
 	{
 		return false;
 	}
+	
+	
+	return false;
 
 }
 

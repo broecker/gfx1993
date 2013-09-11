@@ -3,7 +3,11 @@
 #include <glm/ext.hpp>
 #include <glm/gtx/transform.hpp>
 
+#ifdef __APPLE__
+#include <GLUT/glut.h>
+#else
 #include <GL/glut.h>
+#endif
 
 #include <cstdlib>
 
@@ -15,6 +19,8 @@
 #include "Shader.h"
 #include "Renderer.h"
 #include "Viewport.h"
+
+#include "glmHelper.h"
 
 unsigned int 	texture;
 
@@ -32,7 +38,7 @@ VertexShader*	vertexTransform;
 Viewport*		viewport;
 
 
-bool rotate = true;
+bool rotate = false;
 float rotationAngle = 0.f;
 
 float animateBG = 0.f;
@@ -96,7 +102,7 @@ static void idle()
 		rotationAngle += 5*dt;
 		glm::mat4 rotate = glm::rotate(rotationAngle, 0.f, 1.f, 0.f);
 		DefaultVertexTransform* dvt = reinterpret_cast<DefaultVertexTransform*>(renderer->vertexShader);
-		dvt->modelViewMatrix = rotate;
+		dvt->modelMatrix = rotate;
 	}
 
 	animateBG += dt;
@@ -151,9 +157,9 @@ static void keyboard(unsigned char key, int x, int y)
 		size_t pcount = 25;
 		for (int i = 0; i < pcount; ++i)
 		{
-			float x = (float)rand() / RAND_MAX;
-			float y = (float)rand() / RAND_MAX;
-			float z = (float)rand() / RAND_MAX;
+			float x = (float)rand() / RAND_MAX * 2.f - 1.f;
+			float y = (float)rand() / RAND_MAX * 2.f - 1.f;
+			float z = (float)rand() / RAND_MAX * 2.f - 1.f;
 
 			float r = (float)rand() / RAND_MAX;
 			float g = (float)rand() / RAND_MAX;
@@ -215,8 +221,8 @@ int main(int argc, char** argv)
 	DefaultVertexTransform* dvt = new DefaultVertexTransform;
 	renderer->vertexShader = dvt;
 
-	dvt->modelViewMatrix = glm::mat4(1.f);
-	dvt->modelViewMatrix[3] = glm::vec4(0, 0, 10.f, 1);
+	dvt->modelMatrix = glm::mat4(1.f);
+	dvt->viewMatrix[3] = glm::vec4(0, 0, -10.f, 1);
 	dvt->projectionMatrix = glm::perspective(45.f, 1.3f, 1.f, 100.f);
 
 	/*
@@ -240,6 +246,8 @@ int main(int argc, char** argv)
 	
 
 
+	vertices.push_back( Vertex(glm::vec4(0,0,0,1), glm::vec4(1,1,1,1)) );
+	
 	setRandomBgColour( 0 );
 	setRandomBgColour( 1 );
 
