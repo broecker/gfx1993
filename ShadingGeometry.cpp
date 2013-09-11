@@ -7,7 +7,7 @@ ShadingGeometry interpolate(const ShadingGeometry& a, const ShadingGeometry& b, 
 
 	ShadingGeometry result;
 
-	result.worldPosition = mix(a.worldPosition, b.worldPosition, d);
+	result.position = mix(a.position, b.position, d);
 	result.normal = normalize(mix(a.normal, b.normal, d));
 
 	result.colour = mix(a.colour, b.colour, d);

@@ -8,7 +8,6 @@ class Depthbuffer;
 class VertexShader;
 class FragmentShader;
 class Viewport;
-class Frustum;
 
 class Renderer
 {
@@ -22,8 +21,6 @@ public:
 	Depthbuffer* 	depthbuffer;
 
 	Viewport*		viewport;
-
-	Frustum*		frustum;
 	
 	unsigned int drawPoints(const VertexList& points) const;
 

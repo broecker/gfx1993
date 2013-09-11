@@ -1,6 +1,8 @@
 #ifndef DEPTHBUFFER_INCLUDED
 #define DEPTHBUFFER_INCLUDED
 
+#include <glm/glm.hpp>
+
 class Depthbuffer 
 {
 public:
@@ -19,6 +21,7 @@ public:
 		data[x + width*y] = z;
 	}
 	
+	bool conditionalPlot(const glm::vec3& pos);
 	bool conditionalPlot(unsigned int x, unsigned int y, float z);
 
 

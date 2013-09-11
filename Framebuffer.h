@@ -3,6 +3,8 @@
 
 #include "Colour.h"
 
+#include <glm/glm.hpp>
+
 class Framebuffer
 {
 public:
@@ -13,6 +15,7 @@ public:
 
 	virtual void clear(const Colour& c);
 
+	inline void plot(const glm::ivec2& p, const Colour& c) { this->plot(p.x, p.y, c); }
 	void plot(unsigned int x, unsigned int y, const Colour& c);
 
 

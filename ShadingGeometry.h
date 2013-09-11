@@ -5,12 +5,15 @@
 
 struct ShadingGeometry
 {
-	glm::vec3	worldPosition;
+	// world position and normal
+	glm::vec3	position;
 	glm::vec3	normal;
 
 	glm::vec4	colour;
+	glm::vec2	texcoord;
 
 	glm::ivec2	windowCoord;
+	float		depth;
 
 };
 

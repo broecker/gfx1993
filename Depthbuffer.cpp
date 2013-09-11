@@ -21,6 +21,14 @@ void Depthbuffer::clear()
 	}
 }
 
+bool Depthbuffer::conditionalPlot(const glm::vec3& pos)
+{
+	unsigned int x = (unsigned int)pos.x;
+	unsigned int y = (unsigned int)pos.y;
+	float z = pos.z;
+	return conditionalPlot(x, y, z);
+}
+
 bool Depthbuffer::conditionalPlot(unsigned int x, unsigned int y, float z)
 
 {	unsigned int i = x + width*y;

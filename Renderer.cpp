@@ -28,16 +28,28 @@ struct CallVertexShader
 	};
 };
 
-Renderer::Renderer() : vertexShader(0), fragmentShader(0), framebuffer(0), depthbuffer(0), viewport(0), frustum(0)
+// noop vertex transform -- used when there is no vertex shader
+struct NoVertexTransform
+{
+	inline VertexOut operator () (const Vertex& in)
+	{
+		VertexOut result;
+		result.clipPosition = in.position;
+		result.worldPosition = glm::vec3(in.position);
+		result.worldNormal = in.normal;
+		result.colour = in.colour;
+		result.texcoord = in.texcoord;
+		return result;
+	}
+};
+
+Renderer::Renderer() : vertexShader(0), fragmentShader(0), framebuffer(0), depthbuffer(0), viewport(0)
 {
 }
 
 unsigned int Renderer::drawPoints(const VertexList& vertices) const
 {
 	using namespace glm;
-
-	if (!vertexShader)
-		throw "Vertex shader missing!";
 
 	if (!fragmentShader)
 		throw "Fragment shader missing!";
@@ -53,50 +65,55 @@ unsigned int Renderer::drawPoints(const VertexList& vertices) const
 
 	unsigned int pointsDrawn = 0;
 
-	// single vertex pipeline
-
-	// transform vertices
-	for (VertexList::const_iterator v = vertices.begin(); v != vertices.end(); ++v)
+	VertexOutList transformedVertices(vertices.size());
+	if (vertexShader)
 	{
-		VertexOut transformedVertex = vertexShader->transformSingle(*v);
+		CallVertexShader vertexTransform(vertexShader);
+		std::transform(vertices.begin(), vertices.end(), transformedVertices.begin(), vertexTransform);
+	}
+	else
+	{
+		NoVertexTransform vertexTransform;
+		std::transform(vertices.begin(), vertices.end(), transformedVertices.begin(), vertexTransform);
+	}
 
-		const vec4& pos_clip = transformedVertex.clipPosition;
+	// build points
+	PointPrimitiveList points;
+	for (VertexOutList::const_iterator po = transformedVertices.begin(); po != transformedVertices.end(); ++po)
+	{
+		PointPrimitive pt(*po);
 
-		// clipping
-		if (pos_clip.x >= -pos_clip.w && pos_clip.x <= pos_clip.w &&
-			pos_clip.y >= -pos_clip.w && pos_clip.y <= pos_clip.w && 
-			pos_clip.z >= -pos_clip.w && pos_clip.z <= pos_clip.w)
-		{
-
-			// perspective divide to normalised device coordinates
-			vec3 pos_ndc(pos_clip.x/pos_clip.w, pos_clip.y/pos_clip.w, pos_clip.z/pos_clip.w);
-
-			// screen coords
-			vec3 pos_win = viewport->calculateWindowCoordinates( pos_ndc );
-
-			unsigned int x = pos_win.x;
-			unsigned int y = pos_win.y;
-
-			ShadingGeometry sgeo;
-			sgeo.worldPosition = transformedVertex.worldPosition;
-			sgeo.normal = transformedVertex.worldNormal;
-			sgeo.colour = transformedVertex.colour;
-			sgeo.windowCoord = ivec2(x, y);
-
-			if (depthbuffer->conditionalPlot(x,y, pos_win.z))
-			{
-				++pointsDrawn;
-				
-				Colour result = fragmentShader->shadeSingle( sgeo );
-				framebuffer->plot(x, y, result );
-			}
-		}
-		else
-		{
-			// clipped!
+		// check clipping/culling here
+		if (pt.clipToNDC() == DISCARD)
 			continue;
-		}
 
+		points.push_back( pt );
+	}
+
+	for (PointPrimitiveList::const_iterator it = points.begin(); it != points.end(); ++it)
+	{
+		const PointPrimitive& p = *it;
+
+		// perspective divide and window coordinates
+		const vec4& pos_clip = p.p.clipPosition;
+		const vec3 pos_ndc = vec3(pos_clip) / pos_clip.w;
+		const vec3 pos_win = viewport->calculateWindowCoordinates( pos_ndc );
+
+		// if there is a depth buffer but the depth test fails -> discard fragment (early) 
+		if (depthbuffer && !depthbuffer->conditionalPlot(pos_win))
+			continue;
+
+
+		// calculate shading geometry
+		ShadingGeometry sgeo = p.interpolate(0.f);
+		sgeo.windowCoord = ivec2(pos_win);
+		sgeo.depth = pos_win.z;
+
+		// shade fragment and plot
+		Colour fragColour = fragmentShader->shadeSingle( sgeo );
+		framebuffer->plot(sgeo.windowCoord, fragColour);
+
+		++pointsDrawn;
 	}
 
 	return pointsDrawn;
@@ -133,16 +150,21 @@ unsigned int Renderer::drawLines(const VertexList& vertices, const IndexList& in
 		lines.push_back( LinePrimitive(a, b) );
 	}
 	
-	LinePrimitiveList::iterator l = lines.begin();
-	while( l != lines.end() )
+	for(LinePrimitiveList::iterator l = lines.begin(); l != lines.end(); ++l)
 	{
 		// clip and cull lines here
 
-
-		// depth test
+		ClipResult cr = l->clipToNDC();
+		if (cr == DISCARD)
+		{
+			// line completely outside -- discard it
+			continue;
+		}
 
 
 		// rasterise
+
+		// depth test
 
 		// create shading geometry
 
