@@ -8,6 +8,13 @@ struct Line3D;
 struct Plane
 {
 	glm::vec4	parameters;
+	
+	enum ClipResult
+	{
+		FRONT,
+		BACK,
+		CLIP
+	};
 
 	/// Create a plane from three points
 	Plane();
@@ -15,7 +22,7 @@ struct Plane
 
 	void set(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c);
 
-	bool clip(const Line3D& in, Line3D& front, Line3D& back) const;
+	ClipResult clip(Line3D& line) const;
 
 
 	float distance(const glm::vec3& pt) const;

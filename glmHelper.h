@@ -32,5 +32,11 @@ inline std::ostream& operator << (std::ostream& os, const glm::mat4& m)
 	return os;
 }
 
+inline glm::vec3 v3(const glm::vec4& v)
+{
+	return glm::vec3(v.x, v.y, v.z);
+}
+
+	
 
 #endif

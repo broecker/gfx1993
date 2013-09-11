@@ -1,10 +1,6 @@
 #include "Plane.h"
 #include "Line.h"
-
-static inline glm::vec3 v3(const glm::vec4& v)
-{
-	return glm::vec3(v.x, v.y, v.z);
-}
+#include "glmHelper.h"
 
 Plane::Plane() : parameters(0, 1, 0, 0)
 {
@@ -28,19 +24,33 @@ void Plane::set(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c)
 	parameters.w = d;
 }
 
-bool Plane::clip(const Line3D& in, Line3D& front, Line3D& back) const
+Plane::ClipResult Plane::clip(Line3D& line) const
 {
-	float da = distance(v3(in.a.position));
-	float db = distance(v3(in.b.position));
+	float da = distance(v3(line.a.position));
+	float db = distance(v3(line.b.position));
 
 	// both points outside of the plane
-	if (da > 0.f && db > 0.f)
+	if (da < 0.f && db < 0.f)
 	{
-		return false;
+		return BACK;
 	}
 	
+	// both points inside
+	if (da > 0.f && db > 0.f)
+		return FRONT;
 	
-	return false;
+	// clipping, calculate clip point
+	glm::vec4 v = line.b.position - line.a.position;
+	float t = (-parameters.x*line.a.position.x -parameters.y*line.a.position.y - parameters.z*line.a.position.z - parameters.w) / (parameters.x*v.x + parameters.y*v.y + parameters.z*v.z);
+		
+	Vertex R = line.interpolate( t );
+	
+	if (da < 0.f)
+		line.a = R;
+	else
+		line.b = R;
+		
+	return CLIP;
 
 }
 

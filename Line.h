@@ -21,7 +21,10 @@ struct Line2D
 struct Line3D
 {
 	Vertex	a, b;
+
 	inline Line3D(const Vertex& A, const Vertex& B) : a(A), b(B) {}
+
+	Vertex interpolate(float d) const;
 };
 
 #endif

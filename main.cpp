@@ -121,9 +121,11 @@ static void idle()
 
 	try
 	{
-		unsigned int pts = renderer->drawPoints( vertices );
-		//std::clog << "Drew " << pts << " points.\n";
-
+		renderer->drawPoints( vertices );
+		
+		if (!indices.empty())
+			renderer->drawLines(vertices, indices);
+				
 	}
 	catch (const char* txt)
 	{
@@ -152,9 +154,28 @@ static void keyboard(unsigned char key, int x, int y)
 
 	}
 
+	if (key == 'l')
+	{
+		indices.clear();
+		for (unsigned int i = 0; i < vertices.size()/2; ++i)
+		{
+			indices.push_back( i );
+			
+			// find a target vertex that is not our current one
+			unsigned int target = i;
+			while (target == i)
+				target = rand() % vertices.size();
+			
+			indices.push_back( target );
+			
+			
+		}
+		
+	}
+	
 	if (key == 'p')
 	{
-		size_t pcount = 25;
+		size_t pcount = 32;
 		for (int i = 0; i < pcount; ++i)
 		{
 			float x = (float)rand() / RAND_MAX * 2.f - 1.f;

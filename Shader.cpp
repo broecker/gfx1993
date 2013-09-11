@@ -13,3 +13,9 @@ Vertex DefaultVertexTransform::transformSingle(const Vertex& in)
 	return Vertex( modelViewProjectionMatrix * in.position,
 					in.colour);
 }
+
+
+FragmentShader::~FragmentShader()
+{
+	
+}

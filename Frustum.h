@@ -6,7 +6,17 @@
 
 struct Frustum
 {
-	Plane	top, bottom, left, right, near, far;
+	enum PlaneName
+	{
+		NEAR,
+		FAR,
+		TOP,
+		BOTTOM,
+		LEFT,
+		RIGHT
+	};
+	
+	Plane	plane[6];
 
 	void calculate(const glm::mat4& mat);
 };

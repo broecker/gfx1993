@@ -2,6 +2,7 @@
 #define SHADER_INCLUDED
 
 #include "Vertex.h"
+#include "Colour.h"
 
 class VertexShader
 {
@@ -24,6 +25,10 @@ public:
 
 class FragmentShader
 {
+public:
+	virtual ~FragmentShader();
+	
+	virtual Colour shadeSingle(const Vertex& in) = 0;
 
 };
 
