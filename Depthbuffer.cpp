@@ -17,7 +17,6 @@ void Depthbuffer::clear()
 	for (unsigned int i = 0; i < width*height; ++i) 
 	{
 		data[i] = FLT_MAX;
-
 	}
 }
 
@@ -34,7 +33,7 @@ bool Depthbuffer::conditionalPlot(unsigned int x, unsigned int y, float z)
 {	unsigned int i = x + width*y;
 	if (data[i] > z)
 	{
-		data[x] = z;
+		data[i] = z;
 		return true;
 	}
 	else

@@ -177,21 +177,21 @@ unsigned int Renderer::drawLines(const VertexList& vertices, const IndexList& in
 			ivec2 a = ivec2(posA_win);
 			ivec2 b = ivec2(posB_win);
 
-			ivec2 d = b-a;
-
-			float lineLength = length(d); 
+			float lineLength = length(b-a); 
 			unsigned int positionCounter = 0;
-	
+
 			int dx = abs(a.x-b.x), sx = a.x<b.x ? 1 : -1;
 			int dy = abs(a.y-b.y), sy = a.y<b.y ? 1 : -1; 
 			int err = (dx>dy ? dx : -dy)/2, e2;
 
+			// bresenham line
 			for(;;)
 			{
+				// interpolation for depth and texturing/colour
 				float delta = std::min(1.f, positionCounter/lineLength);
 				float depth = mix(posA_win.z, posB_win.z, delta);
 
-				if (!depthbuffer || (depthbuffer && depthbuffer->conditionalPlot(a.x, a.y, depth)))
+				if (viewport->isInside(a) && (!depthbuffer || (depthbuffer && depthbuffer->conditionalPlot(a.x, a.y, depth))))
 				{			
 					ShadingGeometry sgeo = l->rasterise( positionCounter/lineLength );
 					sgeo.windowCoord = a;
@@ -201,6 +201,7 @@ unsigned int Renderer::drawLines(const VertexList& vertices, const IndexList& in
 					framebuffer->plot(a, c);
 				}
 
+				// 'core' bresenham
 				if (a.x==b.x && a.y==b.y) 
 					break;
 				e2 = err;
@@ -216,57 +217,4 @@ unsigned int Renderer::drawLines(const VertexList& vertices, const IndexList& in
 	}
 
 	return linesDrawn;
-}
-
-void Renderer::bresenhamLine(glm::ivec2 a, glm::ivec2 b, glm::vec4 colour) const
-{
-	if (!framebuffer)
-		throw "Framebuffer missing!";
-	
-	if (!depthbuffer)
-		throw "Depth buffer missing!";
-	
-	/*
-	if (!fragmentShader)
-		throw "Fragment shader missing!";
-	*/
-	
-	using namespace glm;
-	
-	glm::ivec2 d = b-a;
-	glm::ivec2 s(-1, -1);
-	
-	if (a.x < b.x) s.x = 1;
-	if (a.y < b.y) s.y = 1;
-	int err = d.x-d.y;
-	
-	do {
-		
-		// TODO: insert depth test here
-		// TODO: interpolate colour, etc
-		// TODO: run fragment shader
-		framebuffer->plot(a.x, a.y, Colour(colour));
-		
-		int e2 = 2*err;
-		if (e2 > err - d.y)
-		{
-			err -= d.y;
-			a.x += s.x;
-		}
-		
-		if (a == b)
-		{
-			framebuffer->plot(a.x, a.y, Colour(colour));
-			return;
-		}
-		
-		if (e2 < d.x)
-		{
-			err = err + d.x;
-			a.y += s.y;
-		}
-		
-		
-	} while (a != b);
-	
 }
