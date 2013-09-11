@@ -187,11 +187,13 @@ static void keyboard(unsigned char key, int x, int y)
 			float ny = (float)rand() / RAND_MAX * 2.f - 1.f;
 			float nz = (float)rand() / RAND_MAX * 2.f - 1.f;
 
+			glm::vec2 texcoord(0,0);
+
 			float r = (float)rand() / RAND_MAX;
 			float g = (float)rand() / RAND_MAX;
 			float b = 1.f - r - g;
 
-			vertices.push_back( Vertex(glm::vec4(x,y,z,1.f), glm::normalize(glm::vec3(nx, ny, nz)), glm::vec4(r,g,b,1.f)));
+			vertices.push_back( Vertex(glm::vec4(x,y,z,1.f), glm::normalize(glm::vec3(nx, ny, nz)), glm::vec4(r,g,b,1.f), texcoord));
 		
 			std::clog << "Created point at (" << x << "," << y << "," << z << ")" << std::endl; 
 		}
@@ -274,7 +276,7 @@ int main(int argc, char** argv)
 	renderer->fragmentShader = fragmentShader;
 
 
-	vertices.push_back( Vertex(glm::vec4(0,0,0,1), glm::vec3(0,0,1), glm::vec4(1,1,1,1)) );
+	vertices.push_back( Vertex(glm::vec4(0,0,0,1), glm::vec3(0,0,1), glm::vec4(1,1,1,1), glm::vec2(0,0)) );
 	
 	setRandomBgColour( 0 );
 	setRandomBgColour( 1 );

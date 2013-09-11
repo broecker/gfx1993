@@ -27,7 +27,7 @@ public:
 	
 	unsigned int drawPoints(const VertexList& points) const;
 
-	unsigned int drawLines(VertexList vertices, const IndexList& indices) const;
+	unsigned int drawLines(const VertexList& vertices, const IndexList& indices) const;
 
 private:
 	void bresenhamLine(glm::ivec2 a, glm::ivec2 b, glm::vec4 colour);

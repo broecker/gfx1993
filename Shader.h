@@ -10,8 +10,13 @@ class VertexShader
 public:
 	virtual ~VertexShader();
 
-	virtual Vertex transformSingle(const Vertex& in) = 0;
-	virtual glm::vec3 calculateWorldPosition(const Vertex& in) = 0;
+	virtual VertexOut transformSingle(const Vertex& in) = 0;
+
+	// for STL algorithms
+	VertexOut operator () (const Vertex& in)
+	{
+		return transformSingle( in );
+	}
 };
 
 class DefaultVertexTransform : public VertexShader
@@ -22,8 +27,7 @@ public:
 	glm::mat4	projectionMatrix;
 
 
-	Vertex transformSingle(const Vertex& in);
-	glm::vec3 calculateWorldPosition(const Vertex& in);
+	VertexOut transformSingle(const Vertex& in);
 
 };
 

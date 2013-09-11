@@ -9,6 +9,7 @@ Vertex Line3D::interpolate(float d) const
 {
 	return Vertex(	glm::mix(a.position, b.position, d),
 					glm::normalize(glm::mix(a.normal, b.normal, d)),
-					glm::mix(a.colour, b.colour, d) );
+					glm::mix(a.colour, b.colour, d),
+					glm::mix(a.texcoord, b.texcoord, d) );
 	
 }

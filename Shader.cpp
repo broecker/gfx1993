@@ -1,23 +1,25 @@
 #include "Shader.h"
 #include "glmHelper.h"
 
+using namespace glm;
+
 VertexShader::~VertexShader()
 {
 }
 
-Vertex DefaultVertexTransform::transformSingle(const Vertex& in)
+VertexOut DefaultVertexTransform::transformSingle(const Vertex& in)
 {
-	glm::mat4 modelViewProjectionMatrix = projectionMatrix * viewMatrix * modelMatrix;
-	glm::mat3 normalMatrix = glm::mat3(glm::inverse(glm::transpose(viewMatrix * modelMatrix)));
+	mat4 modelViewProjectionMatrix = projectionMatrix * viewMatrix * modelMatrix;
+	mat3 normalMatrix = glm::mat3(glm::inverse(glm::transpose(viewMatrix * modelMatrix)));
 
-	return Vertex( 	modelViewProjectionMatrix * in.position,
-					normalMatrix * in.normal,
-					in.colour);
-}
+	VertexOut result;
+	result.clipPosition = modelViewProjectionMatrix * in.position;
+	result.worldPosition = vec3(modelMatrix * in.position);
+	result.worldNormal = normalMatrix * in.normal;
+	result.colour = in.colour;
+	result.texcoord = in.texcoord;
 
-glm::vec3 DefaultVertexTransform::calculateWorldPosition(const Vertex& in)
-{
-	return v3( modelMatrix * in.position );
+	return result;
 }
 
 

@@ -12,6 +12,20 @@
 #include <algorithm>
 #include <iostream>
 #include <list>
+#include <boost/function.hpp>
+
+
+// a helper struct/functor object for STL algorithms
+struct CallVertexShader
+{
+	VertexShader*	shader;
+	inline CallVertexShader(VertexShader* sh) : shader(sh) {} 
+
+	inline VertexOut operator () (const Vertex& in)
+	{
+		return shader->transformSingle( in );
+	};
+};
 
 Renderer::Renderer() : vertexShader(0), fragmentShader(0), framebuffer(0), depthbuffer(0), viewport(0), frustum(0)
 {
@@ -43,10 +57,9 @@ unsigned int Renderer::drawPoints(const VertexList& vertices) const
 	// transform vertices
 	for (VertexList::const_iterator v = vertices.begin(); v != vertices.end(); ++v)
 	{
-		Vertex transformedVertex = vertexShader->transformSingle(*v);
-		vec3 pos_world = vertexShader->calculateWorldPosition(*v);
+		VertexOut transformedVertex = vertexShader->transformSingle(*v);
 
-		vec4 pos_clip = transformedVertex.position;
+		const vec4& pos_clip = transformedVertex.clipPosition;
 
 		// clipping
 		if (pos_clip.x >= -pos_clip.w && pos_clip.x <= pos_clip.w &&
@@ -64,8 +77,8 @@ unsigned int Renderer::drawPoints(const VertexList& vertices) const
 			unsigned int y = pos_win.y;
 
 			ShadingGeometry sgeo;
-			sgeo.worldPosition = pos_world;
-			sgeo.normal = transformedVertex.normal;
+			sgeo.worldPosition = transformedVertex.worldPosition;
+			sgeo.normal = transformedVertex.worldNormal;
 			sgeo.colour = transformedVertex.colour;
 			sgeo.windowCoord = ivec2(x, y);
 
@@ -88,7 +101,7 @@ unsigned int Renderer::drawPoints(const VertexList& vertices) const
 	return pointsDrawn;
 }
 
-unsigned int Renderer::drawLines(VertexList vertices, const IndexList& indices) const
+unsigned int Renderer::drawLines(const VertexList& vertices, const IndexList& indices) const
 {
 	unsigned int linesDrawn = 0;
 
@@ -102,55 +115,15 @@ unsigned int Renderer::drawLines(VertexList vertices, const IndexList& indices) 
 			
 	if (!frustum)
 		throw "Frustum is missing!";
-	
+
+
 	// transform vertices
-	for (VertexList::iterator v = vertices.begin(); v != vertices.end(); ++v)
-	{
-		// transform vertex to clip space
-		*v = vertexShader->transformSingle( *v );
-	}
-		
-	// line assembly
-	std::list<Line3D> lines;
-	for (unsigned int i = 0; i < indices.size(); i += 2)
-	{
-		const Vertex& a = vertices[i+0];
-		const Vertex& b = vertices[i+1];
-				
-		lines.push_back( Line3D(a,b) );
-	}
-	
-	
-	// for each of the six clipping planes:
-	for (int p = 0; p < 6; ++p)
-	{
-		const Plane& clippingPlane = frustum->plane[p];
-				
-		std::list<Line3D>::iterator l = lines.begin();
-		while (l != lines.end())
-		{
-			const Line3D& line = *l;
-			
-			
-			// cull lines
-			
-			
-			
-			
-			
-			
-			// clip lines
-			
-			
-			
-			// rasterize
-			
-			
-		}
-		
+	VertexOutList transformedVertices( vertices.size() );
+	CallVertexShader vertexTransform(vertexShader);
+
+	std::transform(vertices.begin(), vertices.end(), transformedVertices.begin(), vertexTransform);
 
 		
-	}
 	
 		
 
