@@ -11,7 +11,7 @@ ShadingGeometry interpolate(const ShadingGeometry& a, const ShadingGeometry& b, 
 	result.normal = normalize(mix(a.normal, b.normal, d));
 
 	result.colour = mix(a.colour, b.colour, d);
-
+	result.windowCoord = mix(a.windowCoord, b.windowCoord, d);
 
 	return result;
 }

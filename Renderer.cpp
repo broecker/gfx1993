@@ -7,10 +7,15 @@
 #include "glmHelper.h"
 #include "Line.h"
 #include "Frustum.h"
+#include "ShadingGeometry.h"
 
 #include <algorithm>
 #include <iostream>
 #include <list>
+
+Renderer::Renderer() : vertexShader(0), fragmentShader(0), framebuffer(0), depthbuffer(0), viewport(0), frustum(0)
+{
+}
 
 unsigned int Renderer::drawPoints(const VertexList& vertices) const
 {
@@ -18,6 +23,9 @@ unsigned int Renderer::drawPoints(const VertexList& vertices) const
 
 	if (!vertexShader)
 		throw "Vertex shader missing!";
+
+	if (!fragmentShader)
+		throw "Fragment shader missing!";
 
 	if (!framebuffer)
 		throw "Framebuffer missing!";
@@ -36,6 +44,7 @@ unsigned int Renderer::drawPoints(const VertexList& vertices) const
 	for (VertexList::const_iterator v = vertices.begin(); v != vertices.end(); ++v)
 	{
 		Vertex transformedVertex = vertexShader->transformSingle(*v);
+		vec3 pos_world = vertexShader->calculateWorldPosition(*v);
 
 		vec4 pos_clip = transformedVertex.position;
 
@@ -54,10 +63,18 @@ unsigned int Renderer::drawPoints(const VertexList& vertices) const
 			unsigned int x = pos_win.x;
 			unsigned int y = pos_win.y;
 
+			ShadingGeometry sgeo;
+			sgeo.worldPosition = pos_world;
+			sgeo.normal = transformedVertex.normal;
+			sgeo.colour = transformedVertex.colour;
+			sgeo.windowCoord = ivec2(x, y);
+
 			if (depthbuffer->conditionalPlot(x,y, pos_win.z))
 			{
 				++pointsDrawn;
-				framebuffer->plot(x, y, Colour(transformedVertex.colour));
+				
+				Colour result = fragmentShader->shadeSingle( sgeo );
+				framebuffer->plot(x, y, result );
 			}
 		}
 		else

@@ -5,10 +5,13 @@
 
 struct ShadingGeometry
 {
-	glm::vec4	worldPosition;
+	glm::vec3	worldPosition;
 	glm::vec3	normal;
 
 	glm::vec4	colour;
+
+	glm::ivec2	windowCoord;
+
 };
 
 ShadingGeometry interpolate(const ShadingGeometry& a, const ShadingGeometry& b, float d);

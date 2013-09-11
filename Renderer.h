@@ -13,6 +13,8 @@ class Frustum;
 class Renderer
 {
 public:
+	Renderer();
+
 	VertexShader*	vertexShader;
 	FragmentShader*	fragmentShader;
 

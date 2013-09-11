@@ -34,6 +34,7 @@ Depthbuffer*	depthbuffer;
 
 Renderer*		renderer;
 VertexShader*	vertexTransform;
+FragmentShader*	fragmentShader;
 
 Viewport*		viewport;
 
@@ -182,11 +183,15 @@ static void keyboard(unsigned char key, int x, int y)
 			float y = (float)rand() / RAND_MAX * 2.f - 1.f;
 			float z = (float)rand() / RAND_MAX * 2.f - 1.f;
 
+			float nx = (float)rand() / RAND_MAX * 2.f - 1.f;
+			float ny = (float)rand() / RAND_MAX * 2.f - 1.f;
+			float nz = (float)rand() / RAND_MAX * 2.f - 1.f;
+
 			float r = (float)rand() / RAND_MAX;
 			float g = (float)rand() / RAND_MAX;
 			float b = 1.f - r - g;
 
-			vertices.push_back( Vertex(glm::vec4(x,y,z,1.f), glm::vec4(r,g,b,1.f)));
+			vertices.push_back( Vertex(glm::vec4(x,y,z,1.f), glm::normalize(glm::vec3(nx, ny, nz)), glm::vec4(r,g,b,1.f)));
 		
 			std::clog << "Created point at (" << x << "," << y << "," << z << ")" << std::endl; 
 		}
@@ -265,9 +270,11 @@ int main(int argc, char** argv)
 										glm::vec4(tx, ty, tz, 1.f));
 	*/
 	
+	fragmentShader = new InputColourShader;
+	renderer->fragmentShader = fragmentShader;
 
 
-	vertices.push_back( Vertex(glm::vec4(0,0,0,1), glm::vec4(1,1,1,1)) );
+	vertices.push_back( Vertex(glm::vec4(0,0,0,1), glm::vec3(0,0,1), glm::vec4(1,1,1,1)) );
 	
 	setRandomBgColour( 0 );
 	setRandomBgColour( 1 );
