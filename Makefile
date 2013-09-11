@@ -2,7 +2,7 @@ CXX := clang++
 LDD := g++
 
 TARGET	:= srender
-SRC	:= main.cpp Line.cpp Renderer.cpp Framebuffer.cpp Depthbuffer.cpp Viewport.cpp Shader.cpp Plane.cpp Frustum.cpp
+SRC	:= main.cpp Line.cpp Renderer.cpp Framebuffer.cpp Depthbuffer.cpp Viewport.cpp Shader.cpp Plane.cpp Frustum.cpp ShadingGeometry.cpp
 OBJS	:= ${SRC:.cpp=.o} 
 
 CCFLAGS := -I/usr/local/include -Wall -O0 -g
