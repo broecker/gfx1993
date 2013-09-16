@@ -43,6 +43,18 @@ struct VertexOut
 	glm::vec2	texcoord;
 };
 
+inline VertexOut lerp(const VertexOut& a, const VertexOut& b, float d)
+{
+	VertexOut result;
+	result.clipPosition = glm::mix(a.clipPosition, b.clipPosition, d);
+	result.worldPosition = glm::mix(a.worldPosition, b.worldPosition, d);
+	result.worldNormal = glm::mix(a.worldNormal, b.worldNormal, d);
+	result.colour = glm::mix(a.colour, b.colour, d);
+	result.texcoord = glm::mix(a.texcoord, b.texcoord, d);
+	return result;
+}
+
+
 
 typedef std::vector<Vertex> VertexList;
 typedef std::vector<unsigned int> IndexList;

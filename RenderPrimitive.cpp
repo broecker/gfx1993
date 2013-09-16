@@ -1,7 +1,50 @@
 #include "RenderPrimitive.h"
+#include "glmHelper.h"
 
 using namespace glm;
 
+// access enum for the plane array
+enum ClippingPlane 
+{ 
+	LEFT = 0, 
+	RIGHT, 
+	BOTTOM, 
+	TOP, 
+	NEAR, 
+	FAR 
+};
+
+// the six clipping planes in projective coordinates
+static const vec4 clippingPlanes[] = { vec4(1,0,0,1), vec4(-1,0,0,1), vec4(0,1,0,1), vec4(0,-1,0,1), vec4(0,0,1,1), vec4(0,0,-1,1) };
+
+
+// clips a line to a single clip space plane
+static ClipResult clipLineToPlane(VertexOut& a, VertexOut& b, ClippingPlane plane)
+{
+	// signed distances from the clipping planes to both line end points
+	float d0 = dot(a.clipPosition, clippingPlanes[plane]);
+	float d1 = dot(b.clipPosition, clippingPlanes[plane]);
+
+	// both are outside -- discard
+	if (d0 < 0.f && d1 < 0.f)
+		return DISCARD;
+
+	// both are inside -- no clipping needed
+	if (d0 >= 0.f && d1 >= 0.f)
+		return KEEP;
+
+	// calculate intersection;	
+	float t = d0 / (d0 - d1);	
+	
+	// a is inside, b outside
+	if (d0 >= 0.f)
+		b = lerp(a, b, t);
+	// a is outside, b inside
+	else
+		a = lerp(a, b, t);
+
+	return CLIPPED;
+}
 
 ClipResult PointPrimitive::clipToNDC() const
 {
@@ -26,7 +69,22 @@ ShadingGeometry PointPrimitive::rasterise() const
 
 ClipResult LinePrimitive::clipToNDC()
 {
-	return KEEP;
+	ClipResult cr = KEEP;
+
+	if ((cr = clipLineToPlane(a, b, NEAR)) == DISCARD)
+		return DISCARD;
+	if ((cr = clipLineToPlane(a, b, FAR)) == DISCARD)
+		return DISCARD;
+	if ((cr = clipLineToPlane(a, b, LEFT)) == DISCARD)
+		return DISCARD;
+	if ((cr = clipLineToPlane(a, b, RIGHT)) == DISCARD)
+		return DISCARD;
+	if ((cr = clipLineToPlane(a, b, TOP)) == DISCARD)
+		return DISCARD;
+	if ((cr = clipLineToPlane(a, b, BOTTOM)) == DISCARD)
+		return DISCARD;
+
+	return cr;
 }
 
 ShadingGeometry LinePrimitive::rasterise(float d) const

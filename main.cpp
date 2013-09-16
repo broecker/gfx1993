@@ -249,7 +249,7 @@ int main(int argc, char** argv)
 	srand( time(0) );
 
 	renderer = new Renderer;
-	viewport = new Viewport(20, 20, width-20, height-20);
+	viewport = new Viewport(0, 0, width, height);
 	renderer->viewport = viewport;
 
 	framebuffer = new Framebuffer(width, height);
@@ -262,7 +262,7 @@ int main(int argc, char** argv)
 	renderer->vertexShader = dvt;
 
 	dvt->modelMatrix = glm::mat4(1.f);
-	dvt->viewMatrix[3] = glm::vec4(0, 0, -4.f, 1);
+	dvt->viewMatrix[3] = glm::vec4(0, 0, -3.f, 1);
 	dvt->projectionMatrix = glm::perspective(45.f, 1.3f, 1.f, 100.f);
 	
 	fragmentShader = new InputColourShader;

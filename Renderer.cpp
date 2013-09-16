@@ -162,6 +162,14 @@ unsigned int Renderer::drawLines(const VertexList& vertices, const IndexList& in
 			continue;
 		}
 
+
+		Colour colour = Colour(0, 0.7, 0, 1);
+
+		if (cr == CLIPPED)
+			colour = Colour(0.7, 0.7, 0, 1);
+
+
+
 		// bresenham line
 		{
 			// point a
@@ -198,7 +206,8 @@ unsigned int Renderer::drawLines(const VertexList& vertices, const IndexList& in
 					sgeo.depth = depth;
 
 					Colour c = fragmentShader->shadeSingle(sgeo);
-					framebuffer->plot(a, c);
+					//framebuffer->plot(a, c);
+					framebuffer->plot(a, colour);
 				}
 
 				// 'core' bresenham
