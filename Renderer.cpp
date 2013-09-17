@@ -321,8 +321,7 @@ void Renderer::drawTriangle(const TrianglePrimitive& triangle) const
 	min = glm::max(viewport->origin, min);
 	max = glm::min(viewport->origin+viewport->size-1, max);
 
-
-
+	/*
 	// draw bounding box	
 	Colour bboxColour(1,0,0,1);
 	for (unsigned int x = min.x; x <= max.x; ++x)
@@ -340,6 +339,7 @@ void Renderer::drawTriangle(const TrianglePrimitive& triangle) const
 		p = ivec2(max.x, y);
 		framebuffer->plot(p, bboxColour);
 	}
+	*/
 	
 	// rasterise
 	// loop over the bounding box
@@ -350,16 +350,19 @@ void Renderer::drawTriangle(const TrianglePrimitive& triangle) const
 			// position
 			ivec2 p(x,y);
 
-			// determine barycentric coords
-			vec3 lambda;
-
-
 			int w0 = pointInHalfspace(b, c, p);
 			int w1 = pointInHalfspace(c, a, p);
 			int w2 = pointInHalfspace(a, b, p);
 
+			// determine barycentric coords
+			vec3 lambda;
+
+			lambda.x = (float)w0 / (w0+w1+w2);
+			lambda.y = (float)w1 / (w0+w1+w2);
+			lambda.z = (float)w2 / (w0+w1+w2);
+
 			// calculate depth here
-			float z = w0*posA_win.z + w1*posB_win.z + w2*posC_win.z / (w0+w1+w2);
+			float z = lambda.x*posA_win.z + lambda.y*posB_win.z + lambda.z*posC_win.z;
 
 			if (w0 >= 0 && w1 >= 0 && w2 >= 0)
 			{
@@ -367,7 +370,7 @@ void Renderer::drawTriangle(const TrianglePrimitive& triangle) const
 				// depth test
 				if (depthbuffer && (depthbuffer->conditionalPlot(x, y, z)))
 				{		
-					ShadingGeometry sgeo = triangle.rasterise( vec3(w0, w1, w2) );
+					ShadingGeometry sgeo = triangle.rasterise( lambda );
 					sgeo.windowCoord = p;
 					sgeo.depth = z;
 
