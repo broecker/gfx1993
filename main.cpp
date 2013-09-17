@@ -29,6 +29,9 @@ unsigned int 	width = 320, height = 240;
 VertexList 	vertices; 
 IndexList	indices;
 
+VertexList	triVertices;
+IndexList	triIndices;
+
 Framebuffer*	framebuffer;
 Depthbuffer*	depthbuffer;
 
@@ -41,6 +44,25 @@ Viewport*		viewport;
 
 bool rotate = false;
 float rotationAngle = 0.f;
+
+static Vertex createRandomVertex()
+{
+	float x = (float)rand() / RAND_MAX * 2.f - 1.f;
+	float y = (float)rand() / RAND_MAX * 2.f - 1.f;
+	float z = (float)rand() / RAND_MAX * 2.f - 1.f;
+
+	float nx = (float)rand() / RAND_MAX * 2.f - 1.f;
+	float ny = (float)rand() / RAND_MAX * 2.f - 1.f;
+	float nz = (float)rand() / RAND_MAX * 2.f - 1.f;
+
+	glm::vec2 texcoord(0,0);
+
+	float r = (float)rand() / RAND_MAX;
+	float g = (float)rand() / RAND_MAX;
+	float b = 1.f - r - g;
+
+	return Vertex(glm::vec4(x,y,z,1.f), glm::normalize(glm::vec3(nx, ny, nz)), glm::vec4(r,g,b,1.f), texcoord);		
+}
 
 static void display()
 {
@@ -67,7 +89,6 @@ static void idle()
 	unsigned int elapsedTime = glutGet(GLUT_ELAPSED_TIME);
 	float dt = (float)(elapsedTime-oldTime) / 1000.f;
 	oldTime = elapsedTime;
-
 
 	static float timer = 0.f;
 	static unsigned int frames = 0;
@@ -102,8 +123,14 @@ static void idle()
 		renderer->drawPoints( vertices );
 		
 		if (!indices.empty())
+		{
 			renderer->drawLines(vertices, indices);
-				
+		}		
+
+		if (!triIndices.empty())
+		{
+			renderer->drawTriangles(triVertices, triIndices);
+		}
 	}
 	catch (const char* txt)
 	{
@@ -132,57 +159,34 @@ static void keyboard(unsigned char key, int x, int y)
 
 	}
 
-	if (key == 'l')
-	{
-		indices.clear();
-		for (unsigned int i = 0; i < vertices.size()/2; ++i)
-		{
-			indices.push_back( i );
-			
-			// find a target vertex that is not our current one
-			unsigned int target = i;
-			while (target == i)
-				target = rand() % vertices.size();
-			
-			indices.push_back( target );
-			
-			
-		}
-		
-	}
-	
 	if (key == 'p')
 	{
 		size_t pcount = 32;
 		for (int i = 0; i < pcount; ++i)
 		{
-			float x = (float)rand() / RAND_MAX * 2.f - 1.f;
-			float y = (float)rand() / RAND_MAX * 2.f - 1.f;
-			float z = (float)rand() / RAND_MAX * 2.f - 1.f;
-
-			float nx = (float)rand() / RAND_MAX * 2.f - 1.f;
-			float ny = (float)rand() / RAND_MAX * 2.f - 1.f;
-			float nz = (float)rand() / RAND_MAX * 2.f - 1.f;
-
-			glm::vec2 texcoord(0,0);
-
-			float r = (float)rand() / RAND_MAX;
-			float g = (float)rand() / RAND_MAX;
-			float b = 1.f - r - g;
-
-			vertices.push_back( Vertex(glm::vec4(x,y,z,1.f), glm::normalize(glm::vec3(nx, ny, nz)), glm::vec4(r,g,b,1.f), texcoord));
-		
-			std::clog << "Created point at (" << x << "," << y << "," << z << ")" << std::endl; 
+			vertices.push_back( createRandomVertex() );
 		}
 
 		std::clog << "Created " << vertices.size() << " vertices.\n";
 
 	}
 
+	if (key == 't')
+	{
+		for (int i = 0; i < 3; ++i)
+		{
+			triVertices.push_back( createRandomVertex() );
+			triIndices.push_back( triVertices.size()-1 );
+		}
+	}
+
 	if (key == 'c')
 	{
 		vertices.clear();
 		indices.clear();
+
+		triVertices.clear();
+		triIndices.clear();
 
 		// create a cube
 		vertices.push_back( Vertex( glm::vec4(-1,  1, 1, 1) ) );

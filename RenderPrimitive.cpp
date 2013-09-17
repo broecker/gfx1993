@@ -46,6 +46,30 @@ static ClipResult clipLineToPlane(VertexOut& a, VertexOut& b, ClippingPlane plan
 	return CLIPPED;
 }
 
+static ClipResult clipTriangleToPlane(TrianglePrimitive& in, ClippingPlane plane)
+{	
+	float d0 = dot(in.a.clipPosition, clippingPlanes[plane]);
+	float d1 = dot(in.b.clipPosition, clippingPlanes[plane]);
+	float d2 = dot(in.c.clipPosition, clippingPlanes[plane]);
+
+	// all outside
+	if (d0 < 0.f && d1 < 0.f && d2 < 0.f)
+		return DISCARD;
+
+	// all inside
+	if (d0 >= 0.f && d1 >= 0.f && d2 >= 0.f)
+		return KEEP;
+
+	// calculate intersection
+	clipLineToPlane(in.a, in.b, plane);
+	clipLineToPlane(in.a, in.c, plane);
+
+	// TODO: create second triangle here
+
+	return CLIPPED;
+
+}
+
 ClipResult PointPrimitive::clipToNDC() const
 {
 	if (p.clipPosition.x >= -p.clipPosition.w && p.clipPosition.x <= p.clipPosition.w && 
@@ -96,4 +120,35 @@ ShadingGeometry LinePrimitive::rasterise(float d) const
 	result.texcoord = mix(a.texcoord, b.texcoord, d);
 
 	return result;
+}
+
+
+// creates new triangles
+ClipResult TrianglePrimitive::clipToNDC()
+{
+	ClipResult cr = KEEP;
+
+	if ((cr = clipTriangleToPlane(*this, NEAR)) != KEEP)
+		return DISCARD;
+	if ((cr = clipTriangleToPlane(*this, FAR)) != KEEP)
+		return DISCARD;
+	if ((cr = clipTriangleToPlane(*this, LEFT)) != KEEP)
+		return DISCARD;
+	if ((cr = clipTriangleToPlane(*this, RIGHT)) != KEEP)
+		return DISCARD;
+	if ((cr = clipTriangleToPlane(*this, TOP)) != KEEP)
+		return DISCARD;
+	if ((cr = clipTriangleToPlane(*this, BOTTOM)) != KEEP)
+		return DISCARD;
+
+	return cr;
+
+}
+
+ShadingGeometry TrianglePrimitive::rasterise(const glm::vec2& d) const
+{
+	ShadingGeometry sgeo;
+
+
+	return sgeo;
 }

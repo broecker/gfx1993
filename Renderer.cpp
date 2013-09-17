@@ -43,10 +43,6 @@ struct NoVertexTransform
 	}
 };
 
-Renderer::Renderer() : vertexShader(0), fragmentShader(0), framebuffer(0), depthbuffer(0), viewport(0)
-{
-}
-
 unsigned int Renderer::drawPoints(const VertexList& vertices) const
 {
 	using namespace glm;
@@ -66,16 +62,8 @@ unsigned int Renderer::drawPoints(const VertexList& vertices) const
 	unsigned int pointsDrawn = 0;
 
 	VertexOutList transformedVertices(vertices.size());
-	if (vertexShader)
-	{
-		CallVertexShader vertexTransform(vertexShader);
-		std::transform(vertices.begin(), vertices.end(), transformedVertices.begin(), vertexTransform);
-	}
-	else
-	{
-		NoVertexTransform vertexTransform;
-		std::transform(vertices.begin(), vertices.end(), transformedVertices.begin(), vertexTransform);
-	}
+	transformVertices(vertices, transformedVertices);
+
 
 	// build points
 	PointPrimitiveList points;
@@ -119,14 +107,25 @@ unsigned int Renderer::drawPoints(const VertexList& vertices) const
 	return pointsDrawn;
 }
 
+void Renderer::transformVertices(const VertexList& vertices, VertexOutList& out) const
+{
+	if (vertexShader)
+	{
+		CallVertexShader vertexTransform(vertexShader);
+		std::transform(vertices.begin(), vertices.end(), out.begin(), vertexTransform);
+	}
+	else
+	{
+		NoVertexTransform vertexTransform;
+		std::transform(vertices.begin(), vertices.end(), out.begin(), vertexTransform);
+	}
+}
+
 unsigned int Renderer::drawLines(const VertexList& vertices, const IndexList& indices) const
 {
 	unsigned int linesDrawn = 0;
 
 	using namespace glm;
-	
-	if (!vertexShader)
-		throw "Vertex shader missing!";
 	
 	if (!fragmentShader)
 		throw "Fragment shader missing!";
@@ -137,9 +136,7 @@ unsigned int Renderer::drawLines(const VertexList& vertices, const IndexList& in
 
 	// transform vertices
 	VertexOutList transformedVertices( vertices.size() );
-	CallVertexShader vertexTransform(vertexShader);
-
-	std::transform(vertices.begin(), vertices.end(), transformedVertices.begin(), vertexTransform);
+	transformVertices(vertices, transformedVertices);
 
 	// build lines
 	LinePrimitiveList lines;
@@ -154,7 +151,6 @@ unsigned int Renderer::drawLines(const VertexList& vertices, const IndexList& in
 	for(LinePrimitiveList::iterator l = lines.begin(); l != lines.end(); ++l)
 	{
 		// clip and cull lines here
-
 		ClipResult cr = l->clipToNDC();
 		if (cr == DISCARD)
 		{
@@ -162,68 +158,130 @@ unsigned int Renderer::drawLines(const VertexList& vertices, const IndexList& in
 			continue;
 		}
 
-
-		Colour colour = Colour(0, 0.7, 0, 1);
-
-		if (cr == CLIPPED)
-			colour = Colour(0.7, 0.7, 0, 1);
-
-
-
-		// bresenham line
-		{
-			// point a
-			const vec4& posA_clip = l->a.clipPosition;
-			const vec3 posA_ndc = vec3(posA_clip) / posA_clip.w;
-			const vec3 posA_win = viewport->calculateWindowCoordinates( posA_ndc );
-
-			// point b
-			const vec4& posB_clip = l->b.clipPosition;
-			const vec3 posB_ndc = vec3(posB_clip) / posB_clip.w;
-			const vec3 posB_win = viewport->calculateWindowCoordinates( posB_ndc );
-
-			ivec2 a = ivec2(posA_win);
-			ivec2 b = ivec2(posB_win);
-
-			float lineLength = length(b-a); 
-			unsigned int positionCounter = 0;
-
-			int dx = abs(a.x-b.x), sx = a.x<b.x ? 1 : -1;
-			int dy = abs(a.y-b.y), sy = a.y<b.y ? 1 : -1; 
-			int err = (dx>dy ? dx : -dy)/2, e2;
-
-			// bresenham line
-			for(;;)
-			{
-				// interpolation for depth and texturing/colour
-				float delta = std::min(1.f, positionCounter/lineLength);
-				float depth = mix(posA_win.z, posB_win.z, delta);
-
-				if (viewport->isInside(a) && (!depthbuffer || (depthbuffer && depthbuffer->conditionalPlot(a.x, a.y, depth))))
-				{			
-					ShadingGeometry sgeo = l->rasterise( positionCounter/lineLength );
-					sgeo.windowCoord = a;
-					sgeo.depth = depth;
-
-					Colour c = fragmentShader->shadeSingle(sgeo);
-					//framebuffer->plot(a, c);
-					framebuffer->plot(a, colour);
-				}
-
-				// 'core' bresenham
-				if (a.x==b.x && a.y==b.y) 
-					break;
-				e2 = err;
-				if (e2 >-dx) { err -= dy; a.x += sx; }
-				if (e2 < dy) { err += dx; a.y += sy; }
+		drawLine( *l );
+		++linesDrawn;
 		
-				++positionCounter;
-			}
-
-
-			++linesDrawn;
-		}
 	}
 
 	return linesDrawn;
+}
+
+unsigned int Renderer::drawTriangles(const VertexList& vertices, const IndexList& indices) const
+{
+	unsigned int trianglesDrawn = 0;
+
+	using namespace glm;
+	
+	if (!vertexShader)
+		throw "Vertex shader missing!";
+	
+	if (!fragmentShader)
+		throw "Fragment shader missing!";
+
+	if (!viewport)
+		throw "Viewport is missing!";
+			
+	// transform vertices
+	VertexOutList transformedVertices( vertices.size() );
+	CallVertexShader vertexTransform(vertexShader);
+
+	std::transform(vertices.begin(), vertices.end(), transformedVertices.begin(), vertexTransform);
+
+	// build triangles
+	TrianglePrimitiveList triangles;
+	for (int i = 0; i < indices.size(); i += 3)
+	{
+		const VertexOut& a = transformedVertices[ indices[i+0] ];
+		const VertexOut& b = transformedVertices[ indices[i+1] ];
+		const VertexOut& c = transformedVertices[ indices[i+2] ];
+
+
+		// backface culling
+		vec3 n = cross(vec3(b.clipPosition-a.clipPosition), vec3(c.clipPosition-a.clipPosition));
+		if (dot(n, vec3(0, 0, 1)) > 0)
+			triangles.push_back( TrianglePrimitive(a, b, c) );
+	}
+
+	for(TrianglePrimitiveList::iterator tri = triangles.begin(); tri != triangles.end(); ++tri)
+	{
+		// clip and cull triangles here
+		ClipResult cr = tri->clipToNDC();
+		if (cr == DISCARD)
+		{
+			// triangle completely outside -- discard it
+			continue;
+		}
+
+		if (cr == CLIPPED)
+		{
+			// insert newly created triangles at the end
+
+		}
+
+		// rasterise and interpolate triangle here
+		drawTriangle( *tri );
+
+	}
+
+
+
+
+	return trianglesDrawn;
+}
+
+// bresenham line drawing
+void Renderer::drawLine(const LinePrimitive& line) const
+{
+	using namespace glm;
+
+	// point a
+	const vec4& posA_clip = line.a.clipPosition;
+	const vec3 posA_ndc = vec3(posA_clip) / posA_clip.w;
+	const vec3 posA_win = viewport->calculateWindowCoordinates( posA_ndc );
+
+	// point b
+	const vec4& posB_clip = line.b.clipPosition;
+	const vec3 posB_ndc = vec3(posB_clip) / posB_clip.w;
+	const vec3 posB_win = viewport->calculateWindowCoordinates( posB_ndc );
+
+	ivec2 a = ivec2(posA_win);
+	ivec2 b = ivec2(posB_win);
+
+	float lineLength = length(b-a); 
+	unsigned int positionCounter = 0;
+
+	int dx = abs(a.x-b.x), sx = a.x<b.x ? 1 : -1;
+	int dy = abs(a.y-b.y), sy = a.y<b.y ? 1 : -1; 
+	int err = (dx>dy ? dx : -dy)/2, e2;
+
+	for(;;)
+	{
+		// interpolation for depth and texturing/colour
+		float delta = std::min(1.f, positionCounter/lineLength);
+		float depth = mix(posA_win.z, posB_win.z, delta);
+
+		if (viewport->isInside(a) && (!depthbuffer || (depthbuffer && depthbuffer->conditionalPlot(a.x, a.y, depth))))
+		{			
+			ShadingGeometry sgeo = line.rasterise( positionCounter/lineLength );
+			sgeo.windowCoord = a;
+			sgeo.depth = depth;
+
+			Colour c = fragmentShader->shadeSingle(sgeo);
+			framebuffer->plot(a, c);
+		}
+
+		// 'core' bresenham
+		if (a.x==b.x && a.y==b.y) 
+			break;
+		e2 = err;
+		if (e2 >-dx) { err -= dy; a.x += sx; }
+		if (e2 < dy) { err += dx; a.y += sy; }
+
+		++positionCounter;
+	}
+}
+
+void Renderer::drawTriangle(const TrianglePrimitive& t) const
+{
+
 }

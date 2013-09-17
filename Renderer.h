@@ -9,11 +9,13 @@ class VertexShader;
 class FragmentShader;
 class Viewport;
 
+
+struct LinePrimitive;
+struct TrianglePrimitive;
+
 class Renderer
 {
 public:
-	Renderer();
-
 	VertexShader*	vertexShader;
 	FragmentShader*	fragmentShader;
 
@@ -25,6 +27,14 @@ public:
 	unsigned int drawPoints(const VertexList& points) const;
 
 	unsigned int drawLines(const VertexList& vertices, const IndexList& indices) const;
+	unsigned int drawTriangles(const VertexList& vertices, const IndexList& indices) const;
+
+private:
+	void drawLine(const LinePrimitive& line) const;
+	void drawTriangle(const TrianglePrimitive& t) const;
+
+	void transformVertices(const VertexList& verticesIn, VertexOutList& out) const;
+
 
 };
 
