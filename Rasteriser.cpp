@@ -1,4 +1,4 @@
-#include "Renderer.h"
+#include "Rasteriser.h"
 #include "Framebuffer.h"
 #include "Depthbuffer.h"
 #include "Viewport.h"
@@ -43,7 +43,7 @@ struct NoVertexTransform
 	}
 };
 
-unsigned int Renderer::drawPoints(const VertexList& vertices) const
+unsigned int Rasteriser::drawPoints(const VertexList& vertices) const
 {
 	using namespace glm;
 
@@ -107,7 +107,7 @@ unsigned int Renderer::drawPoints(const VertexList& vertices) const
 	return pointsDrawn;
 }
 
-void Renderer::transformVertices(const VertexList& vertices, VertexOutList& out) const
+void Rasteriser::transformVertices(const VertexList& vertices, VertexOutList& out) const
 {
 	if (vertexShader)
 	{
@@ -121,7 +121,7 @@ void Renderer::transformVertices(const VertexList& vertices, VertexOutList& out)
 	}
 }
 
-unsigned int Renderer::drawLines(const VertexList& vertices, const IndexList& indices) const
+unsigned int Rasteriser::drawLines(const VertexList& vertices, const IndexList& indices) const
 {
 	unsigned int linesDrawn = 0;
 
@@ -166,7 +166,7 @@ unsigned int Renderer::drawLines(const VertexList& vertices, const IndexList& in
 	return linesDrawn;
 }
 
-unsigned int Renderer::drawTriangles(const VertexList& vertices, const IndexList& indices) const
+unsigned int Rasteriser::drawTriangles(const VertexList& vertices, const IndexList& indices) const
 {
 	unsigned int trianglesDrawn = 0;
 
@@ -229,7 +229,7 @@ unsigned int Renderer::drawTriangles(const VertexList& vertices, const IndexList
 }
 
 // bresenham line drawing
-void Renderer::drawLine(const LinePrimitive& line) const
+void Rasteriser::drawLine(const LinePrimitive& line) const
 {
 	using namespace glm;
 
@@ -287,7 +287,7 @@ static inline int pointInHalfspace(const glm::ivec2& a, const glm::ivec2& b, con
 }
 
 // parameter-based rasterisation of triangles
-void Renderer::drawTriangle(const TrianglePrimitive& triangle) const
+void Rasteriser::drawTriangle(const TrianglePrimitive& triangle) const
 {
 	using namespace glm;
 	// point a

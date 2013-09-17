@@ -1,1 +1,2 @@
 http://fgiesen.wordpress.com/2013/02/10/optimizing-the-basic-rasterizer/
+http://joshbeam.com/articles/triangle_rasterization

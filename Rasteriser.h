@@ -1,5 +1,5 @@
-#ifndef RENDERER_INCLUDED
-#define RENDERER_INCLUDED
+#ifndef RASTERISER_INCLUDED
+#define RASTERISER_INCLUDED
 
 #include "Vertex.h"
 
@@ -13,7 +13,7 @@ class Viewport;
 struct LinePrimitive;
 struct TrianglePrimitive;
 
-class Renderer
+class Rasteriser
 {
 public:
 	VertexShader*	vertexShader;

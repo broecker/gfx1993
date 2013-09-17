@@ -17,7 +17,7 @@
 #include "Line.h"
 #include "Vertex.h"
 #include "Shader.h"
-#include "Renderer.h"
+#include "Rasteriser.h"
 #include "Viewport.h"
 
 #include "glmHelper.h"
@@ -35,7 +35,7 @@ IndexList	triIndices;
 Framebuffer*	framebuffer;
 Depthbuffer*	depthbuffer;
 
-Renderer*		renderer;
+Rasteriser*		rasteriser;
 VertexShader*	vertexTransform;
 FragmentShader*	fragmentShader;
 
@@ -108,7 +108,7 @@ static void idle()
 	{
 		rotationAngle += 15*dt;
 		glm::mat4 rotate = glm::rotate(rotationAngle, 0.f, 1.f, 0.f);
-		DefaultVertexTransform* dvt = reinterpret_cast<DefaultVertexTransform*>(renderer->vertexShader);
+		DefaultVertexTransform* dvt = reinterpret_cast<DefaultVertexTransform*>(rasteriser->vertexShader);
 		dvt->modelMatrix = rotate;
 	}
 
@@ -120,16 +120,16 @@ static void idle()
 
 	try
 	{
-		renderer->drawPoints( vertices );
+		rasteriser->drawPoints( vertices );
 		
 		if (!indices.empty())
 		{
-			renderer->drawLines(vertices, indices);
+			rasteriser->drawLines(vertices, indices);
 		}		
 
 		if (!triIndices.empty())
 		{
-			renderer->drawTriangles(triVertices, triIndices);
+			rasteriser->drawTriangles(triVertices, triIndices);
 		}
 	}
 	catch (const char* txt)
@@ -250,7 +250,7 @@ static void keyboard(unsigned char key, int x, int y)
 		rotationAngle += 1;
 
 		glm::mat4 rotate = glm::rotate(rotationAngle, 0.f, 1.f, 0.f);
-		DefaultVertexTransform* dvt = reinterpret_cast<DefaultVertexTransform*>(renderer->vertexShader);
+		DefaultVertexTransform* dvt = reinterpret_cast<DefaultVertexTransform*>(rasteriser->vertexShader);
 		dvt->modelMatrix = rotate;
 	}
 
@@ -259,7 +259,7 @@ static void keyboard(unsigned char key, int x, int y)
 		rotationAngle -= 1;
 
 		glm::mat4 rotate = glm::rotate(rotationAngle, 0.f, 1.f, 0.f);
-		DefaultVertexTransform* dvt = reinterpret_cast<DefaultVertexTransform*>(renderer->vertexShader);
+		DefaultVertexTransform* dvt = reinterpret_cast<DefaultVertexTransform*>(rasteriser->vertexShader);
 		dvt->modelMatrix = rotate;
 	}
 
@@ -271,7 +271,7 @@ static void cleanup()
 	delete depthbuffer;
 
 	delete vertexTransform;
-	delete renderer;
+	delete rasteriser;
 
 	delete viewport;
 }
@@ -292,25 +292,25 @@ int main(int argc, char** argv)
 
 	srand( time(0) );
 
-	renderer = new Renderer;
+	rasteriser = new Rasteriser;
 	viewport = new Viewport(0, 0, width, height);
-	renderer->viewport = viewport;
+	rasteriser->viewport = viewport;
 
 	framebuffer = new Framebuffer(width, height);
-	renderer->framebuffer = framebuffer;
+	rasteriser->framebuffer = framebuffer;
 
 	depthbuffer = new Depthbuffer(width, height);
-	renderer->depthbuffer = depthbuffer;
+	rasteriser->depthbuffer = depthbuffer;
 
 	DefaultVertexTransform* dvt = new DefaultVertexTransform;
-	renderer->vertexShader = dvt;
+	rasteriser->vertexShader = dvt;
 
 	dvt->modelMatrix = glm::mat4(1.f);
 	dvt->viewMatrix[3] = glm::vec4(0, 0, -5.f, 1);
 	dvt->projectionMatrix = glm::perspective(45.f, 1.3f, 1.f, 100.f);
 	
 	fragmentShader = new InputColourShader;
-	renderer->fragmentShader = fragmentShader;
+	rasteriser->fragmentShader = fragmentShader;
 
 
 	vertices.push_back( Vertex(glm::vec4(0,0,0,1), glm::vec3(0,0,1), glm::vec4(1,1,1,1), glm::vec2(0,0)) );
