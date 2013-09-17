@@ -51,7 +51,7 @@ struct TrianglePrimitive
 	VertexOut	a, b, c;
 
 	inline TrianglePrimitive(const VertexOut& a_, const VertexOut& b_, const VertexOut& c_) : a(a_), b(b_), c(c_) {}
-	ShadingGeometry rasterise(const glm::vec2& d) const;
+	ShadingGeometry rasterise(const glm::vec3& bary) const;
 
 	ClipResult clipToNDC();
 

@@ -33,6 +33,7 @@ private:
 	void drawLine(const LinePrimitive& line) const;
 	void drawTriangle(const TrianglePrimitive& t) const;
 
+	// vertex transform of the input vertices
 	void transformVertices(const VertexList& verticesIn, VertexOutList& out) const;
 
 

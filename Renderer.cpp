@@ -183,9 +183,7 @@ unsigned int Renderer::drawTriangles(const VertexList& vertices, const IndexList
 			
 	// transform vertices
 	VertexOutList transformedVertices( vertices.size() );
-	CallVertexShader vertexTransform(vertexShader);
-
-	std::transform(vertices.begin(), vertices.end(), transformedVertices.begin(), vertexTransform);
+	transformVertices( vertices, transformedVertices );
 
 	// build triangles
 	TrianglePrimitiveList triangles;
@@ -198,8 +196,9 @@ unsigned int Renderer::drawTriangles(const VertexList& vertices, const IndexList
 
 		// backface culling
 		vec3 n = cross(vec3(b.clipPosition-a.clipPosition), vec3(c.clipPosition-a.clipPosition));
-		if (dot(n, vec3(0, 0, 1)) > 0)
+		if (n.z >= 0)
 			triangles.push_back( TrianglePrimitive(a, b, c) );
+
 	}
 
 	for(TrianglePrimitiveList::iterator tri = triangles.begin(); tri != triangles.end(); ++tri)
@@ -281,7 +280,104 @@ void Renderer::drawLine(const LinePrimitive& line) const
 	}
 }
 
-void Renderer::drawTriangle(const TrianglePrimitive& t) const
+// finds which part of the half-space of line a-b point c is in (positive or negative)
+static inline int pointInHalfspace(const glm::ivec2& a, const glm::ivec2& b, const glm::ivec2& c)
 {
+	return (b.x-a.x)*(c.y-a.y) - (b.y-a.y)*(c.x-a.x);
+}
+
+// parameter-based rasterisation of triangles
+void Renderer::drawTriangle(const TrianglePrimitive& triangle) const
+{
+	using namespace glm;
+	// point a
+	const vec4& posA_clip = triangle.a.clipPosition;
+	const vec3 posA_ndc = vec3(posA_clip) / posA_clip.w;
+	const vec3 posA_win = viewport->calculateWindowCoordinates( posA_ndc );
+
+	// point b
+	const vec4& posB_clip = triangle.b.clipPosition;
+	const vec3 posB_ndc = vec3(posB_clip) / posB_clip.w;
+	const vec3 posB_win = viewport->calculateWindowCoordinates( posB_ndc );
+
+	// point c
+	const vec4& posC_clip = triangle.c.clipPosition;
+	const vec3 posC_ndc = vec3(posC_clip) / posC_clip.w;
+	const vec3 posC_win = viewport->calculateWindowCoordinates( posC_ndc );
+
+	// three window/screen coordinates  
+	ivec2 a = ivec2(posA_win);
+	ivec2 b = ivec2(posB_win);
+	ivec2 c = ivec2(posC_win);
+
+	// calculate bounds
+	ivec2 min, max;
+	min.x = glm::min(a.x, glm::min(b.x, c.x));
+	min.y = glm::min(a.y, glm::min(b.y, c.y));
+	max.x = glm::max(a.x, glm::max(b.x, c.x));
+	max.y = glm::max(a.y, glm::max(b.y, c.y));
+
+	// clip against screen coords
+	min = glm::max(viewport->origin, min);
+	max = glm::min(viewport->origin+viewport->size-1, max);
+
+
+
+	// draw bounding box	
+	Colour bboxColour(1,0,0,1);
+	for (unsigned int x = min.x; x <= max.x; ++x)
+	{
+		ivec2 p(x, min.y);
+		framebuffer->plot(p, bboxColour);
+		p = ivec2(x, max.y);
+		framebuffer->plot(p, bboxColour);
+	}
+
+	for (unsigned int y = min.y; y <= max.y; ++y)
+	{
+		ivec2 p(min.x, y);
+		framebuffer->plot(p, bboxColour);
+		p = ivec2(max.x, y);
+		framebuffer->plot(p, bboxColour);
+	}
+	
+	// rasterise
+	// loop over the bounding box
+	for (unsigned int y = min.y; y <= max.y; ++y)
+	{
+		for (unsigned int x = min.x; x <= max.x; ++x)
+		{
+			// position
+			ivec2 p(x,y);
+
+			// determine barycentric coords
+			vec3 lambda;
+
+
+			int w0 = pointInHalfspace(b, c, p);
+			int w1 = pointInHalfspace(c, a, p);
+			int w2 = pointInHalfspace(a, b, p);
+
+			// calculate depth here
+			float z = w0*posA_win.z + w1*posB_win.z + w2*posC_win.z / (w0+w1+w2);
+
+			if (w0 >= 0 && w1 >= 0 && w2 >= 0)
+			{
+
+				// depth test
+				if (depthbuffer && (depthbuffer->conditionalPlot(x, y, z)))
+				{		
+					ShadingGeometry sgeo = triangle.rasterise( vec3(w0, w1, w2) );
+					sgeo.windowCoord = p;
+					sgeo.depth = z;
+
+					Colour c = fragmentShader->shadeSingle(sgeo);
+					framebuffer->plot(p, c);
+				}
+
+			}
+
+		}
+	}
 
 }

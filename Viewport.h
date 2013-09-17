@@ -16,7 +16,6 @@ public:
 
 	glm::vec3 calculateWindowCoordinates(const glm::vec3& ndc) const;
 
-protected:
 	glm::ivec2		origin;
 	glm::ivec2		size;
 };

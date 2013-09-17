@@ -106,7 +106,7 @@ static void idle()
 
 	if (rotate)
 	{
-		rotationAngle += 5*dt;
+		rotationAngle += 15*dt;
 		glm::mat4 rotate = glm::rotate(rotationAngle, 0.f, 1.f, 0.f);
 		DefaultVertexTransform* dvt = reinterpret_cast<DefaultVertexTransform*>(renderer->vertexShader);
 		dvt->modelMatrix = rotate;
@@ -173,11 +173,32 @@ static void keyboard(unsigned char key, int x, int y)
 
 	if (key == 't')
 	{
-		for (int i = 0; i < 3; ++i)
-		{
-			triVertices.push_back( createRandomVertex() );
-			triIndices.push_back( triVertices.size()-1 );
-		}
+		Vertex a = createRandomVertex();
+		Vertex b = createRandomVertex();
+		Vertex c = createRandomVertex();
+
+		triVertices.push_back(a);
+		triIndices.push_back( triVertices.size()-1 );
+
+		triVertices.push_back(b);
+		triIndices.push_back( triVertices.size()-1 );
+
+		triVertices.push_back(c);
+		triIndices.push_back( triVertices.size()-1 );
+
+		// generate lines
+		/*
+		vertices.push_back( a ); unsigned int ai = vertices.size()-1;
+		vertices.push_back( b ); unsigned int bi = vertices.size()-1;
+		vertices.push_back( c ); unsigned int ci = vertices.size()-1;
+
+		indices.push_back( ai );
+		indices.push_back( bi );
+		indices.push_back( bi );
+		indices.push_back( ci );
+		indices.push_back( ci );
+		indices.push_back( ai );
+		*/
 	}
 
 	if (key == 'c')
@@ -223,6 +244,25 @@ static void keyboard(unsigned char key, int x, int y)
 		
 	}
 
+	// single step advance
+	if (key == 's')
+	{
+		rotationAngle += 1;
+
+		glm::mat4 rotate = glm::rotate(rotationAngle, 0.f, 1.f, 0.f);
+		DefaultVertexTransform* dvt = reinterpret_cast<DefaultVertexTransform*>(renderer->vertexShader);
+		dvt->modelMatrix = rotate;
+	}
+
+	if (key == 'S')
+	{
+		rotationAngle -= 1;
+
+		glm::mat4 rotate = glm::rotate(rotationAngle, 0.f, 1.f, 0.f);
+		DefaultVertexTransform* dvt = reinterpret_cast<DefaultVertexTransform*>(renderer->vertexShader);
+		dvt->modelMatrix = rotate;
+	}
+
 }
 
 static void cleanup()
@@ -266,7 +306,7 @@ int main(int argc, char** argv)
 	renderer->vertexShader = dvt;
 
 	dvt->modelMatrix = glm::mat4(1.f);
-	dvt->viewMatrix[3] = glm::vec4(0, 0, -3.f, 1);
+	dvt->viewMatrix[3] = glm::vec4(0, 0, -5.f, 1);
 	dvt->projectionMatrix = glm::perspective(45.f, 1.3f, 1.f, 100.f);
 	
 	fragmentShader = new InputColourShader;
