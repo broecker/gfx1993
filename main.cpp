@@ -143,7 +143,7 @@ static void idle()
 		if (geometry)
 		{
 			DefaultVertexTransform* dvt = reinterpret_cast<DefaultVertexTransform*>(rasteriser->vertexShader);
-			dvt->modelMatrix *= geometry->modelMatrix;
+			dvt->modelMatrix *= geometry->transform;
 
 			rasteriser->fragmentShader = normalShader;
 			rasteriser->drawTriangles( geometry->vertices, geometry->indices );
@@ -268,7 +268,7 @@ static void keyboard(unsigned char key, int x, int y)
 		geometry = new Geometry;
 
 		geometry->loadPLY("models/bunny/reconstruction/bun_zipper_res3.ply");
-		geometry->modelMatrix = glm::scale(5.f, 5.f, 5.f);
+		geometry->transform = glm::scale(5.f, 5.f, 5.f);
 		geometry->center();
 
 	}

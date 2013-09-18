@@ -8,7 +8,7 @@
 
 struct Geometry
 {
-	glm::mat4	modelMatrix;
+	glm::mat4	transform;
 
 	float 		boundingSphereRadius;
 
