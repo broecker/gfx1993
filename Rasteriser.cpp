@@ -194,8 +194,13 @@ unsigned int Rasteriser::drawTriangles(const VertexList& vertices, const IndexLi
 		const VertexOut& c = transformedVertices[ indices[i+2] ];
 
 
-		// backface culling
-		vec3 n = cross(vec3(b.clipPosition-a.clipPosition), vec3(c.clipPosition-a.clipPosition));
+		// backface culling in NDC
+		vec3 a_ndc = vec3(a.clipPosition / a.clipPosition.w);
+		vec3 b_ndc = vec3(b.clipPosition / b.clipPosition.w);
+		vec3 c_ndc = vec3(c.clipPosition / c.clipPosition.w);
+
+
+		vec3 n = cross(b_ndc-a_ndc, c_ndc-a_ndc);
 		if (n.z >= 0)
 			triangles.push_back( TrianglePrimitive(a, b, c) );
 
