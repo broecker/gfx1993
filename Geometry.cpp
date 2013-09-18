@@ -125,3 +125,29 @@ bool Geometry::loadPLY(const std::string& filename)
 
 
 }
+
+void Geometry::center()
+{
+	// find bounding box
+	glm::vec3 min(FLT_MAX), max(FLT_MIN);
+	
+	for (VertexList::iterator v = vertices.begin(); v != vertices.end(); ++v)
+	{
+		min.x = std::min(min.x, v->position.x);
+		min.y = std::min(min.y, v->position.y);
+		min.z = std::min(min.z, v->position.z);
+		
+		max.x = std::max(max.x, v->position.x);
+		max.y = std::max(max.y, v->position.y);
+		max.z = std::max(max.z, v->position.z);
+	}
+
+	// update vertices and find new bounding sphere radius
+	boundingSphereRadius = 0.f;
+	for (VertexList::iterator v = vertices.begin(); v != vertices.end(); ++v)
+	{
+		v->position = v->position - glm::vec4(min, 0.f) - glm::vec4((max-min)*0.5f, 0.f);
+		boundingSphereRadius = std::max(boundingSphereRadius, glm::length(glm::vec3(v->position)));
+	}
+
+}

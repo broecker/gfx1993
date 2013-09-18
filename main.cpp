@@ -116,8 +116,10 @@ static void idle()
 	framebuffer->clear( clearColour );
 	depthbuffer->clear();
 
-	// reset the view matrix
+	// reset the render matrices
 	DefaultVertexTransform* dvt = reinterpret_cast<DefaultVertexTransform*>(rasteriser->vertexShader);
+	dvt->modelMatrix = glm::mat4(1.f);
+
 	dvt->viewMatrix = glm::mat4(1.f);
 	dvt->viewMatrix[3] = glm::vec4(0, 0, -3.f, 1);
 
@@ -141,7 +143,7 @@ static void idle()
 		if (geometry)
 		{
 			DefaultVertexTransform* dvt = reinterpret_cast<DefaultVertexTransform*>(rasteriser->vertexShader);
-			dvt->modelMatrix = geometry->modelMatrix;
+			dvt->modelMatrix *= geometry->modelMatrix;
 
 			rasteriser->fragmentShader = normalShader;
 			rasteriser->drawTriangles( geometry->vertices, geometry->indices );
@@ -266,7 +268,8 @@ static void keyboard(unsigned char key, int x, int y)
 		geometry = new Geometry;
 
 		geometry->loadPLY("models/bunny/reconstruction/bun_zipper_res3.ply");
-		geometry->modelMatrix = glm::mat4(1.f);
+		geometry->modelMatrix = glm::scale(5.f, 5.f, 5.f);
+		geometry->center();
 
 	}
 
@@ -345,7 +348,7 @@ int main(int argc, char** argv)
 
 	dvt->modelMatrix = glm::mat4(1.f);
 	dvt->viewMatrix[3] = glm::vec4(0, 0, -3.f, 1);
-	dvt->projectionMatrix = glm::perspective(45.f, 1.3f, 1.f, 100.f);
+	dvt->projectionMatrix = glm::perspective(65.f, 1.3f, 1.f, 100.f);
 	
 	fragmentShader = new InputColourShader;
 	rasteriser->fragmentShader = fragmentShader;

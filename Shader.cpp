@@ -9,13 +9,16 @@ VertexShader::~VertexShader()
 
 VertexOut DefaultVertexTransform::transformSingle(const Vertex& in)
 {
+	mat4 modelViewMatrix = viewMatrix * modelMatrix;
 	mat4 modelViewProjectionMatrix = projectionMatrix * viewMatrix * modelMatrix;
-	mat3 normalMatrix = glm::mat3(glm::inverse(glm::transpose(viewMatrix * modelMatrix)));
+	//mat3 normalMatrix = glm::inverse(glm::transpose(glm::mat3(modelViewMatrix)));
 
 	VertexOut result;
 	result.clipPosition = modelViewProjectionMatrix * in.position;
 	result.worldPosition = vec3(modelMatrix * in.position);
-	result.worldNormal = normalMatrix * in.normal;
+	
+	// this assumes that no non-uniform scaling or shearing takes place
+	result.worldNormal = mat3(modelMatrix) * in.normal;
 	result.colour = in.colour;
 	result.texcoord = in.texcoord;
 
@@ -35,6 +38,6 @@ Colour InputColourShader::shadeSingle(const ShadingGeometry& in)
 
 Colour NormalColourShader::shadeSingle(const ShadingGeometry& in)
 {
-	vec3 c = abs(in.normal);
+	vec3 c = abs(normalize(in.normal));
 	return Colour( c.x, c.y, c.z, 1.f );
 }

@@ -15,7 +15,12 @@ struct Geometry
 	VertexList	vertices;
 	IndexList	indices;
 
+	// loads a PLY geometry
 	bool loadPLY(const std::string& filename);
+
+	// centers the model's vertices around its origin
+	void center();
+
 };
 
 #endif
