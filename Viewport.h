@@ -3,8 +3,6 @@
 
 #include <glm/glm.hpp>
 
-struct Line2D;
-
 class Viewport
 {
 public:
@@ -12,7 +10,6 @@ public:
 
 
 	bool isInside(const glm::ivec2& p) const;
-	bool isInside(const Line2D& line) const;
 
 	glm::vec3 calculateWindowCoordinates(const glm::vec3& ndc) const;
 

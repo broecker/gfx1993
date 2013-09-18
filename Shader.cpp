@@ -32,3 +32,9 @@ Colour InputColourShader::shadeSingle(const ShadingGeometry& in)
 {
 	return in.colour;
 }
+
+Colour NormalColourShader::shadeSingle(const ShadingGeometry& in)
+{
+	vec3 c = abs(in.normal);
+	return Colour( c.x, c.y, c.z, 1.f );
+}

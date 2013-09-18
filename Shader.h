@@ -47,5 +47,12 @@ public:
 
 };
 
+class NormalColourShader : public FragmentShader
+{
+public:
+	Colour shadeSingle(const ShadingGeometry& in);
+
+};
+
 
 #endif

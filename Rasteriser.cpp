@@ -5,8 +5,6 @@
 
 #include "Shader.h"
 #include "glmHelper.h"
-#include "Line.h"
-#include "Frustum.h"
 #include "ShadingGeometry.h"
 #include "RenderPrimitive.h"
 

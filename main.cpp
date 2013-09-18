@@ -14,11 +14,11 @@
 #include "Framebuffer.h"
 #include "Depthbuffer.h"
 #include "Colour.h"
-#include "Line.h"
 #include "Vertex.h"
 #include "Shader.h"
 #include "Rasteriser.h"
 #include "Viewport.h"
+#include "Geometry.h"
 
 #include "glmHelper.h"
 
@@ -32,12 +32,15 @@ IndexList	indices;
 VertexList	triVertices;
 IndexList	triIndices;
 
+Geometry*		geometry = 0;
+
 Framebuffer*	framebuffer;
 Depthbuffer*	depthbuffer;
 
 Rasteriser*		rasteriser;
 VertexShader*	vertexTransform;
 FragmentShader*	fragmentShader;
+FragmentShader*	normalShader;
 
 Viewport*		viewport;
 
@@ -84,6 +87,8 @@ static void display()
 
 static void idle()
 {
+
+	// update time
 	static unsigned int oldTime = 0;
 
 	unsigned int elapsedTime = glutGet(GLUT_ELAPSED_TIME);
@@ -102,21 +107,22 @@ static void idle()
 		frames = 0;
 	}
 
-
-
+	// update animation
 	if (rotate)
-	{
 		rotationAngle += 15*dt;
-		glm::mat4 rotate = glm::rotate(rotationAngle, 0.f, 1.f, 0.f);
-		DefaultVertexTransform* dvt = reinterpret_cast<DefaultVertexTransform*>(rasteriser->vertexShader);
-		dvt->modelMatrix = rotate;
-	}
 
-	
 	// clear the buffers	
 	Colour clearColour(0, 0, 0.2f, 1.f);
 	framebuffer->clear( clearColour );
 	depthbuffer->clear();
+
+	// reset the view matrix
+	DefaultVertexTransform* dvt = reinterpret_cast<DefaultVertexTransform*>(rasteriser->vertexShader);
+	dvt->viewMatrix = glm::mat4(1.f);
+	dvt->viewMatrix[3] = glm::vec4(0, 0, -3.f, 1);
+
+	glm::mat4 rotate = glm::rotate(rotationAngle, 0.f, 1.f, 0.f);
+	dvt->viewMatrix *= rotate;
 
 	try
 	{
@@ -130,6 +136,16 @@ static void idle()
 		if (!triIndices.empty())
 		{
 			rasteriser->drawTriangles(triVertices, triIndices);
+		}
+
+		if (geometry)
+		{
+			DefaultVertexTransform* dvt = reinterpret_cast<DefaultVertexTransform*>(rasteriser->vertexShader);
+			dvt->modelMatrix = geometry->modelMatrix;
+
+			rasteriser->fragmentShader = normalShader;
+			rasteriser->drawTriangles( geometry->vertices, geometry->indices );
+			rasteriser->fragmentShader = fragmentShader;
 		}
 	}
 	catch (const char* txt)
@@ -244,6 +260,22 @@ static void keyboard(unsigned char key, int x, int y)
 		
 	}
 
+	if (key == 'g')
+	{
+		delete geometry;
+		geometry = new Geometry;
+
+		geometry->loadPLY("models/bunny/reconstruction/bun_zipper_res3.ply");
+		geometry->modelMatrix = glm::mat4(1.f);
+
+	}
+
+	if (key == 'G')
+	{
+		delete geometry;
+		geometry = 0;
+	}
+
 	// single step advance
 	if (key == 's')
 	{
@@ -251,7 +283,8 @@ static void keyboard(unsigned char key, int x, int y)
 
 		glm::mat4 rotate = glm::rotate(rotationAngle, 0.f, 1.f, 0.f);
 		DefaultVertexTransform* dvt = reinterpret_cast<DefaultVertexTransform*>(rasteriser->vertexShader);
-		dvt->modelMatrix = rotate;
+		dvt->viewMatrix *= rotate;
+
 	}
 
 	if (key == 'S')
@@ -260,7 +293,7 @@ static void keyboard(unsigned char key, int x, int y)
 
 		glm::mat4 rotate = glm::rotate(rotationAngle, 0.f, 1.f, 0.f);
 		DefaultVertexTransform* dvt = reinterpret_cast<DefaultVertexTransform*>(rasteriser->vertexShader);
-		dvt->modelMatrix = rotate;
+		dvt->viewMatrix *= rotate;
 	}
 
 }
@@ -271,7 +304,12 @@ static void cleanup()
 	delete depthbuffer;
 
 	delete vertexTransform;
+	delete fragmentShader;
+	delete normalShader;
+
 	delete rasteriser;
+
+	delete geometry;
 
 	delete viewport;
 }
@@ -306,12 +344,13 @@ int main(int argc, char** argv)
 	rasteriser->vertexShader = dvt;
 
 	dvt->modelMatrix = glm::mat4(1.f);
-	dvt->viewMatrix[3] = glm::vec4(0, 0, -5.f, 1);
+	dvt->viewMatrix[3] = glm::vec4(0, 0, -3.f, 1);
 	dvt->projectionMatrix = glm::perspective(45.f, 1.3f, 1.f, 100.f);
 	
 	fragmentShader = new InputColourShader;
 	rasteriser->fragmentShader = fragmentShader;
 
+	normalShader = new NormalColourShader;
 
 	vertices.push_back( Vertex(glm::vec4(0,0,0,1), glm::vec3(0,0,1), glm::vec4(1,1,1,1), glm::vec2(0,0)) );
 
