@@ -128,17 +128,17 @@ ClipResult TrianglePrimitive::clipToNDC()
 {
 	ClipResult cr = KEEP;
 
-	if ((cr = clipTriangleToPlane(*this, NEAR)) != KEEP)
+	if ((cr = clipTriangleToPlane(*this, NEAR))   == DISCARD)
 		return DISCARD;
-	if ((cr = clipTriangleToPlane(*this, FAR)) != KEEP)
+	if ((cr = clipTriangleToPlane(*this, FAR))    == DISCARD)
 		return DISCARD;
-	if ((cr = clipTriangleToPlane(*this, LEFT)) != KEEP)
+	if ((cr = clipTriangleToPlane(*this, LEFT))   == DISCARD)
 		return DISCARD;
-	if ((cr = clipTriangleToPlane(*this, RIGHT)) != KEEP)
+	if ((cr = clipTriangleToPlane(*this, RIGHT))  == DISCARD)
 		return DISCARD;
-	if ((cr = clipTriangleToPlane(*this, TOP)) != KEEP)
+	if ((cr = clipTriangleToPlane(*this, TOP))    == DISCARD)
 		return DISCARD;
-	if ((cr = clipTriangleToPlane(*this, BOTTOM)) != KEEP)
+	if ((cr = clipTriangleToPlane(*this, BOTTOM)) == DISCARD)
 		return DISCARD;
 
 	return cr;
