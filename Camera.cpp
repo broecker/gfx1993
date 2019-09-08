@@ -1,7 +1,6 @@
 #include "Camera.h"
 
 #include <glm/gtx/io.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/polar_coordinates.hpp>
 #include <glm/gtx/transform.hpp>
 #include <iostream>
