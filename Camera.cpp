@@ -46,7 +46,5 @@ glm::mat4 OrbitCamera::getCameraMatrix()
 	position = glm::euclidean(glm::radians(glm::vec2(theta, phi))) * radius;
 	position += target;
 
-	glm::mat4 result = glm::lookAt(position, target, up);
-
-	return result * glm::scale(glm::vec3(1,1,-1));
+	return glm::lookAt(position, target, up);
 }

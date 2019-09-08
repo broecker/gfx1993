@@ -12,17 +12,6 @@ enum ClipResult
 	CLIPPED
 };
 
-class RenderPrimitive
-{
-public:
-	virtual ~RenderPrimitive() {};
-
-	virtual ClipResult clipToNDC();
-
-
-
-};
-
 struct PointPrimitive
 {
 	VertexOut	p;
@@ -31,7 +20,6 @@ struct PointPrimitive
 	ShadingGeometry rasterise() const;
 
 	ClipResult clipToNDC() const;
-
 };
 
 struct LinePrimitive
