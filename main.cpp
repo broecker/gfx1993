@@ -111,7 +111,7 @@ static void idle()
 
 	// update animation
 	if (rotate)
-		rotationAngle += 15*dt;
+		rotationAngle += 1*dt;
 
 	// clear the buffers	
 	Colour clearColour(0, 0, 0.2f, 1.f);
@@ -209,7 +209,12 @@ static void keyboard(unsigned char key, int x, int y)
 		indices.push_back( ai );
 		*/
 	}
-	
+
+	if (key == 'b') 
+	{
+		rasteriser->toggleBoundingBoxes();
+	}
+
 	if (key == 'c')
 	{
 		vertices.clear();

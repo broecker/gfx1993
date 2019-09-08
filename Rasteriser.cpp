@@ -41,6 +41,11 @@ struct NoVertexTransform
 	}
 };
 
+Rasteriser::Rasteriser() : drawBoundingBoxes(false) 
+{
+
+}
+
 unsigned int Rasteriser::drawPoints(const VertexList& vertices) const
 {
 	using namespace glm;
@@ -225,9 +230,6 @@ unsigned int Rasteriser::drawTriangles(const VertexList& vertices, const IndexLi
 
 	}
 
-
-
-
 	return trianglesDrawn;
 }
 
@@ -290,7 +292,7 @@ static inline int pointInHalfspace(const glm::ivec2& a, const glm::ivec2& b, con
 }
 
 // parameter-based rasterisation of triangles
-void Rasteriser::drawTriangle(const TrianglePrimitive& triangle, bool drawBbox) const
+void Rasteriser::drawTriangle(const TrianglePrimitive& triangle) const
 {
 	using namespace glm;
 	// point a
@@ -324,7 +326,7 @@ void Rasteriser::drawTriangle(const TrianglePrimitive& triangle, bool drawBbox) 
 	min = glm::max(viewport->origin, min);
 	max = glm::min(viewport->origin+viewport->size-1, max);
 
-	if (drawBbox) {
+	if (drawBoundingBoxes) {
 		// draw bounding box	
 		Colour bboxColour(1,0,0,1);
 		for (unsigned int x = min.x; x <= max.x; ++x)
@@ -386,4 +388,9 @@ void Rasteriser::drawTriangle(const TrianglePrimitive& triangle, bool drawBbox) 
 		}
 	}
 
+}
+
+void Rasteriser::toggleBoundingBoxes() {
+	drawBoundingBoxes = !drawBoundingBoxes;
+	std::clog << (drawBoundingBoxes ? "D" : "Not d") << "rawing bounding boxes." << std::endl;
 }
