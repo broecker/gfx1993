@@ -19,6 +19,7 @@
 #include "Rasteriser.h"
 #include "Viewport.h"
 #include "Geometry.h"
+#include "Camera.h"
 
 #include "glmHelper.h"
 
@@ -43,6 +44,8 @@ FragmentShader*	fragmentShader;
 FragmentShader*	normalShader;
 
 Viewport*		viewport;
+
+Camera*			camera;
 
 bool rotate = false;
 float rotationAngle = 0.f;
@@ -118,12 +121,11 @@ static void idle()
 	// reset the render matrices
 	DefaultVertexTransform* dvt = reinterpret_cast<DefaultVertexTransform*>(rasteriser->vertexShader);
 	dvt->modelMatrix = glm::mat4(1.f);
-
-	dvt->viewMatrix = glm::mat4(1.f);
-	dvt->viewMatrix[3] = glm::vec4(0, 0, -3.f, 1);
+	dvt->viewMatrix = camera->getCameraMatrix();
+	std::cout << "ViewMatrix: " << camera->getCameraMatrix() << std::endl;
 
 	glm::mat4 rotate = glm::rotate(rotationAngle, glm::vec3(0.f, 1.f, 0.f));
-	dvt->viewMatrix *= rotate;
+	dvt->modelMatrix *= rotate;
 
 	try
 	{
@@ -207,7 +209,7 @@ static void keyboard(unsigned char key, int x, int y)
 		indices.push_back( ai );
 		*/
 	}
-
+	
 	if (key == 'c')
 	{
 		vertices.clear();
@@ -257,7 +259,7 @@ static void keyboard(unsigned char key, int x, int y)
 		geometry = new Geometry;
 
 		geometry->loadPLY("models/bunny/reconstruction/bun_zipper_res3.ply");
-		geometry->transform = glm::scale(glm::vec3(5.f, 5.f, 5.f));
+		geometry->transform = glm::scale(glm::vec3(25.f, 25.f, 25.f));
 		geometry->center();
 
 	}
@@ -286,6 +288,10 @@ static void keyboard(unsigned char key, int x, int y)
 		glm::mat4 rotate = glm::rotate(rotationAngle, glm::vec3(0.f, 1.f, 0.f));		
 		DefaultVertexTransform* dvt = reinterpret_cast<DefaultVertexTransform*>(rasteriser->vertexShader);
 		dvt->viewMatrix *= rotate;
+	}
+
+	if (key == 'a' || key == 'z') {
+		camera->handleKeyPress(key);
 	}
 
 }
@@ -343,6 +349,8 @@ int main(int argc, char** argv)
 	rasteriser->fragmentShader = fragmentShader;
 
 	normalShader = new NormalColourShader;
+
+	camera = new OrbitCamera(glm::vec3(0,0,0), glm::vec3(0,1,0), 10.0f);
 
 	vertices.push_back( Vertex(glm::vec4(0,0,0,1), glm::vec3(0,0,1), glm::vec4(1,1,1,1), glm::vec2(0,0)) );
 
