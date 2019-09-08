@@ -44,7 +44,6 @@ FragmentShader*	normalShader;
 
 Viewport*		viewport;
 
-
 bool rotate = false;
 float rotationAngle = 0.f;
 
@@ -123,7 +122,7 @@ static void idle()
 	dvt->viewMatrix = glm::mat4(1.f);
 	dvt->viewMatrix[3] = glm::vec4(0, 0, -3.f, 1);
 
-	glm::mat4 rotate = glm::rotate(rotationAngle, 0.f, 1.f, 0.f);
+	glm::mat4 rotate = glm::rotate(rotationAngle, glm::vec3(0.f, 1.f, 0.f));
 	dvt->viewMatrix *= rotate;
 
 	try
@@ -268,7 +267,7 @@ static void keyboard(unsigned char key, int x, int y)
 		geometry = new Geometry;
 
 		geometry->loadPLY("models/bunny/reconstruction/bun_zipper_res3.ply");
-		geometry->transform = glm::scale(5.f, 5.f, 5.f);
+		geometry->transform = glm::scale(glm::vec3(5.f, 5.f, 5.f));
 		geometry->center();
 
 	}
@@ -284,7 +283,7 @@ static void keyboard(unsigned char key, int x, int y)
 	{
 		rotationAngle += 1;
 
-		glm::mat4 rotate = glm::rotate(rotationAngle, 0.f, 1.f, 0.f);
+		glm::mat4 rotate = glm::rotate(rotationAngle, glm::vec3(0.f, 1.f, 0.f));
 		DefaultVertexTransform* dvt = reinterpret_cast<DefaultVertexTransform*>(rasteriser->vertexShader);
 		dvt->viewMatrix *= rotate;
 
@@ -294,7 +293,7 @@ static void keyboard(unsigned char key, int x, int y)
 	{
 		rotationAngle -= 1;
 
-		glm::mat4 rotate = glm::rotate(rotationAngle, 0.f, 1.f, 0.f);
+		glm::mat4 rotate = glm::rotate(rotationAngle, glm::vec3(0.f, 1.f, 0.f));		
 		DefaultVertexTransform* dvt = reinterpret_cast<DefaultVertexTransform*>(rasteriser->vertexShader);
 		dvt->viewMatrix *= rotate;
 	}

@@ -1,2 +1,4 @@
 srender
 *.o
+models/bunny/*
+old/
