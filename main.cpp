@@ -1,4 +1,6 @@
 #include <iostream>
+#include <memory>
+
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
 #include <glm/gtx/transform.hpp>
@@ -20,6 +22,7 @@
 #include "Viewport.h"
 #include "Geometry.h"
 #include "Camera.h"
+#include "CubeGeometry.h"
 
 #include "glmHelper.h"
 
@@ -34,6 +37,8 @@ VertexList	triVertices;
 IndexList	triIndices;
 
 Geometry*		geometry = nullptr;
+std::unique_ptr<CubeGeometry> cube = nullptr;
+
 
 Framebuffer*	framebuffer;
 Depthbuffer*	depthbuffer;
@@ -141,6 +146,12 @@ static void idle()
 			rasteriser->drawTriangles(triVertices, triIndices);
 		}
 
+		if (cube)
+		{
+			rasteriser->drawLines(cube->getVertices(), cube->getIndices());
+		}
+
+
 		if (geometry)
 		{
 			DefaultVertexTransform* dvt = reinterpret_cast<DefaultVertexTransform*>(rasteriser->vertexShader);
@@ -224,38 +235,7 @@ static void keyboard(unsigned char key, int x, int y)
 		triIndices.clear();
 
 		// create a cube
-		vertices.push_back( Vertex( glm::vec4(-1,  1, 1, 1) ) );
-		vertices.push_back( Vertex( glm::vec4(-1, -1, 1, 1) ) );
-		vertices.push_back( Vertex( glm::vec4( 1, -1, 1, 1) ) );
-		vertices.push_back( Vertex( glm::vec4( 1,  1, 1, 1) ) );
-		vertices.push_back( Vertex( glm::vec4(-1,  1, -1, 1) ) );
-		vertices.push_back( Vertex( glm::vec4(-1, -1, -1, 1) ) );
-		vertices.push_back( Vertex( glm::vec4( 1, -1, -1, 1) ) );
-		vertices.push_back( Vertex( glm::vec4( 1,  1, -1, 1) ) );
-
-		for (int i = 0; i < 8; ++i)
-		{
-			float r = (float)rand() / RAND_MAX;
-			float g = (float)rand() / RAND_MAX;
-			float b = 1.f - (r+g);
-			vertices[i].colour.r = r; 
-			vertices[i].colour.g = g; 
-			vertices[i].colour.b = b; 
-		}
-
-		indices.push_back(0); indices.push_back(1);
-		indices.push_back(1); indices.push_back(2);
-		indices.push_back(2); indices.push_back(3);
-		indices.push_back(3); indices.push_back(0);
-		indices.push_back(4); indices.push_back(5);
-		indices.push_back(5); indices.push_back(6);
-		indices.push_back(6); indices.push_back(7);
-		indices.push_back(7); indices.push_back(4);
-		indices.push_back(0); indices.push_back(4);
-		indices.push_back(1); indices.push_back(5);
-		indices.push_back(2); indices.push_back(6);
-		indices.push_back(3); indices.push_back(7);
-		
+		cube = std::make_unique<CubeGeometry>(glm::vec3(2.f, 2.f, 2.f));		
 	}
 
 	if (key == 'g')

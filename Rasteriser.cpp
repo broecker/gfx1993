@@ -248,10 +248,10 @@ void Rasteriser::drawLine(const LinePrimitive& line) const
 	const vec3 posB_ndc = vec3(posB_clip) / posB_clip.w;
 	const vec3 posB_win = viewport->calculateWindowCoordinates( posB_ndc );
 
-	vec2 a = vec2(posA_win);
-	vec2 b = vec2(posB_win);
+	ivec2 a = ivec2(posA_win);
+	ivec2 b = ivec2(posB_win);
 
-	float lineLength = length(b-a); 
+	float lineLength = sqrtf((b.x-a.x)*(b.x-a.x) + (b.y-a.y)*(b.y-a.y));
 	unsigned int positionCounter = 0;
 
 	int dx = abs(a.x-b.x), sx = a.x<b.x ? 1 : -1;

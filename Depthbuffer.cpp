@@ -1,5 +1,6 @@
 #include "Depthbuffer.h"
 
+#include <cassert>
 #include <cfloat>
 
 Depthbuffer::Depthbuffer(unsigned int w, unsigned int h) : width(w), height(h)
@@ -29,8 +30,10 @@ bool Depthbuffer::conditionalPlot(const glm::vec3& pos)
 }
 
 bool Depthbuffer::conditionalPlot(unsigned int x, unsigned int y, float z)
-
-{	unsigned int i = x + width*y;
+{	
+	assert(x < width);
+	assert(y < height);
+	unsigned int i = x + width*y;
 	if (data[i] > z)
 	{
 		data[i] = z;
