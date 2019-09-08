@@ -24,7 +24,7 @@
 
 unsigned int 	texture;
 
-unsigned int 	width = 320, height = 240;
+unsigned int 	width = 640, height = 480;
 
 VertexList 	vertices; 
 IndexList	indices;
@@ -32,7 +32,7 @@ IndexList	indices;
 VertexList	triVertices;
 IndexList	triIndices;
 
-Geometry*		geometry = 0;
+Geometry*		geometry = nullptr;
 
 Framebuffer*	framebuffer;
 Depthbuffer*	depthbuffer;
@@ -165,16 +165,6 @@ static void keyboard(unsigned char key, int x, int y)
 
 	if (key == 'r')
 		rotate = !rotate;
-
-	if (key == ' ')
-	{
-		unsigned int x = rand()%width;
-		unsigned int y = rand()%height;
-		unsigned int c = (float)rand()/RAND_MAX;
-
-		std::clog << "Putting pixel at " << x << "," << y << std::endl;
-
-	}
 
 	if (key == 'p')
 	{

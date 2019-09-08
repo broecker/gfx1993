@@ -6,11 +6,6 @@
 #include <cassert>
 #include <iostream>
 
-static inline void scaleNormal(Vertex& v)
-{
-	glm::normalize( v.normal );
-}
-
 bool Geometry::loadPLY(const std::string& filename)
 {
 	vertices.clear();
@@ -98,7 +93,7 @@ bool Geometry::loadPLY(const std::string& filename)
 
 	}
 
-	std::clog << "Read " << vertices.size() << " vertices, " << indices.size() << " indices\n";
+	std::clog << "Read " << vertices.size() << " vertices, " << indices.size() << " indices" << std::endl;
 
 	// calculate normals
 	for (unsigned int i = 0; i < indices.size(); i += 3)
@@ -118,12 +113,13 @@ bool Geometry::loadPLY(const std::string& filename)
 		c.normal += n;
 	}
 
-
+	std::clog << "Renormalizing " << vertices.size() << " vertex normals." << std::endl;
 	// scale normal to length 1;
-	std::for_each(vertices.begin(), vertices.end(), scaleNormal);
+	for (size_t i = 0; i < vertices.size(); ++i) {
+		vertices[i].normal = glm::normalize(vertices[i].normal);
+	}
 
-
-
+	return true;
 }
 
 void Geometry::center()

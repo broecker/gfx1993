@@ -31,7 +31,7 @@ public:
 
 private:
 	void drawLine(const LinePrimitive& line) const;
-	void drawTriangle(const TrianglePrimitive& t) const;
+	void drawTriangle(const TrianglePrimitive& t, bool drawBbox = false) const;
 
 	// vertex transform of the input vertices
 	void transformVertices(const VertexList& verticesIn, VertexOutList& out) const;

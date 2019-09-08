@@ -200,7 +200,7 @@ unsigned int Rasteriser::drawTriangles(const VertexList& vertices, const IndexLi
 
 		vec3 n = cross(b_ndc-a_ndc, c_ndc-a_ndc);
 		if (n.z >= 0)
-			triangles.push_back( TrianglePrimitive(a, b, c) );
+			triangles.push_back(TrianglePrimitive(a, b, c));
 
 	}
 
@@ -290,7 +290,7 @@ static inline int pointInHalfspace(const glm::ivec2& a, const glm::ivec2& b, con
 }
 
 // parameter-based rasterisation of triangles
-void Rasteriser::drawTriangle(const TrianglePrimitive& triangle) const
+void Rasteriser::drawTriangle(const TrianglePrimitive& triangle, bool drawBbox) const
 {
 	using namespace glm;
 	// point a
@@ -324,25 +324,25 @@ void Rasteriser::drawTriangle(const TrianglePrimitive& triangle) const
 	min = glm::max(viewport->origin, min);
 	max = glm::min(viewport->origin+viewport->size-1, max);
 
-	/*
-	// draw bounding box	
-	Colour bboxColour(1,0,0,1);
-	for (unsigned int x = min.x; x <= max.x; ++x)
-	{
-		ivec2 p(x, min.y);
-		framebuffer->plot(p, bboxColour);
-		p = ivec2(x, max.y);
-		framebuffer->plot(p, bboxColour);
-	}
+	if (drawBbox) {
+		// draw bounding box	
+		Colour bboxColour(1,0,0,1);
+		for (unsigned int x = min.x; x <= max.x; ++x)
+		{
+			ivec2 p(x, min.y);
+			framebuffer->plot(p, bboxColour);
+			p = ivec2(x, max.y);
+			framebuffer->plot(p, bboxColour);
+		}
 
-	for (unsigned int y = min.y; y <= max.y; ++y)
-	{
-		ivec2 p(min.x, y);
-		framebuffer->plot(p, bboxColour);
-		p = ivec2(max.x, y);
-		framebuffer->plot(p, bboxColour);
+		for (unsigned int y = min.y; y <= max.y; ++y)
+		{
+			ivec2 p(min.x, y);
+			framebuffer->plot(p, bboxColour);
+			p = ivec2(max.x, y);
+			framebuffer->plot(p, bboxColour);
+		}
 	}
-	*/
 	
 	// rasterise
 	// loop over the bounding box
