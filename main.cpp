@@ -23,6 +23,7 @@
 #include "Geometry.h"
 #include "Camera.h"
 #include "CubeGeometry.h"
+#include "RandomTriangleGeometry.h"
 
 #include "glmHelper.h"
 
@@ -33,12 +34,9 @@ unsigned int 	width = 640, height = 480;
 VertexList 	vertices; 
 IndexList	indices;
 
-VertexList	triVertices;
-IndexList	triIndices;
-
 Geometry*		geometry = nullptr;
 std::unique_ptr<CubeGeometry> cube = nullptr;
-
+std::unique_ptr<RandomTriangleGeometry> triangles = nullptr;
 
 Framebuffer*	framebuffer;
 Depthbuffer*	depthbuffer;
@@ -141,11 +139,11 @@ static void idle()
 			rasteriser->drawLines(vertices, indices);
 		}		
 
-		if (!triIndices.empty())
+		if (triangles)
 		{
-			rasteriser->drawTriangles(triVertices, triIndices);
+			rasteriser->drawTriangles(triangles->getVertices(), triangles->getIndices());
 		}
-
+		
 		if (cube)
 		{
 			rasteriser->drawLines(cube->getVertices(), cube->getIndices());
@@ -193,32 +191,9 @@ static void keyboard(unsigned char key, int x, int y)
 
 	if (key == 't')
 	{
-		Vertex a = createRandomVertex();
-		Vertex b = createRandomVertex();
-		Vertex c = createRandomVertex();
-
-		triVertices.push_back(a);
-		triIndices.push_back( triVertices.size()-1 );
-
-		triVertices.push_back(b);
-		triIndices.push_back( triVertices.size()-1 );
-
-		triVertices.push_back(c);
-		triIndices.push_back( triVertices.size()-1 );
-
-		// generate lines
-		/*
-		vertices.push_back( a ); unsigned int ai = vertices.size()-1;
-		vertices.push_back( b ); unsigned int bi = vertices.size()-1;
-		vertices.push_back( c ); unsigned int ci = vertices.size()-1;
-
-		indices.push_back( ai );
-		indices.push_back( bi );
-		indices.push_back( bi );
-		indices.push_back( ci );
-		indices.push_back( ci );
-		indices.push_back( ai );
-		*/
+		if (!triangles) 
+			triangles = std::make_unique<RandomTriangleGeometry>(glm::vec3(-10, -10, -10), glm::vec3(10, 10, 10));			
+		triangles->addTriangle();
 	}
 
 	if (key == 'b') 
@@ -230,9 +205,6 @@ static void keyboard(unsigned char key, int x, int y)
 	{
 		vertices.clear();
 		indices.clear();
-
-		triVertices.clear();
-		triIndices.clear();
 
 		// create a cube
 		cube = std::make_unique<CubeGeometry>(glm::vec3(2.f, 2.f, 2.f));		

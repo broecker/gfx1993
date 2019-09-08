@@ -37,7 +37,10 @@ void OrbitCamera::handleKeyPress(unsigned char key)
 
 void OrbitCamera::handleMouseMove(const glm::ivec2& delta)
 {
+	phi += delta.y;
+	theta += delta.x;
 
+	phi = glm::clamp(phi, -90.f, 90.f);
 }
 
 glm::mat4 OrbitCamera::getCameraMatrix()

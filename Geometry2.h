@@ -16,7 +16,6 @@ public:
 	// Access to transform is public -- no reason to write getter+setter
 	// for the most-used member.	
 	glm::mat4 transform;
-
 };
 
 #endif
