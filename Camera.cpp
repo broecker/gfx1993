@@ -13,7 +13,8 @@ Camera::~Camera()
 {
 }
 
-OrbitCamera::OrbitCamera(const vec3& t, const vec3& u, float r) : target(t), up(u), position(t), radius(r), phi(0.f), theta(0.f)
+OrbitCamera::OrbitCamera(const vec3& t, const vec3& u, float r) : projectionMatrix(glm::perspective(65.f, 1.3f, 1.f, 100.f)),
+	target(t), up(u), position(t), radius(r), phi(0.f), theta(0.f)
 {
 }
 
@@ -42,10 +43,15 @@ void OrbitCamera::handleMouseMove(const glm::ivec2& delta)
 	phi = glm::clamp(phi, -89.f, 89.f);
 }
 
-glm::mat4 OrbitCamera::getCameraMatrix()
+glm::mat4 OrbitCamera::getViewMatrix()
 {
 	position = glm::euclidean(glm::radians(glm::vec2(phi, theta))) * radius;
 	position += target;
 
 	return glm::lookAt(position, target, up);
+}
+
+glm::mat4 OrbitCamera::getProjectionMatrix()
+{
+	return projectionMatrix;
 }

@@ -3,7 +3,6 @@
 
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
-#include <glm/gtx/transform.hpp>
 
 #ifdef __APPLE__
 #include <GLUT/glut.h>
@@ -53,6 +52,9 @@ bool rotate = false;
 float rotationAngle = 0.f;
 
 glm::ivec2 mousePosition;
+
+static const int GLUT_MOUSEWHEEL_DOWN = 3;
+static const int GLUT_MOUSEWHEEL_UP = 4;
 
 static void display()
 {
@@ -106,7 +108,8 @@ static void idle()
 	// reset the render matrices
 	DefaultVertexTransform* dvt = reinterpret_cast<DefaultVertexTransform*>(rasteriser->vertexShader);
 	dvt->modelMatrix = glm::mat4(1.f);
-	dvt->viewMatrix = camera->getCameraMatrix();
+	dvt->viewMatrix = camera->getViewMatrix();
+	dvt->projectionMatrix = camera->getProjectionMatrix();
 
 	glm::mat4 rotate = glm::rotate(rotationAngle, glm::vec3(0.f, 1.f, 0.f));
 	dvt->modelMatrix *= rotate;
@@ -228,6 +231,18 @@ static void motion(int x, int y)
 static void mouse(int button, int state, int x, int y)
 {
 	mousePosition = glm::ivec2(x, y);
+
+	if (button == GLUT_MOUSEWHEEL_DOWN && state == GLUT_DOWN)
+	{
+		camera->handleKeyPress('a');
+
+	}
+
+	if (button == GLUT_MOUSEWHEEL_UP && state == GLUT_DOWN)
+	{
+		camera->handleKeyPress('z');
+
+	}
 }
 
 static void cleanup()
@@ -279,10 +294,6 @@ int main(int argc, char** argv)
 
 	grid = std::make_unique<GridGeometry>();
 
-	dvt->modelMatrix = glm::mat4(1.f);
-	dvt->viewMatrix[3] = glm::vec4(0, 0, -3.f, 1);
-	dvt->projectionMatrix = glm::perspective(65.f, 1.3f, 1.f, 100.f);
-	
 	fragmentShader = new InputColourShader;
 	rasteriser->fragmentShader = fragmentShader;
 

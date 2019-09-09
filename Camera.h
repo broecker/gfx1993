@@ -11,7 +11,9 @@ public:
 	virtual void handleKeyPress(unsigned char key) = 0;
 	virtual void handleMouseMove(const glm::ivec2& delta) = 0;
 
-	virtual glm::mat4 getCameraMatrix() = 0;
+	virtual glm::mat4 getViewMatrix() = 0;
+	virtual glm::mat4 getProjectionMatrix() = 0;
+
 };
 
 
@@ -20,12 +22,15 @@ class OrbitCamera : public Camera
 public:
 	OrbitCamera(const glm::vec3& target, const glm::vec3& up, float radius);
 
-	void handleKeyPress(unsigned char key);
-	void handleMouseMove(const glm::ivec2& delta);
+	void handleKeyPress(unsigned char key) override;
+	void handleMouseMove(const glm::ivec2& delta) override;
 
-	glm::mat4 getCameraMatrix();
+	glm::mat4 getViewMatrix() override;
+	glm::mat4 getProjectionMatrix() override;
 
 private:
+	glm::mat4 projectionMatrix;
+
 	glm::vec3		target, up, position;
 	float 			radius;
 	float			phi, theta;
