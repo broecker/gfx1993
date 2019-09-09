@@ -15,8 +15,6 @@ public:
 private:
 	VertexList	vertices;
 	IndexList	indices;
-
-
 };
 
 #endif

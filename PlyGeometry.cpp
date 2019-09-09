@@ -1,4 +1,5 @@
-#include "Geometry.h"
+#include "PlyGeometry.h"
+
 
 #include <fstream>
 #include <algorithm>
@@ -6,11 +7,12 @@
 #include <cassert>
 #include <iostream>
 
-bool Geometry::loadPLY(const std::string& filename)
+PlyGeometry::PlyGeometry() : boundingSphereRadius(0)
 {
-	vertices.clear();
-	indices.clear();
+}
 
+bool PlyGeometry::loadPly(const std::string& filename)
+{
 	boundingSphereRadius = 0.f;
 
 	std::ifstream file(filename.c_str());
@@ -26,7 +28,7 @@ bool Geometry::loadPLY(const std::string& filename)
 
 	bool readHeader = true;
 	unsigned int vertexCount = 0, readVertices = 0;
-	unsigned int faceCount = 0, readFaces = 0;
+	unsigned int faceCount = 0;
 	while (!file.eof())
 	{
 		std::getline(file, buffer);
@@ -69,8 +71,6 @@ bool Geometry::loadPLY(const std::string& filename)
 		}
 
 		// and then the faces
-
-
 		else
 		{
 			unsigned int a, b, c;
@@ -89,8 +89,6 @@ bool Geometry::loadPLY(const std::string& filename)
 			if (c >= vertices.size())
 				std::cerr << "Illegal index: " << c << "?\n";
 		}
-
-
 	}
 
 	std::clog << "Read " << vertices.size() << " vertices, " << indices.size() << " indices" << std::endl;
@@ -122,7 +120,7 @@ bool Geometry::loadPLY(const std::string& filename)
 	return true;
 }
 
-void Geometry::center()
+void PlyGeometry::center()
 {
 	// find bounding box
 	glm::vec3 min(FLT_MAX), max(FLT_MIN);
@@ -146,4 +144,14 @@ void Geometry::center()
 		boundingSphereRadius = std::max(boundingSphereRadius, glm::length(glm::vec3(v->position)));
 	}
 
+}
+
+const IndexList& PlyGeometry::getIndices() const
+{
+	return indices;
+}
+
+const VertexList& PlyGeometry::getVertices() const
+{
+	return vertices;
 }

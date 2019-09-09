@@ -19,11 +19,11 @@
 #include "Shader.h"
 #include "Rasteriser.h"
 #include "Viewport.h"
-#include "Geometry.h"
 #include "Camera.h"
 #include "CubeGeometry.h"
 #include "RandomTriangleGeometry.h"
 #include "GridGeometry.h"
+#include "PlyGeometry.h"
 
 #include "glmHelper.h"
 
@@ -31,10 +31,11 @@ unsigned int 	texture;
 
 unsigned int 	width = 640, height = 480;
 
-Geometry*		geometry = nullptr;
 std::unique_ptr<CubeGeometry> cube = nullptr;
 std::unique_ptr<RandomTriangleGeometry> triangles = nullptr;
 std::unique_ptr<GridGeometry> grid;
+
+std::vector<std::unique_ptr<PlyGeometry> > bunnyList;
 
 Framebuffer*	framebuffer;
 Depthbuffer*	depthbuffer;
@@ -47,9 +48,6 @@ FragmentShader*	normalShader;
 Viewport*		viewport;
 
 Camera*			camera;
-
-bool rotate = false;
-float rotationAngle = 0.f;
 
 glm::ivec2 mousePosition;
 
@@ -96,10 +94,6 @@ static void idle()
 		frames = 0;
 	}
 
-	// update animation
-	if (rotate)
-		rotationAngle += 1*dt;
-
 	// clear the buffers	
 	Colour clearColour(0, 0, 0.2f, 1.f);
 	framebuffer->clear( clearColour );
@@ -110,9 +104,6 @@ static void idle()
 	dvt->modelMatrix = glm::mat4(1.f);
 	dvt->viewMatrix = camera->getViewMatrix();
 	dvt->projectionMatrix = camera->getProjectionMatrix();
-
-	glm::mat4 rotate = glm::rotate(rotationAngle, glm::vec3(0.f, 1.f, 0.f));
-	dvt->modelMatrix *= rotate;
 
 	try
 	{
@@ -131,14 +122,15 @@ static void idle()
 			rasteriser->drawLines(cube->getVertices(), cube->getIndices());
 		}
 
-		if (geometry)
+		for (auto bunny = bunnyList.begin(); bunny != bunnyList.end(); ++bunny)
 		{
 			DefaultVertexTransform* dvt = reinterpret_cast<DefaultVertexTransform*>(rasteriser->vertexShader);
-			dvt->modelMatrix *= geometry->transform;
+			dvt->modelMatrix = (*bunny)->transform;
 
 			rasteriser->fragmentShader = normalShader;
-			rasteriser->drawTriangles( geometry->vertices, geometry->indices );
+			rasteriser->drawTriangles( (*bunny)->getVertices(), (*bunny)->getIndices() );
 			rasteriser->fragmentShader = fragmentShader;
+
 		}
 	}
 	catch (const char* txt)
@@ -154,9 +146,6 @@ static void keyboard(unsigned char key, int x, int y)
 {
 	if (key == 27)
 		exit(0);
-
-	if (key == 'r')
-		rotate = !rotate;
 
 	if (key == 't')
 	{
@@ -178,39 +167,24 @@ static void keyboard(unsigned char key, int x, int y)
 
 	if (key == 'g')
 	{
-		delete geometry;
-		geometry = new Geometry;
+		std::unique_ptr<PlyGeometry> bunny = std::make_unique<PlyGeometry>();
 
-		geometry->loadPLY("models/bunny/reconstruction/bun_zipper_res3.ply");
-		geometry->transform = glm::scale(glm::vec3(25.f, 25.f, 25.f));
-		geometry->center();
+		bunny->loadPly("models/bunny/reconstruction/bun_zipper_res3.ply");
 
-	}
+		float randomAngle = (float)rand() / RAND_MAX;
+		glm::vec3 randomAxis = glm::sphericalRand(1);
 
-	if (key == 'G')
-	{
-		delete geometry;
-		geometry = 0;
-	}
+		const glm::vec4 minBounds(-15, -4, -15, 1);
+		const glm::vec4 maxBounds( 15, 15, 15, 1);
+		const glm::vec3 minScale(15, 15, 15);
+		const glm::vec3 maxScale(30, 30, 30);
 
-	// single step advance
-	if (key == 's')
-	{
-		rotationAngle += 1;
 
-		glm::mat4 rotate = glm::rotate(rotationAngle, glm::vec3(0.f, 1.f, 0.f));
-		DefaultVertexTransform* dvt = reinterpret_cast<DefaultVertexTransform*>(rasteriser->vertexShader);
-		dvt->viewMatrix *= rotate;
+		bunny->transform = glm::rotate(randomAngle, randomAxis);
+		bunny->transform[3] = glm::linearRand(minBounds, maxBounds);
+		bunny->transform *= glm::scale(glm::linearRand(minScale, maxScale));
 
-	}
-
-	if (key == 'S')
-	{
-		rotationAngle -= 1;
-
-		glm::mat4 rotate = glm::rotate(rotationAngle, glm::vec3(0.f, 1.f, 0.f));		
-		DefaultVertexTransform* dvt = reinterpret_cast<DefaultVertexTransform*>(rasteriser->vertexShader);
-		dvt->viewMatrix *= rotate;
+		bunnyList.emplace_back(std::move(bunny));
 	}
 
 	if (key == 'a' || key == 'z') {
@@ -255,8 +229,6 @@ static void cleanup()
 	delete normalShader;
 
 	delete rasteriser;
-
-	delete geometry;
 
 	delete viewport;
 }

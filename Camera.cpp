@@ -13,7 +13,7 @@ Camera::~Camera()
 {
 }
 
-OrbitCamera::OrbitCamera(const vec3& t, const vec3& u, float r) : projectionMatrix(glm::perspective(65.f, 1.3f, 1.f, 100.f)),
+OrbitCamera::OrbitCamera(const vec3& t, const vec3& u, float r) : projectionMatrix(glm::perspective(90.f, 1.0f, 1.f, 100.f)),
 	target(t), up(u), position(t), radius(r), phi(0.f), theta(0.f)
 {
 }
