@@ -3,11 +3,10 @@
 
 #include "Vertex.h"
 
-#include <glm/glm.hpp>
-
 class Geometry2
 {
 public:
+	Geometry2();
 	virtual ~Geometry2();
 
 	virtual const VertexList& getVertices() const = 0;

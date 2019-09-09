@@ -34,18 +34,17 @@ void OrbitCamera::handleKeyPress(unsigned char key)
 	}
 }
 
-
 void OrbitCamera::handleMouseMove(const glm::ivec2& delta)
 {
 	phi += delta.y;
 	theta += delta.x;
 
-	phi = glm::clamp(phi, -90.f, 90.f);
+	phi = glm::clamp(phi, -89.f, 89.f);
 }
 
 glm::mat4 OrbitCamera::getCameraMatrix()
 {
-	position = glm::euclidean(glm::radians(glm::vec2(theta, phi))) * radius;
+	position = glm::euclidean(glm::radians(glm::vec2(phi, theta))) * radius;
 	position += target;
 
 	return glm::lookAt(position, target, up);

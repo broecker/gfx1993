@@ -31,8 +31,9 @@ bool Depthbuffer::conditionalPlot(const glm::vec3& pos)
 
 bool Depthbuffer::conditionalPlot(unsigned int x, unsigned int y, float z)
 {	
-	assert(x < width);
-	assert(y < height);
+	// TODO(mbroecker): This is off by one!
+	assert(x <= width);
+	assert(y <= height);
 	unsigned int i = x + width*y;
 	if (data[i] > z)
 	{

@@ -24,6 +24,7 @@
 #include "Camera.h"
 #include "CubeGeometry.h"
 #include "RandomTriangleGeometry.h"
+#include "GridGeometry.h"
 
 #include "glmHelper.h"
 
@@ -31,12 +32,10 @@ unsigned int 	texture;
 
 unsigned int 	width = 640, height = 480;
 
-VertexList 	vertices; 
-IndexList	indices;
-
 Geometry*		geometry = nullptr;
 std::unique_ptr<CubeGeometry> cube = nullptr;
 std::unique_ptr<RandomTriangleGeometry> triangles = nullptr;
+std::unique_ptr<GridGeometry> grid;
 
 Framebuffer*	framebuffer;
 Depthbuffer*	depthbuffer;
@@ -53,24 +52,7 @@ Camera*			camera;
 bool rotate = false;
 float rotationAngle = 0.f;
 
-static Vertex createRandomVertex()
-{
-	float x = (float)rand() / RAND_MAX * 2.f - 1.f;
-	float y = (float)rand() / RAND_MAX * 2.f - 1.f;
-	float z = (float)rand() / RAND_MAX * 2.f - 1.f;
-
-	float nx = (float)rand() / RAND_MAX * 2.f - 1.f;
-	float ny = (float)rand() / RAND_MAX * 2.f - 1.f;
-	float nz = (float)rand() / RAND_MAX * 2.f - 1.f;
-
-	glm::vec2 texcoord(0,0);
-
-	float r = (float)rand() / RAND_MAX;
-	float g = (float)rand() / RAND_MAX;
-	float b = 1.f - r - g;
-
-	return Vertex(glm::vec4(x,y,z,1.f), glm::normalize(glm::vec3(nx, ny, nz)), glm::vec4(r,g,b,1.f), texcoord);		
-}
+glm::ivec2 mousePosition;
 
 static void display()
 {
@@ -125,30 +107,26 @@ static void idle()
 	DefaultVertexTransform* dvt = reinterpret_cast<DefaultVertexTransform*>(rasteriser->vertexShader);
 	dvt->modelMatrix = glm::mat4(1.f);
 	dvt->viewMatrix = camera->getCameraMatrix();
-	std::cout << "ViewMatrix: " << camera->getCameraMatrix() << std::endl;
 
 	glm::mat4 rotate = glm::rotate(rotationAngle, glm::vec3(0.f, 1.f, 0.f));
 	dvt->modelMatrix *= rotate;
 
 	try
 	{
-		rasteriser->drawPoints( vertices );
-		
-		if (!indices.empty())
-		{
-			rasteriser->drawLines(vertices, indices);
-		}		
-
 		if (triangles)
 		{
 			rasteriser->drawTriangles(triangles->getVertices(), triangles->getIndices());
+		}
+
+		if (grid)
+		{
+			rasteriser->drawLines(grid->getVertices(), grid->getIndices());
 		}
 		
 		if (cube)
 		{
 			rasteriser->drawLines(cube->getVertices(), cube->getIndices());
 		}
-
 
 		if (geometry)
 		{
@@ -177,18 +155,6 @@ static void keyboard(unsigned char key, int x, int y)
 	if (key == 'r')
 		rotate = !rotate;
 
-	if (key == 'p')
-	{
-		size_t pcount = 32;
-		for (int i = 0; i < pcount; ++i)
-		{
-			vertices.push_back( createRandomVertex() );
-		}
-
-		std::clog << "Created " << vertices.size() << " vertices.\n";
-
-	}
-
 	if (key == 't')
 	{
 		if (!triangles) 
@@ -203,9 +169,6 @@ static void keyboard(unsigned char key, int x, int y)
 
 	if (key == 'c')
 	{
-		vertices.clear();
-		indices.clear();
-
 		// create a cube
 		cube = std::make_unique<CubeGeometry>(glm::vec3(2.f, 2.f, 2.f));		
 	}
@@ -253,6 +216,20 @@ static void keyboard(unsigned char key, int x, int y)
 
 }
 
+static void motion(int x, int y)
+{
+	glm::ivec2 current(x, y);
+	glm::ivec2 delta = current - mousePosition;
+	mousePosition = current;
+
+	camera->handleMouseMove(delta);
+}
+
+static void mouse(int button, int state, int x, int y)
+{
+	mousePosition = glm::ivec2(x, y);
+}
+
 static void cleanup()
 {
 	delete framebuffer;
@@ -280,6 +257,8 @@ int main(int argc, char** argv)
 	glutIdleFunc(idle);
 	glutDisplayFunc(display);
 	glutKeyboardFunc(keyboard);
+	glutMotionFunc(motion);
+	glutMouseFunc(mouse);
 
 	atexit(cleanup);
 
@@ -298,6 +277,8 @@ int main(int argc, char** argv)
 	DefaultVertexTransform* dvt = new DefaultVertexTransform;
 	rasteriser->vertexShader = dvt;
 
+	grid = std::make_unique<GridGeometry>();
+
 	dvt->modelMatrix = glm::mat4(1.f);
 	dvt->viewMatrix[3] = glm::vec4(0, 0, -3.f, 1);
 	dvt->projectionMatrix = glm::perspective(65.f, 1.3f, 1.f, 100.f);
@@ -308,8 +289,6 @@ int main(int argc, char** argv)
 	normalShader = new NormalColourShader;
 
 	camera = new OrbitCamera(glm::vec3(0,0,0), glm::vec3(0,1,0), 10.0f);
-
-	vertices.push_back( Vertex(glm::vec4(0,0,0,1), glm::vec3(0,0,1), glm::vec4(1,1,1,1), glm::vec2(0,0)) );
 
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);
