@@ -2,8 +2,11 @@
 #define RENDER_PRIMITIVE_INCLUDED
 
 #include <vector>
-#include "Vertex.h"
+#include "../Vertex.h"
 #include "ShadingGeometry.h"
+
+namespace render 
+{
 
 enum ClipResult
 {
@@ -50,4 +53,6 @@ struct TrianglePrimitive
 typedef std::vector<PointPrimitive> PointPrimitiveList;
 typedef std::vector<LinePrimitive> LinePrimitiveList;
 typedef std::vector<TrianglePrimitive> TrianglePrimitiveList;
+
+}
 #endif

@@ -3,6 +3,9 @@
 
 #include <glm/glm.hpp>
 
+namespace render 
+{
+
 class Viewport
 {
 public:
@@ -16,5 +19,7 @@ public:
 	glm::ivec2		origin;
 	glm::ivec2		size;
 };
+
+}
 
 #endif

@@ -3,6 +3,9 @@
 
 #include <glm/glm.hpp>
 
+namespace render 
+{
+
 struct ShadingGeometry
 {
 	// world position and normal
@@ -18,5 +21,7 @@ struct ShadingGeometry
 };
 
 ShadingGeometry interpolate(const ShadingGeometry& a, const ShadingGeometry& b, float d);
+
+}
 
 #endif

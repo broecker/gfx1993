@@ -12,11 +12,10 @@ include_directories(/usr/local/include)
 
 link_directories(/usr/local/lib)
 
+# The libraries
 add_subdirectory(geometry)
+add_subdirectory(rendering)
 
-# Main renderer library
-add_library(render STATIC Rasteriser.cpp Framebuffer.cpp Depthbuffer.cpp Viewport.cpp Shader.cpp ShadingGeometry.cpp RenderPrimitive.cpp Camera.cpp)
-
-add_executable(srender main.cpp)
-target_link_libraries(srender render geometry)
+add_executable(srender main.cpp Camera.cpp)
+target_link_libraries(srender rendering geometry)
 target_link_libraries(srender GLEW GL GLU glut)

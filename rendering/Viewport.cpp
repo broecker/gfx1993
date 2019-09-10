@@ -1,5 +1,8 @@
 #include "Viewport.h"
 
+namespace render 
+{
+
 Viewport::Viewport(unsigned int x, unsigned int y, unsigned int w, unsigned int h) : 
 	origin(x, y), size(w, h)
 {
@@ -20,4 +23,6 @@ bool Viewport::isInside(const glm::ivec2& p) const
 {
 	glm::ivec2 t = p - origin;
 	return (t.x <= size.x && t.y <= size.y);
+}
+
 }

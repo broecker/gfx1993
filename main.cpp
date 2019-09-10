@@ -1,24 +1,18 @@
+#include <cstdlib>
 #include <iostream>
 #include <memory>
 
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
-
-#ifdef __APPLE__
-#include <GLUT/glut.h>
-#else
 #include <GL/glut.h>
-#endif
 
-#include <cstdlib>
-
-#include "Framebuffer.h"
-#include "Depthbuffer.h"
+#include "rendering/Framebuffer.h"
+#include "rendering/Depthbuffer.h"
 #include "Colour.h"
 #include "Vertex.h"
-#include "Shader.h"
-#include "Rasteriser.h"
-#include "Viewport.h"
+#include "rendering/Shader.h"
+#include "rendering/Rasteriser.h"
+#include "rendering/Viewport.h"
 #include "Camera.h"
 #include "geometry/CubeGeometry.h"
 #include "geometry/RandomTriangleGeometry.h"
@@ -37,15 +31,13 @@ std::unique_ptr<geo::GridGeometry> grid;
 
 std::vector<std::unique_ptr<geo::PlyGeometry> > bunnyList;
 
-Framebuffer*	framebuffer;
-Depthbuffer*	depthbuffer;
+std::shared_ptr<render::Framebuffer>	framebuffer;
+std::shared_ptr<render::Depthbuffer>	depthbuffer;
 
-Rasteriser*		rasteriser;
-VertexShader*	vertexTransform;
-FragmentShader*	fragmentShader;
-FragmentShader*	normalShader;
-
-Viewport*		viewport;
+std::unique_ptr<render::Rasteriser>		rasteriser;
+std::shared_ptr<render::VertexShader>	vertexTransform;
+std::shared_ptr<render::FragmentShader>	fragmentShader;
+std::shared_ptr<render::FragmentShader>	normalShader;
 
 Camera*			camera;
 
@@ -100,7 +92,7 @@ static void idle()
 	depthbuffer->clear();
 
 	// reset the render matrices
-	DefaultVertexTransform* dvt = reinterpret_cast<DefaultVertexTransform*>(rasteriser->vertexShader);
+	render::DefaultVertexTransform* dvt = reinterpret_cast<render::DefaultVertexTransform*>(rasteriser->vertexShader.get());
 	dvt->modelMatrix = glm::mat4(1.f);
 	dvt->viewMatrix = camera->getViewMatrix();
 	dvt->projectionMatrix = camera->getProjectionMatrix();
@@ -124,7 +116,7 @@ static void idle()
 
 		for (auto bunny = bunnyList.begin(); bunny != bunnyList.end(); ++bunny)
 		{
-			DefaultVertexTransform* dvt = reinterpret_cast<DefaultVertexTransform*>(rasteriser->vertexShader);
+			render::DefaultVertexTransform* dvt = reinterpret_cast<render::DefaultVertexTransform*>(rasteriser->vertexShader.get());
 			dvt->modelMatrix = (*bunny)->transform;
 
 			rasteriser->fragmentShader = normalShader;
@@ -179,7 +171,6 @@ static void keyboard(unsigned char key, int x, int y)
 		const glm::vec3 minScale(15, 15, 15);
 		const glm::vec3 maxScale(30, 30, 30);
 
-
 		bunny->transform = glm::rotate(randomAngle, randomAxis);
 		bunny->transform[3] = glm::linearRand(minBounds, maxBounds);
 		bunny->transform *= glm::scale(glm::linearRand(minScale, maxScale));
@@ -219,20 +210,6 @@ static void mouse(int button, int state, int x, int y)
 	}
 }
 
-static void cleanup()
-{
-	delete framebuffer;
-	delete depthbuffer;
-
-	delete vertexTransform;
-	delete fragmentShader;
-	delete normalShader;
-
-	delete rasteriser;
-
-	delete viewport;
-}
-
 int main(int argc, char** argv)
 {
 	glutInit(&argc, argv);
@@ -247,29 +224,25 @@ int main(int argc, char** argv)
 	glutMotionFunc(motion);
 	glutMouseFunc(mouse);
 
-	atexit(cleanup);
-
 	srand( time(0) );
 
-	rasteriser = new Rasteriser;
-	viewport = new Viewport(0, 0, width, height);
-	rasteriser->viewport = viewport;
+	rasteriser = std::make_unique<render::Rasteriser>();
+	rasteriser->viewport = std::make_shared<render::Viewport>(0, 0, width, height);
 
-	framebuffer = new Framebuffer(width, height);
+	framebuffer = std::make_shared<render::Framebuffer>(width, height);
 	rasteriser->framebuffer = framebuffer;
 
-	depthbuffer = new Depthbuffer(width, height);
+	depthbuffer = std::make_shared<render::Depthbuffer>(width, height);
 	rasteriser->depthbuffer = depthbuffer;
 
-	DefaultVertexTransform* dvt = new DefaultVertexTransform;
-	rasteriser->vertexShader = dvt;
+	rasteriser->vertexShader = std::shared_ptr<render::DefaultVertexTransform>();
 
 	grid = std::make_unique<geo::GridGeometry>();
 
-	fragmentShader = new InputColourShader;
+	fragmentShader = std::make_shared<render::InputColourShader>();
 	rasteriser->fragmentShader = fragmentShader;
 
-	normalShader = new NormalColourShader;
+	normalShader = std::shared_ptr<render::NormalColourShader>();
 
 	camera = new OrbitCamera(glm::vec3(0,0,0), glm::vec3(0,1,0), 10.0f);
 

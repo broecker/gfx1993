@@ -3,6 +3,9 @@
 #include <cassert>
 #include <cfloat>
 
+namespace render 
+{
+
 Depthbuffer::Depthbuffer(unsigned int w, unsigned int h) : width(w), height(h)
 {
 	data = new float[width*height];
@@ -42,4 +45,6 @@ bool Depthbuffer::conditionalPlot(unsigned int x, unsigned int y, float z)
 	}
 	else
 		return false;
+}
+
 }

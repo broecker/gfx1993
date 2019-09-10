@@ -1,9 +1,12 @@
 #ifndef SHADER_INCLUDED
 #define SHADER_INCLUDED
 
-#include "Vertex.h"
-#include "Colour.h"
+#include "../Vertex.h"
+#include "../Colour.h"
 #include "ShadingGeometry.h"
+
+namespace render 
+{
 
 class VertexShader
 {
@@ -26,8 +29,7 @@ public:
 	glm::mat4	viewMatrix;
 	glm::mat4	projectionMatrix;
 
-
-	VertexOut transformSingle(const Vertex& in);
+	VertexOut transformSingle(const Vertex& in) override;
 
 };
 
@@ -43,16 +45,17 @@ public:
 class InputColourShader : public FragmentShader
 {
 public:
-	Colour shadeSingle(const ShadingGeometry& in);
+	Colour shadeSingle(const ShadingGeometry& in) override;
 
 };
 
 class NormalColourShader : public FragmentShader
 {
 public:
-	Colour shadeSingle(const ShadingGeometry& in);
+	Colour shadeSingle(const ShadingGeometry& in) override;
 
 };
 
+}
 
 #endif

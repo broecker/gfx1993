@@ -1,7 +1,10 @@
 #include "Shader.h"
-#include "glmHelper.h"
+#include "../glmHelper.h"
 
 using namespace glm;
+
+namespace render 
+{
 
 VertexShader::~VertexShader()
 {
@@ -40,4 +43,6 @@ Colour NormalColourShader::shadeSingle(const ShadingGeometry& in)
 {
 	vec3 c = abs(normalize(in.normal));
 	return Colour( c.x, c.y, c.z, 1.f );
+}
+
 }

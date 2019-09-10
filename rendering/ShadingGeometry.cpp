@@ -1,5 +1,7 @@
 #include "ShadingGeometry.h"
 
+namespace render 
+{
 
 ShadingGeometry interpolate(const ShadingGeometry& a, const ShadingGeometry& b, float d)
 {
@@ -14,4 +16,6 @@ ShadingGeometry interpolate(const ShadingGeometry& a, const ShadingGeometry& b, 
 	result.windowCoord = mix(a.windowCoord, b.windowCoord, d);
 
 	return result;
+}
+
 }

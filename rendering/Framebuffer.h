@@ -1,9 +1,12 @@
 #ifndef FRAMEBUFFER_INCLUDED
 #define FRAMEBUFFER_INCLUDED
 
-#include "Colour.h"
+#include "../Colour.h"
 
 #include <glm/glm.hpp>
+
+namespace render 
+{
 
 class Framebuffer
 {
@@ -29,5 +32,7 @@ protected:
 	Colour*				data;
 
 };
+
+}
 
 #endif

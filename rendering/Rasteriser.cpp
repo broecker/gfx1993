@@ -4,7 +4,7 @@
 #include "Viewport.h"
 
 #include "Shader.h"
-#include "glmHelper.h"
+#include "../glmHelper.h"
 #include "ShadingGeometry.h"
 #include "RenderPrimitive.h"
 
@@ -13,12 +13,14 @@
 #include <list>
 #include <boost/function.hpp>
 
+namespace render 
+{
 
 // a helper struct/functor object for STL algorithms
 struct CallVertexShader
 {
-	VertexShader*	shader;
-	inline CallVertexShader(VertexShader* sh) : shader(sh) {} 
+	std::shared_ptr<VertexShader>	shader;
+	inline CallVertexShader(std::shared_ptr<VertexShader> sh) : shader(sh) {} 
 
 	inline VertexOut operator () (const Vertex& in)
 	{
@@ -43,7 +45,6 @@ struct NoVertexTransform
 
 Rasteriser::Rasteriser() : drawBoundingBoxes(false) 
 {
-
 }
 
 unsigned int Rasteriser::drawPoints(const VertexList& vertices) const
@@ -393,4 +394,6 @@ void Rasteriser::drawTriangle(const TrianglePrimitive& triangle) const
 void Rasteriser::toggleBoundingBoxes() {
 	drawBoundingBoxes = !drawBoundingBoxes;
 	std::clog << (drawBoundingBoxes ? "D" : "Not d") << "rawing bounding boxes." << std::endl;
+}
+
 }

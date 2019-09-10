@@ -1,7 +1,10 @@
 #include "RenderPrimitive.h"
-#include "glmHelper.h"
+#include "../glmHelper.h"
 
 using namespace glm;
+
+namespace render 
+{
 
 // access enum for the plane array
 enum ClippingPlane 
@@ -157,4 +160,6 @@ ShadingGeometry TrianglePrimitive::rasterise(const glm::vec3& bary) const
 
 
 	return sgeo;
+}
+
 }

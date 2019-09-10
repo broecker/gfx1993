@@ -3,6 +3,9 @@
 
 #include <glm/glm.hpp>
 
+namespace render 
+{
+
 class Depthbuffer 
 {
 public:
@@ -28,12 +31,8 @@ public:
 protected:
 	unsigned int	width, height;
 	float*			data;
-
-
-
-
-
 };
 
+}
 
 #endif

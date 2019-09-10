@@ -1,5 +1,8 @@
 #include "Framebuffer.h"
 
+namespace render 
+{
+
 Framebuffer::Framebuffer(unsigned int w, unsigned int h) : width(w), height(h) 
 {
 	data = new Colour[width*height];
@@ -24,4 +27,6 @@ void Framebuffer::plot(unsigned int x, unsigned int y, const Colour& c)
 	{
 		data[x + y*width].set( c );
 	}
+}
+
 }

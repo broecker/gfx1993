@@ -1,7 +1,12 @@
 #ifndef RASTERISER_INCLUDED
 #define RASTERISER_INCLUDED
 
-#include "Vertex.h"
+#include <memory>
+
+#include "../Vertex.h"
+
+namespace render 
+{
 
 class Framebuffer;
 class Depthbuffer;
@@ -15,15 +20,15 @@ struct TrianglePrimitive;
 
 class Rasteriser
 {
-public:
-	VertexShader*	vertexShader;
-	FragmentShader*	fragmentShader;
+public:	
+	std::shared_ptr<VertexShader>	vertexShader;
+	std::shared_ptr<FragmentShader>	fragmentShader;
 
-	Framebuffer*	framebuffer;
-	Depthbuffer* 	depthbuffer;
+	std::shared_ptr<Framebuffer>	framebuffer;
+	std::shared_ptr<Depthbuffer> 	depthbuffer;
 
-	Viewport*		viewport;
-	
+	std::shared_ptr<Viewport>		viewport;
+
 	Rasteriser();
 
 	unsigned int drawPoints(const VertexList& points) const;
@@ -41,7 +46,8 @@ private:
 	void transformVertices(const VertexList& verticesIn, VertexOutList& out) const;
 
 	bool drawBoundingBoxes;
-
 };
+
+}
 
 #endif
