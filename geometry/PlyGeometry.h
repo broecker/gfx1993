@@ -5,6 +5,8 @@
 
 #include <string>
 
+namespace geo {
+
 class PlyGeometry : public Geometry2
 {
 public:
@@ -24,5 +26,7 @@ private:
 
 	float		boundingSphereRadius;
 };
+
+}
 
 #endif

@@ -4,6 +4,8 @@
 
 using glm::vec3;
 
+namespace geo {
+
 RandomTriangleGeometry::RandomTriangleGeometry(const vec3& min, const vec3& max) : boundsMin(min), boundsMax(max)
 {
 }
@@ -67,4 +69,6 @@ Vertex&& RandomTriangleGeometry::createRandomVertex() const
 	float b = 1.f - r - g;
 
 	return std::move(Vertex(glm::vec4(pos, 1.f), normal, glm::vec4(r,g,b,1.f), texcoord));		
+}
+
 }

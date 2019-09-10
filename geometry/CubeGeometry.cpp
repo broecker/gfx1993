@@ -2,6 +2,8 @@
 
 using glm::vec4;
 
+namespace geo {
+
 CubeGeometry::CubeGeometry(const glm::vec3& sidelength)
 {
 	// create a cube
@@ -54,4 +56,6 @@ const VertexList& CubeGeometry::getVertices() const
 const IndexList& CubeGeometry::getIndices() const
 {
 	return indices;
+}
+
 }

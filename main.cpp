@@ -20,10 +20,10 @@
 #include "Rasteriser.h"
 #include "Viewport.h"
 #include "Camera.h"
-#include "CubeGeometry.h"
-#include "RandomTriangleGeometry.h"
-#include "GridGeometry.h"
-#include "PlyGeometry.h"
+#include "geometry/CubeGeometry.h"
+#include "geometry/RandomTriangleGeometry.h"
+#include "geometry/GridGeometry.h"
+#include "geometry/PlyGeometry.h"
 
 #include "glmHelper.h"
 
@@ -31,11 +31,11 @@ unsigned int 	texture;
 
 unsigned int 	width = 640, height = 480;
 
-std::unique_ptr<CubeGeometry> cube = nullptr;
-std::unique_ptr<RandomTriangleGeometry> triangles = nullptr;
-std::unique_ptr<GridGeometry> grid;
+std::unique_ptr<geo::CubeGeometry> cube = nullptr;
+std::unique_ptr<geo::RandomTriangleGeometry> triangles = nullptr;
+std::unique_ptr<geo::GridGeometry> grid;
 
-std::vector<std::unique_ptr<PlyGeometry> > bunnyList;
+std::vector<std::unique_ptr<geo::PlyGeometry> > bunnyList;
 
 Framebuffer*	framebuffer;
 Depthbuffer*	depthbuffer;
@@ -150,7 +150,7 @@ static void keyboard(unsigned char key, int x, int y)
 	if (key == 't')
 	{
 		if (!triangles) 
-			triangles = std::make_unique<RandomTriangleGeometry>(glm::vec3(-10, -10, -10), glm::vec3(10, 10, 10));			
+			triangles = std::make_unique<geo::RandomTriangleGeometry>(glm::vec3(-10, -10, -10), glm::vec3(10, 10, 10));			
 		triangles->addTriangle();
 	}
 
@@ -162,12 +162,12 @@ static void keyboard(unsigned char key, int x, int y)
 	if (key == 'c')
 	{
 		// create a cube
-		cube = std::make_unique<CubeGeometry>(glm::vec3(2.f, 2.f, 2.f));		
+		cube = std::make_unique<geo::CubeGeometry>(glm::vec3(2.f, 2.f, 2.f));		
 	}
 
 	if (key == 'g')
 	{
-		std::unique_ptr<PlyGeometry> bunny = std::make_unique<PlyGeometry>();
+		std::unique_ptr<geo::PlyGeometry> bunny = std::make_unique<geo::PlyGeometry>();
 
 		bunny->loadPly("models/bunny/reconstruction/bun_zipper_res3.ply");
 
@@ -264,7 +264,7 @@ int main(int argc, char** argv)
 	DefaultVertexTransform* dvt = new DefaultVertexTransform;
 	rasteriser->vertexShader = dvt;
 
-	grid = std::make_unique<GridGeometry>();
+	grid = std::make_unique<geo::GridGeometry>();
 
 	fragmentShader = new InputColourShader;
 	rasteriser->fragmentShader = fragmentShader;

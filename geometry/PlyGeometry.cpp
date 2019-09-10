@@ -1,11 +1,12 @@
 #include "PlyGeometry.h"
 
-
 #include <fstream>
 #include <algorithm>
 #include <cstdio>
 #include <cassert>
 #include <iostream>
+
+namespace geo {
 
 PlyGeometry::PlyGeometry() : boundingSphereRadius(0)
 {
@@ -154,4 +155,6 @@ const IndexList& PlyGeometry::getIndices() const
 const VertexList& PlyGeometry::getVertices() const
 {
 	return vertices;
+}
+
 }

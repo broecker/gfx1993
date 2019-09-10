@@ -3,6 +3,8 @@
 
 #include "Geometry2.h"
 
+namespace geo {
+
 class RandomTriangleGeometry : public Geometry2
 {
 public:
@@ -27,6 +29,6 @@ private:
 	void addTriangle(const Vertex& a, const Vertex& b, const Vertex& c);
 };
 
-
+}
 
 #endif

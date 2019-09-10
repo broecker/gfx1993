@@ -3,6 +3,8 @@
 
 #include "Geometry2.h"
 
+namespace geo {
+
 class CubeGeometry : public Geometry2
 {
 public:
@@ -16,5 +18,6 @@ private:
 	VertexList 		vertices;
 };
 
+}
 
 #endif

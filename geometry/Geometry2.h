@@ -1,7 +1,9 @@
 #ifndef GEOMETRY2_INCLUDED
 #define GEOMETRY2_INCLUDED
 
-#include "Vertex.h"
+#include "../Vertex.h"
+
+namespace geo {
 
 class Geometry2
 {
@@ -16,5 +18,7 @@ public:
 	// for the most-used member.	
 	glm::mat4 transform;
 };
+
+}
 
 #endif

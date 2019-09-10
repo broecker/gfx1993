@@ -3,6 +3,8 @@
 using glm::vec3;
 using glm::vec4;
 
+namespace geo {
+
 GridGeometry::GridGeometry()
 {
 	// Create a grid
@@ -39,4 +41,6 @@ const VertexList& GridGeometry::getVertices() const
 const IndexList& GridGeometry::getIndices() const
 {
 	return indices;
+}
+
 }

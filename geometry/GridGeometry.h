@@ -3,6 +3,8 @@
 
 #include "Geometry2.h"
 
+namespace geo {
+
 // A 2D grid on the XZ plane.
 class GridGeometry : public Geometry2 
 {
@@ -16,5 +18,7 @@ private:
 	VertexList	vertices;
 	IndexList	indices;
 };
+
+}
 
 #endif
