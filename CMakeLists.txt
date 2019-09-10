@@ -17,12 +17,16 @@ add_subdirectory(common)
 add_subdirectory(geometry)
 add_subdirectory(rendering)
 
+# The full monty test
 add_executable(srender main.cpp)
 target_link_libraries(srender common geometry rendering)
 target_link_libraries(srender GLEW GL GLU glut)
 
-
-
+# A simple rotating triangle
 add_executable(00-triangle 00-triangle.cpp)
 target_link_libraries(00-triangle common geometry rendering)
 target_link_libraries(00-triangle GLEW GL GLU glut)
+
+# A simple rotating triangle, this time without OpenGL
+add_executable(01-triangle 01-triangle.cpp)
+target_link_libraries(01-triangle common geometry rendering)
