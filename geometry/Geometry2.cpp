@@ -5,9 +5,4 @@ namespace geo {
 Geometry2::Geometry2() : transform()
 {
 }
-
-Geometry2::~Geometry2()
-{
-}
-
 }

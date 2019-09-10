@@ -5,10 +5,6 @@ using namespace glm;
 namespace render 
 {
 
-VertexShader::~VertexShader()
-{
-}
-
 VertexOut DefaultVertexTransform::transformSingle(const Vertex& in)
 {
 	mat4 modelViewMatrix = viewMatrix * modelMatrix;
@@ -25,12 +21,6 @@ VertexOut DefaultVertexTransform::transformSingle(const Vertex& in)
 	result.texcoord = in.texcoord;
 
 	return result;
-}
-
-
-FragmentShader::~FragmentShader()
-{
-	
 }
 
 Color InputColourShader::shadeSingle(const ShadingGeometry& in)

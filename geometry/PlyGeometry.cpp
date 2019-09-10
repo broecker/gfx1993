@@ -95,7 +95,7 @@ bool PlyGeometry::loadPly(const std::string& filename)
 	std::clog << "Read " << vertices.size() << " vertices, " << indices.size() << " indices" << std::endl;
 
 	// calculate normals
-	for (unsigned int i = 0; i < indices.size(); i += 3)
+	for (size_t i = 0; i < indices.size(); i += 3)
 	{
 
 		// triangle
@@ -114,8 +114,8 @@ bool PlyGeometry::loadPly(const std::string& filename)
 
 	std::clog << "Renormalizing " << vertices.size() << " vertex normals." << std::endl;
 	// scale normal to length 1;
-	for (size_t i = 0; i < vertices.size(); ++i) {
-		vertices[i].normal = glm::normalize(vertices[i].normal);
+	for (auto v : vertices) {
+		v.normal = glm::normalize(v.normal);
 	}
 
 	return true;
@@ -126,23 +126,23 @@ void PlyGeometry::center()
 	// find bounding box
 	glm::vec3 min(FLT_MAX), max(FLT_MIN);
 	
-	for (VertexList::iterator v = vertices.begin(); v != vertices.end(); ++v)
+	for (auto v : vertices)
 	{
-		min.x = std::min(min.x, v->position.x);
-		min.y = std::min(min.y, v->position.y);
-		min.z = std::min(min.z, v->position.z);
+		min.x = std::min(min.x, v.position.x);
+		min.y = std::min(min.y, v.position.y);
+		min.z = std::min(min.z, v.position.z);
 		
-		max.x = std::max(max.x, v->position.x);
-		max.y = std::max(max.y, v->position.y);
-		max.z = std::max(max.z, v->position.z);
+		max.x = std::max(max.x, v.position.x);
+		max.y = std::max(max.y, v.position.y);
+		max.z = std::max(max.z, v.position.z);
 	}
 
 	// update vertices and find new bounding sphere radius
 	boundingSphereRadius = 0.f;
-	for (VertexList::iterator v = vertices.begin(); v != vertices.end(); ++v)
+	for (auto v : vertices)
 	{
-		v->position = v->position - glm::vec4(min, 0.f) - glm::vec4((max-min)*0.5f, 0.f);
-		boundingSphereRadius = std::max(boundingSphereRadius, glm::length(glm::vec3(v->position)));
+		v.position = v.position - glm::vec4(min, 0.f) - glm::vec4((max-min)*0.5f, 0.f);
+		boundingSphereRadius = std::max(boundingSphereRadius, glm::length(glm::vec3(v.position)));
 	}
 
 }

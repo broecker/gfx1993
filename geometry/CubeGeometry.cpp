@@ -1,5 +1,7 @@
 #include "CubeGeometry.h"
 
+#include <random>
+
 using glm::vec4;
 
 namespace geo {
@@ -16,7 +18,7 @@ CubeGeometry::CubeGeometry(const glm::vec3& sidelength)
 	vertices.push_back( Vertex( vec4( 1, -1, -1, 1) ) );
 	vertices.push_back( Vertex( vec4( 1,  1, -1, 1) ) );
 
-	vec4 halfSide = vec4(sidelength / 2.0f, 1.0f);
+	vec4 halfSide = vec4(sidelength * 0.5f, 1.0f);
 
 	for (int i = 0; i < 8; ++i) 
 	{
@@ -26,8 +28,8 @@ CubeGeometry::CubeGeometry(const glm::vec3& sidelength)
 
 	for (int i = 0; i < 8; ++i)
 	{
-		float r = (float)rand() / RAND_MAX;
-		float g = (float)rand() / RAND_MAX;
+		float r = (float)std::rand() / RAND_MAX;
+		float g = (float)std::rand() / RAND_MAX;
 		float b = 1.f - (r+g);
 		vertices[i].colour.r = r; 
 		vertices[i].colour.g = g; 

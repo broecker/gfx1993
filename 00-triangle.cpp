@@ -53,7 +53,7 @@ static void idle()
 	// update time
 	static unsigned int oldTime = 0;
 
-	unsigned int elapsedTime = glutGet(GLUT_ELAPSED_TIME);
+	int elapsedTime = glutGet(GLUT_ELAPSED_TIME);
 	float dt = (float)(elapsedTime-oldTime) / 1000.f;
 	oldTime = elapsedTime;
 

@@ -21,8 +21,11 @@ void Framebuffer::clear(const Color& c)
 	}
 }
 
-void Framebuffer::plot(unsigned int x, unsigned int y, const Color& c) 
+void Framebuffer::plot(int x, int y, const Color& c)
 {
+    assert(x >= 0 && x < width);
+    assert(y >= 0 && y < height);
+
 	if (x < width && y < height) 
 	{
 		data[x + y*width].set( c );

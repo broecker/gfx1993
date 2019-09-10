@@ -11,7 +11,7 @@ namespace render
 class VertexShader
 {
 public:
-	virtual ~VertexShader();
+	virtual ~VertexShader() = default;
 
 	virtual VertexOut transformSingle(const Vertex& in) = 0;
 
@@ -36,7 +36,7 @@ public:
 class FragmentShader
 {
 public:
-	virtual ~FragmentShader();
+	virtual ~FragmentShader() = default;
 	
 	virtual Color shadeSingle(const ShadingGeometry& in) = 0;
 

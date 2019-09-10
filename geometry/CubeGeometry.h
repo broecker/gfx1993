@@ -8,7 +8,7 @@ namespace geo {
 class CubeGeometry : public Geometry2
 {
 public:
-	CubeGeometry(const glm::vec3& sideLength);
+    explicit CubeGeometry(const glm::vec3& sideLength);
 
 	const VertexList& getVertices() const override;
 	const IndexList& getIndices() const override;

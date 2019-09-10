@@ -19,7 +19,7 @@ public:
 	virtual void clear(const Color& c);
 
 	inline void plot(const glm::ivec2& p, const Color& c) { this->plot(p.x, p.y, c); }
-	void plot(unsigned int x, unsigned int y, const Color& c);
+	void plot(int x, int y, const Color& c);
 
 
 	inline unsigned int getWidth() const { return width; }

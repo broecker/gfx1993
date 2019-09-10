@@ -2,6 +2,8 @@
 
 #include <glm/gtc/random.hpp> 
 
+#include <random>
+
 using glm::vec3;
 
 namespace geo {
@@ -64,8 +66,8 @@ Vertex&& RandomTriangleGeometry::createRandomVertex() const
 
 	glm::vec2 texcoord(0,0);
 
-	float r = (float)rand() / RAND_MAX;
-	float g = (float)rand() / RAND_MAX;
+	float r = (float)std::rand() / RAND_MAX;
+	float g = (float)std::rand() / RAND_MAX;
 	float b = 1.f - r - g;
 
 	return std::move(Vertex(glm::vec4(pos, 1.f), normal, glm::vec4(r,g,b,1.f), texcoord));		

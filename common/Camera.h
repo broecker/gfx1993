@@ -6,7 +6,7 @@
 class Camera 
 {
 public:
-	virtual ~Camera();
+	virtual ~Camera() = default;
 
 	virtual void handleKeyPress(unsigned char key) = 0;
 	virtual void handleMouseMove(const glm::ivec2& delta) = 0;

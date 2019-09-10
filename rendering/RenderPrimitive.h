@@ -18,7 +18,7 @@ enum ClipResult
 struct PointPrimitive
 {
 	VertexOut	p;
-	inline PointPrimitive(const VertexOut& o) : p(o) {}
+	inline explicit PointPrimitive(const VertexOut& o) : p(o) {}
 
 	ShadingGeometry rasterise() const;
 

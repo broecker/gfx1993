@@ -9,7 +9,7 @@ class Geometry2
 {
 public:
 	Geometry2();
-	virtual ~Geometry2();
+	virtual ~Geometry2() = default;
 
 	virtual const VertexList& getVertices() const = 0;
 	virtual const IndexList& getIndices() const = 0;

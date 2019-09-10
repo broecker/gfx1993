@@ -151,17 +151,17 @@ unsigned int Rasterizer::drawLines(const VertexList& vertices, const IndexList& 
 	
 	}
 	
-	for(LinePrimitiveList::iterator l = lines.begin(); l != lines.end(); ++l)
+	for(auto line : lines)
 	{
 		// clip and cull lines here
-		ClipResult cr = l->clipToNDC();
+		ClipResult cr = line.clipToNDC();
 		if (cr == DISCARD)
 		{
 			// line completely outside -- discard it
 			continue;
 		}
 
-		drawLine( *l );
+		drawLine( line );
 		++linesDrawn;
 		
 	}

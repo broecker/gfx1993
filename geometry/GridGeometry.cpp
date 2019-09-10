@@ -26,10 +26,10 @@ GridGeometry::GridGeometry()
 		indices.push_back(vertices.size()-2);
 	}
 
-	for (auto v = vertices.begin(); v != vertices.end(); ++v)
+	for (auto v : vertices)
 	{
-		v->normal = vec3(0, 1, 0);
-		v->colour = vec4(1, 1, 1, 1);
+		v.normal = vec3(0, 1, 0);
+		v.colour = vec4(1, 1, 1, 1);
 	}
 }
 
