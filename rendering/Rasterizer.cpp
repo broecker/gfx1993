@@ -129,7 +129,10 @@ unsigned int Rasterizer::drawLines(const VertexList& vertices, const IndexList& 
 	unsigned int linesDrawn = 0;
 
 	using namespace glm;
-	
+
+	if (!vertexShader)
+	    throw "Vertex shader missing!";
+
 	if (!fragmentShader)
 		throw "Fragment shader missing!";
 
@@ -233,7 +236,7 @@ unsigned int Rasterizer::drawTriangles(const VertexList& vertices, const IndexLi
 	return trianglesDrawn;
 }
 
-// bresenham line drawing
+// Bresenham line drawing
 void Rasterizer::drawLine(const LinePrimitive& line) const
 {
 	using namespace glm;
@@ -291,7 +294,7 @@ static inline int pointInHalfspace(const glm::ivec2& a, const glm::ivec2& b, con
 	return (b.x-a.x)*(c.y-a.y) - (b.y-a.y)*(c.x-a.x);
 }
 
-// parameter-based rasterisation of triangles
+// parameter-based rasterization of triangles
 void Rasterizer::drawTriangle(const TrianglePrimitive& triangle) const
 {
 	using namespace glm;
@@ -346,8 +349,7 @@ void Rasterizer::drawTriangle(const TrianglePrimitive& triangle) const
 		}
 	}
 	
-	// rasterise
-	// loop over the bounding box
+	// Rasterize -- loop over the screen-space bounding box.
 	for (unsigned int y = min.y; y <= max.y; ++y)
 	{
 		for (unsigned int x = min.x; x <= max.x; ++x)

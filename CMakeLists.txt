@@ -30,3 +30,8 @@ target_link_libraries(00-triangle GLEW GL GLU glut)
 # A simple rotating triangle, this time without OpenGL
 add_executable(01-headless 01-headless.cpp)
 target_link_libraries(01-headless common geometry rendering)
+
+# Basic camera controls and geometry loading
+add_executable(02-geometry 02-geometry.cpp)
+target_link_libraries(02-geometry common geometry rendering)
+target_link_libraries(02-geometry GLEW GL GLU glut)
