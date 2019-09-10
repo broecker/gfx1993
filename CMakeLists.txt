@@ -20,3 +20,9 @@ add_subdirectory(rendering)
 add_executable(srender main.cpp)
 target_link_libraries(srender common geometry rendering)
 target_link_libraries(srender GLEW GL GLU glut)
+
+
+
+add_executable(00-triangle 00-triangle.cpp)
+target_link_libraries(00-triangle common geometry rendering)
+target_link_libraries(00-triangle GLEW GL GLU glut)

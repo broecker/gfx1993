@@ -32,7 +32,7 @@ std::vector<std::unique_ptr<geo::PlyGeometry> > bunnyList;
 std::shared_ptr<render::Framebuffer>	framebuffer;
 std::shared_ptr<render::Depthbuffer>	depthbuffer;
 
-std::unique_ptr<render::Rasterizer>		rasteriser;
+std::unique_ptr<render::Rasterizer>		rasterizer;
 std::shared_ptr<render::DefaultVertexTransform>	vertexTransform;
 std::shared_ptr<render::FragmentShader>	fragmentShader;
 std::shared_ptr<render::FragmentShader>	normalShader;
@@ -93,34 +93,34 @@ static void idle()
     vertexTransform->modelMatrix = glm::mat4(1.f);
     vertexTransform->viewMatrix = camera->getViewMatrix();
     vertexTransform->projectionMatrix = camera->getProjectionMatrix();
-    rasteriser->vertexShader = vertexTransform;
+    rasterizer->vertexShader = vertexTransform;
 
 	try
 	{
 		if (triangles)
 		{
-			rasteriser->drawTriangles(triangles->getVertices(), triangles->getIndices());
+			rasterizer->drawTriangles(triangles->getVertices(), triangles->getIndices());
 		}
 
 		if (grid)
 		{
-			rasteriser->drawLines(grid->getVertices(), grid->getIndices());
+			rasterizer->drawLines(grid->getVertices(), grid->getIndices());
 		}
 		
 		if (cube)
 		{
-			rasteriser->drawLines(cube->getVertices(), cube->getIndices());
+			rasterizer->drawLines(cube->getVertices(), cube->getIndices());
 		}
 
 		for (auto bunny = bunnyList.begin(); bunny != bunnyList.end(); ++bunny)
 		{
             vertexTransform->modelMatrix = (*bunny)->transform;
-            rasteriser->vertexShader = vertexTransform;
+            rasterizer->vertexShader = vertexTransform;
 
-			rasteriser->fragmentShader = normalShader;
-			rasteriser->drawTriangles( (*bunny)->getVertices(), (*bunny)->getIndices() );
+            rasterizer->fragmentShader = normalShader;
+			rasterizer->drawTriangles((*bunny)->getVertices(), (*bunny)->getIndices() );
 
-			rasteriser->fragmentShader = fragmentShader;
+            rasterizer->fragmentShader = fragmentShader;
 
 		}
 	}
@@ -147,7 +147,7 @@ static void keyboard(unsigned char key, int x, int y)
 
 	if (key == 'b') 
 	{
-		rasteriser->toggleBoundingBoxes();
+		rasterizer->toggleBoundingBoxes();
 	}
 
 	if (key == 'c')
@@ -225,22 +225,22 @@ int main(int argc, char** argv)
 
 	srand( time(0) );
 
-	rasteriser = std::make_unique<render::Rasterizer>();
-	rasteriser->viewport = std::make_shared<render::Viewport>(0, 0, width, height);
+    rasterizer = std::make_unique<render::Rasterizer>();
+    rasterizer->viewport = std::make_shared<render::Viewport>(0, 0, width, height);
 
 	framebuffer = std::make_shared<render::Framebuffer>(width, height);
-	rasteriser->framebuffer = framebuffer;
+    rasterizer->framebuffer = framebuffer;
 
 	depthbuffer = std::make_shared<render::Depthbuffer>(width, height);
-	rasteriser->depthbuffer = depthbuffer;
+    rasterizer->depthbuffer = depthbuffer;
 
     vertexTransform = std::make_shared<render::DefaultVertexTransform>();
-    rasteriser->vertexShader = vertexTransform;
+    rasterizer->vertexShader = vertexTransform;
 
 	grid = std::make_unique<geo::GridGeometry>();
 
 	fragmentShader = std::make_shared<render::InputColourShader>();
-	rasteriser->fragmentShader = fragmentShader;
+    rasterizer->fragmentShader = fragmentShader;
 
 	normalShader = std::shared_ptr<render::NormalColourShader>();
 
