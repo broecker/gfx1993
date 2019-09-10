@@ -8,18 +8,16 @@
 
 #include "rendering/Framebuffer.h"
 #include "rendering/Depthbuffer.h"
-#include "Colour.h"
-#include "Vertex.h"
+#include "common/Colour.h"
+#include "common/Vertex.h"
 #include "rendering/Shader.h"
 #include "rendering/Rasteriser.h"
 #include "rendering/Viewport.h"
-#include "Camera.h"
+#include "common/Camera.h"
 #include "geometry/CubeGeometry.h"
 #include "geometry/RandomTriangleGeometry.h"
 #include "geometry/GridGeometry.h"
 #include "geometry/PlyGeometry.h"
-
-#include "glmHelper.h"
 
 unsigned int 	texture;
 
@@ -35,7 +33,7 @@ std::shared_ptr<render::Framebuffer>	framebuffer;
 std::shared_ptr<render::Depthbuffer>	depthbuffer;
 
 std::unique_ptr<render::Rasteriser>		rasteriser;
-std::shared_ptr<render::VertexShader>	vertexTransform;
+std::shared_ptr<render::DefaultVertexTransform>	vertexTransform;
 std::shared_ptr<render::FragmentShader>	fragmentShader;
 std::shared_ptr<render::FragmentShader>	normalShader;
 
@@ -92,10 +90,10 @@ static void idle()
 	depthbuffer->clear();
 
 	// reset the render matrices
-	render::DefaultVertexTransform* dvt = reinterpret_cast<render::DefaultVertexTransform*>(rasteriser->vertexShader.get());
-	dvt->modelMatrix = glm::mat4(1.f);
-	dvt->viewMatrix = camera->getViewMatrix();
-	dvt->projectionMatrix = camera->getProjectionMatrix();
+    vertexTransform->modelMatrix = glm::mat4(1.f);
+    vertexTransform->viewMatrix = camera->getViewMatrix();
+    vertexTransform->projectionMatrix = camera->getProjectionMatrix();
+    rasteriser->vertexShader = vertexTransform;
 
 	try
 	{
@@ -116,11 +114,12 @@ static void idle()
 
 		for (auto bunny = bunnyList.begin(); bunny != bunnyList.end(); ++bunny)
 		{
-			render::DefaultVertexTransform* dvt = reinterpret_cast<render::DefaultVertexTransform*>(rasteriser->vertexShader.get());
-			dvt->modelMatrix = (*bunny)->transform;
+            vertexTransform->modelMatrix = (*bunny)->transform;
+            rasteriser->vertexShader = vertexTransform;
 
 			rasteriser->fragmentShader = normalShader;
 			rasteriser->drawTriangles( (*bunny)->getVertices(), (*bunny)->getIndices() );
+
 			rasteriser->fragmentShader = fragmentShader;
 
 		}
@@ -235,7 +234,8 @@ int main(int argc, char** argv)
 	depthbuffer = std::make_shared<render::Depthbuffer>(width, height);
 	rasteriser->depthbuffer = depthbuffer;
 
-	rasteriser->vertexShader = std::shared_ptr<render::DefaultVertexTransform>();
+    vertexTransform = std::make_shared<render::DefaultVertexTransform>();
+    rasteriser->vertexShader = vertexTransform;
 
 	grid = std::make_unique<geo::GridGeometry>();
 

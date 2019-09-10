@@ -2,7 +2,7 @@
 #define RENDER_PRIMITIVE_INCLUDED
 
 #include <vector>
-#include "../Vertex.h"
+#include "../common/Vertex.h"
 #include "ShadingGeometry.h"
 
 namespace render 

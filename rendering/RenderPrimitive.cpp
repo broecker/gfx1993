@@ -1,5 +1,4 @@
 #include "RenderPrimitive.h"
-#include "../glmHelper.h"
 
 using namespace glm;
 

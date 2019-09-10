@@ -3,7 +3,7 @@
 
 #include <memory>
 
-#include "../Vertex.h"
+#include "../common/Vertex.h"
 
 namespace render 
 {

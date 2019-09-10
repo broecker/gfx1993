@@ -1,7 +1,7 @@
 #ifndef GEOMETRY2_INCLUDED
 #define GEOMETRY2_INCLUDED
 
-#include "../Vertex.h"
+#include "../common/Vertex.h"
 
 namespace geo {
 

@@ -1,5 +1,4 @@
 #include "Shader.h"
-#include "../glmHelper.h"
 
 using namespace glm;
 

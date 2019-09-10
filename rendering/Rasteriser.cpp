@@ -4,7 +4,6 @@
 #include "Viewport.h"
 
 #include "Shader.h"
-#include "../glmHelper.h"
 #include "ShadingGeometry.h"
 #include "RenderPrimitive.h"
 

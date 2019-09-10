@@ -1,7 +1,7 @@
 #ifndef FRAMEBUFFER_INCLUDED
 #define FRAMEBUFFER_INCLUDED
 
-#include "../Colour.h"
+#include "../common/Colour.h"
 
 #include <glm/glm.hpp>
 

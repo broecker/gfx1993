@@ -12,4 +12,4 @@ include_directories(/usr/local/include)
 link_directories(/usr/local/lib)
 
 # Geometry library
-add_library(geometry STATIC Geometry2.cpp CubeGeometry.cpp RandomTriangleGeometry.cpp GridGeometry.cpp PlyGeometry.cpp)
+add_library(geometry SHARED Geometry2.cpp CubeGeometry.cpp RandomTriangleGeometry.cpp GridGeometry.cpp PlyGeometry.cpp)

@@ -1,8 +1,8 @@
 #ifndef SHADER_INCLUDED
 #define SHADER_INCLUDED
 
-#include "../Vertex.h"
-#include "../Colour.h"
+#include "../common/Vertex.h"
+#include "../common/Colour.h"
 #include "ShadingGeometry.h"
 
 namespace render 
