@@ -18,7 +18,7 @@ class Viewport;
 struct LinePrimitive;
 struct TrianglePrimitive;
 
-class Rasteriser
+class Rasterizer
 {
 public:	
 	std::shared_ptr<VertexShader>	vertexShader;
@@ -29,7 +29,7 @@ public:
 
 	std::shared_ptr<Viewport>		viewport;
 
-	Rasteriser();
+	Rasterizer();
 
 	unsigned int drawPoints(const VertexList& points) const;
 

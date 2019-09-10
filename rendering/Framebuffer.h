@@ -1,7 +1,7 @@
 #ifndef FRAMEBUFFER_INCLUDED
 #define FRAMEBUFFER_INCLUDED
 
-#include "../common/Colour.h"
+#include "../common/Color.h"
 
 #include <glm/glm.hpp>
 
@@ -16,20 +16,20 @@ public:
  
 	virtual ~Framebuffer();
 
-	virtual void clear(const Colour& c);
+	virtual void clear(const Color& c);
 
-	inline void plot(const glm::ivec2& p, const Colour& c) { this->plot(p.x, p.y, c); }
-	void plot(unsigned int x, unsigned int y, const Colour& c);
+	inline void plot(const glm::ivec2& p, const Color& c) { this->plot(p.x, p.y, c); }
+	void plot(unsigned int x, unsigned int y, const Color& c);
 
 
 	inline unsigned int getWidth() const { return width; }
 	inline unsigned int getHeight() const { return height; }
-	inline const Colour* getPixels() const { return data; }
+	inline const Color* getPixels() const { return data; }
 
 
 protected:
 	unsigned int 		width, height;
-	Colour*				data;
+	Color*				data;
 
 };
 

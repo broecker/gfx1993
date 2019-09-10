@@ -33,15 +33,15 @@ FragmentShader::~FragmentShader()
 	
 }
 
-Colour InputColourShader::shadeSingle(const ShadingGeometry& in)
+Color InputColourShader::shadeSingle(const ShadingGeometry& in)
 {
 	return in.colour;
 }
 
-Colour NormalColourShader::shadeSingle(const ShadingGeometry& in)
+Color NormalColourShader::shadeSingle(const ShadingGeometry& in)
 {
 	vec3 c = abs(normalize(in.normal));
-	return Colour( c.x, c.y, c.z, 1.f );
+	return Color(c.x, c.y, c.z, 1.f );
 }
 
 }

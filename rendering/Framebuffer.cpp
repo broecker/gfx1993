@@ -5,7 +5,7 @@ namespace render
 
 Framebuffer::Framebuffer(unsigned int w, unsigned int h) : width(w), height(h) 
 {
-	data = new Colour[width*height];
+	data = new Color[width * height];
 }
 
 Framebuffer::~Framebuffer()
@@ -13,7 +13,7 @@ Framebuffer::~Framebuffer()
 	delete[] data;
 }
 
-void Framebuffer::clear(const Colour& c) 
+void Framebuffer::clear(const Color& c) 
 {
 	for (unsigned int i = 0; i < width*height; ++i)
 	{
@@ -21,7 +21,7 @@ void Framebuffer::clear(const Colour& c)
 	}
 }
 
-void Framebuffer::plot(unsigned int x, unsigned int y, const Colour& c) 
+void Framebuffer::plot(unsigned int x, unsigned int y, const Color& c) 
 {
 	if (x < width && y < height) 
 	{

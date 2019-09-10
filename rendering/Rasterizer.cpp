@@ -1,4 +1,4 @@
-#include "Rasteriser.h"
+#include "Rasterizer.h"
 #include "Framebuffer.h"
 #include "Depthbuffer.h"
 #include "Viewport.h"
@@ -42,11 +42,11 @@ struct NoVertexTransform
 	}
 };
 
-Rasteriser::Rasteriser() : drawBoundingBoxes(false) 
+Rasterizer::Rasterizer() : drawBoundingBoxes(false)
 {
 }
 
-unsigned int Rasteriser::drawPoints(const VertexList& vertices) const
+unsigned int Rasterizer::drawPoints(const VertexList& vertices) const
 {
 	using namespace glm;
 
@@ -101,7 +101,7 @@ unsigned int Rasteriser::drawPoints(const VertexList& vertices) const
 		sgeo.depth = pos_win.z;
 
 		// shade fragment and plot
-		Colour fragColour = fragmentShader->shadeSingle( sgeo );
+		Color fragColour = fragmentShader->shadeSingle(sgeo );
 		framebuffer->plot(sgeo.windowCoord, fragColour);
 
 		++pointsDrawn;
@@ -110,7 +110,7 @@ unsigned int Rasteriser::drawPoints(const VertexList& vertices) const
 	return pointsDrawn;
 }
 
-void Rasteriser::transformVertices(const VertexList& vertices, VertexOutList& out) const
+void Rasterizer::transformVertices(const VertexList& vertices, VertexOutList& out) const
 {
 	if (vertexShader)
 	{
@@ -124,7 +124,7 @@ void Rasteriser::transformVertices(const VertexList& vertices, VertexOutList& ou
 	}
 }
 
-unsigned int Rasteriser::drawLines(const VertexList& vertices, const IndexList& indices) const
+unsigned int Rasterizer::drawLines(const VertexList& vertices, const IndexList& indices) const
 {
 	unsigned int linesDrawn = 0;
 
@@ -169,7 +169,7 @@ unsigned int Rasteriser::drawLines(const VertexList& vertices, const IndexList& 
 	return linesDrawn;
 }
 
-unsigned int Rasteriser::drawTriangles(const VertexList& vertices, const IndexList& indices) const
+unsigned int Rasterizer::drawTriangles(const VertexList& vertices, const IndexList& indices) const
 {
 	unsigned int trianglesDrawn = 0;
 
@@ -234,7 +234,7 @@ unsigned int Rasteriser::drawTriangles(const VertexList& vertices, const IndexLi
 }
 
 // bresenham line drawing
-void Rasteriser::drawLine(const LinePrimitive& line) const
+void Rasterizer::drawLine(const LinePrimitive& line) const
 {
 	using namespace glm;
 
@@ -270,7 +270,7 @@ void Rasteriser::drawLine(const LinePrimitive& line) const
 			sgeo.windowCoord = a;
 			sgeo.depth = depth;
 
-			Colour c = fragmentShader->shadeSingle(sgeo);
+			Color c = fragmentShader->shadeSingle(sgeo);
 			framebuffer->plot(a, c);
 		}
 
@@ -292,7 +292,7 @@ static inline int pointInHalfspace(const glm::ivec2& a, const glm::ivec2& b, con
 }
 
 // parameter-based rasterisation of triangles
-void Rasteriser::drawTriangle(const TrianglePrimitive& triangle) const
+void Rasterizer::drawTriangle(const TrianglePrimitive& triangle) const
 {
 	using namespace glm;
 	// point a
@@ -328,7 +328,7 @@ void Rasteriser::drawTriangle(const TrianglePrimitive& triangle) const
 
 	if (drawBoundingBoxes) {
 		// draw bounding box	
-		Colour bboxColour(1,0,0,1);
+		Color bboxColour(1, 0, 0, 1);
 		for (unsigned int x = min.x; x <= max.x; ++x)
 		{
 			ivec2 p(x, min.y);
@@ -379,7 +379,7 @@ void Rasteriser::drawTriangle(const TrianglePrimitive& triangle) const
 					sgeo.windowCoord = p;
 					sgeo.depth = z;
 
-					Colour c = fragmentShader->shadeSingle(sgeo);
+					Color c = fragmentShader->shadeSingle(sgeo);
 					framebuffer->plot(p, c);
 				}
 
@@ -390,7 +390,7 @@ void Rasteriser::drawTriangle(const TrianglePrimitive& triangle) const
 
 }
 
-void Rasteriser::toggleBoundingBoxes() {
+void Rasterizer::toggleBoundingBoxes() {
 	drawBoundingBoxes = !drawBoundingBoxes;
 	std::clog << (drawBoundingBoxes ? "D" : "Not d") << "rawing bounding boxes." << std::endl;
 }

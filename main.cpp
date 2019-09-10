@@ -8,10 +8,10 @@
 
 #include "rendering/Framebuffer.h"
 #include "rendering/Depthbuffer.h"
-#include "common/Colour.h"
+#include "common/Color.h"
 #include "common/Vertex.h"
 #include "rendering/Shader.h"
-#include "rendering/Rasteriser.h"
+#include "rendering/Rasterizer.h"
 #include "rendering/Viewport.h"
 #include "common/Camera.h"
 #include "geometry/CubeGeometry.h"
@@ -32,7 +32,7 @@ std::vector<std::unique_ptr<geo::PlyGeometry> > bunnyList;
 std::shared_ptr<render::Framebuffer>	framebuffer;
 std::shared_ptr<render::Depthbuffer>	depthbuffer;
 
-std::unique_ptr<render::Rasteriser>		rasteriser;
+std::unique_ptr<render::Rasterizer>		rasteriser;
 std::shared_ptr<render::DefaultVertexTransform>	vertexTransform;
 std::shared_ptr<render::FragmentShader>	fragmentShader;
 std::shared_ptr<render::FragmentShader>	normalShader;
@@ -85,7 +85,7 @@ static void idle()
 	}
 
 	// clear the buffers	
-	Colour clearColour(0, 0, 0.2f, 1.f);
+	Color clearColour(0, 0, 0.2f, 1.f);
 	framebuffer->clear( clearColour );
 	depthbuffer->clear();
 
@@ -225,7 +225,7 @@ int main(int argc, char** argv)
 
 	srand( time(0) );
 
-	rasteriser = std::make_unique<render::Rasteriser>();
+	rasteriser = std::make_unique<render::Rasterizer>();
 	rasteriser->viewport = std::make_shared<render::Viewport>(0, 0, width, height);
 
 	framebuffer = std::make_shared<render::Framebuffer>(width, height);
