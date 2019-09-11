@@ -11,12 +11,17 @@ public:
 	Geometry();
 	virtual ~Geometry() = default;
 
-	virtual const VertexList& getVertices() const = 0;
-	virtual const IndexList& getIndices() const = 0;
+	inline const VertexList& getVertices() const { return vertices; }
+	inline const IndexList& getIndices() const  { return indices; }
 
 	// Access to transform is public -- no reason to write getter+setter
 	// for the most-used member.	
 	glm::mat4 transform;
+
+protected:
+    // Child classes should write to these two members.
+    VertexList  vertices;
+    IndexList   indices;
 };
 
 }

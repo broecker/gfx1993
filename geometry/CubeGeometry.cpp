@@ -49,15 +49,4 @@ CubeGeometry::CubeGeometry(const glm::vec3& sidelength)
 	indices.push_back(2); indices.push_back(6);
 	indices.push_back(3); indices.push_back(7);
 }
-
-const VertexList& CubeGeometry::getVertices() const
-{
-	return vertices;
-}
-
-const IndexList& CubeGeometry::getIndices() const
-{
-	return indices;
-}
-
 }

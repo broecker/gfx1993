@@ -5,7 +5,8 @@
 
 #include <string>
 
-namespace geo {
+namespace geo
+{
 
 class PlyGeometry : public Geometry
 {
@@ -14,16 +15,10 @@ public:
 
 	bool loadPly(const std::string& filename);
 
-	const VertexList& getVertices() const override;
-	const IndexList& getIndices() const override;
-
 	// Centers the geometry without changing the transform.
 	void center();
 
 private:
-	VertexList	vertices;
-	IndexList	indices;
-
 	float		boundingSphereRadius;
 };
 

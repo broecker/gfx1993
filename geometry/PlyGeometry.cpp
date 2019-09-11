@@ -146,15 +146,4 @@ void PlyGeometry::center()
 	}
 
 }
-
-const IndexList& PlyGeometry::getIndices() const
-{
-	return indices;
-}
-
-const VertexList& PlyGeometry::getVertices() const
-{
-	return vertices;
-}
-
 }

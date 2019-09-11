@@ -10,9 +10,6 @@ class RandomTriangleGeometry : public Geometry
 public:
 	RandomTriangleGeometry(const glm::vec3& boundsMin, const glm::vec3& boundsMax);
 
-	const IndexList& getIndices() const override;
-	const VertexList& getVertices() const override;
-
 	// Clears all contained triangles.
 	void clear();
 
@@ -21,9 +18,6 @@ public:
 
 private:
 	glm::vec3		boundsMin, boundsMax;
-
-	VertexList		vertices;
-	IndexList		indices;
 
 	Vertex&& createRandomVertex() const;
 	void addTriangle(const Vertex& a, const Vertex& b, const Vertex& c);

@@ -49,16 +49,6 @@ void RandomTriangleGeometry::clear()
 	vertices.clear();
 }
 
-const IndexList& RandomTriangleGeometry::getIndices() const
-{
-	return indices;
-}
-
-const VertexList& RandomTriangleGeometry::getVertices() const
-{
-	return vertices;
-}
-
 Vertex&& RandomTriangleGeometry::createRandomVertex() const
 {
 	vec3 pos = glm::linearRand(boundsMin, boundsMax);

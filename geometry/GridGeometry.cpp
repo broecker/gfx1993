@@ -32,15 +32,4 @@ GridGeometry::GridGeometry()
 		v.colour = vec4(1, 1, 1, 1);
 	}
 }
-
-const VertexList& GridGeometry::getVertices() const
-{
-	return vertices;
-}
-
-const IndexList& GridGeometry::getIndices() const
-{
-	return indices;
-}
-
 }
