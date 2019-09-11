@@ -68,7 +68,7 @@ namespace render
         // Draws a triangle that was clipped to the viewport.
         void drawTriangle(const TrianglePrimitive &t) const;
 
-        // Certex transform of the input vertices
+        // Vertex transform of the input vertices
         void transformVertices(const VertexList &verticesIn, VertexOutList &out,
                                std::shared_ptr<VertexShader> vertexShader) const;
 

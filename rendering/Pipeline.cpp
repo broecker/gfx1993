@@ -109,15 +109,14 @@ namespace render
             return DISCARD;
     }
 
-    ShadingGeometry PointPrimitive::rasterise() const
+    ShadingGeometry&& PointPrimitive::rasterize() const
     {
         ShadingGeometry result;
         result.position = p.worldPosition;
         result.normal = p.worldNormal;
         result.color = p.color;
         result.texcoord = p.texcoord;
-
-        return result;
+        return std::move(result);
     }
 
     ClipResult LinePrimitive::clipToNDC()
@@ -140,15 +139,14 @@ namespace render
         return cr;
     }
 
-    ShadingGeometry LinePrimitive::rasterise(float d) const
+    ShadingGeometry&& LinePrimitive::rasterize(float d) const
     {
         ShadingGeometry result;
         result.position = mix(a.worldPosition, b.worldPosition, d);
         result.normal = normalize(mix(a.worldNormal, b.worldNormal, d));
         result.color = mix(a.color, b.color, d);
         result.texcoord = mix(a.texcoord, b.texcoord, d);
-
-        return result;
+        return std::move(result);
     }
 
 
@@ -174,7 +172,7 @@ namespace render
 
     }
 
-    ShadingGeometry TrianglePrimitive::rasterise(const glm::vec3& bary) const
+    ShadingGeometry&& TrianglePrimitive::rasterize(const glm::vec3& bary) const
     {
         float bsum = bary.x+bary.y+bary.z;
 
@@ -184,8 +182,7 @@ namespace render
         sgeo.color = a.color * bary.x + b.color * bary.y + c.color * bary.z / bsum;
         sgeo.texcoord = a.texcoord*bary.x + b.texcoord*bary.y + c.texcoord*bary.z / bsum;
 
-
-        return sgeo;
+        return std::move(sgeo);
     }
 
 
