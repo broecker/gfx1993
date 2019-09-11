@@ -8,7 +8,6 @@
 
 #include "rendering/Framebuffer.h"
 #include "rendering/Depthbuffer.h"
-#include "common/Color.h"
 #include "common/Vertex.h"
 #include "rendering/Shader.h"
 #include "rendering/Rasterizer.h"
@@ -72,8 +71,7 @@ static void idle()
     rotationAngle += dt * 3.f;
 
 	// clear the buffers	
-	Color clearColour(0, 0, 0.2f, 1.f);
-	framebuffer->clear( clearColour );
+	framebuffer->clear( glm::vec4(0, 0, 0.2f, 1) );
 	depthbuffer->clear();
 
 	// reset the render matrices

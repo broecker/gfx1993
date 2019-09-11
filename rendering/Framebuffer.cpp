@@ -5,7 +5,7 @@ namespace render
 
 Framebuffer::Framebuffer(unsigned int w, unsigned int h) : width(w), height(h) 
 {
-	data = new Color[width * height];
+	data = new glm::vec4[width * height];
 }
 
 Framebuffer::~Framebuffer()
@@ -13,19 +13,19 @@ Framebuffer::~Framebuffer()
 	delete[] data;
 }
 
-void Framebuffer::clear(const Color& c) 
+void Framebuffer::clear(const glm::vec4& c)
 {
 	for (unsigned int i = 0; i < width*height; ++i)
 	{
-		data[i].set( c );
+	    data[i] = c;
 	}
 }
 
-void Framebuffer::plot(int x, int y, const Color& c)
+void Framebuffer::plot(int x, int y, const glm::vec4& c)
 {
 	if (x >= 0 && x < width && y >= 0 && y < height)
 	{
-		data[x + y*width].set( c );
+		data[x + y*width] = c;
 	}
 }
 

@@ -1,6 +1,9 @@
 #include "Shader.h"
 
-using namespace glm;
+using glm::vec3;
+using glm::vec4;
+using glm::mat3;
+using glm::mat4;
 
 namespace render 
 {
@@ -22,15 +25,15 @@ VertexOut DefaultVertexTransform::transformSingle(const Vertex& in)
 	return result;
 }
 
-Color InputColourShader::shadeSingle(const ShadingGeometry& in)
+vec4 InputColourShader::shadeSingle(const ShadingGeometry& in)
 {
 	return in.colour;
 }
 
-Color NormalColourShader::shadeSingle(const ShadingGeometry& in)
+vec4 NormalColourShader::shadeSingle(const ShadingGeometry& in)
 {
 	vec3 c = abs(normalize(in.normal));
-	return Color(c.x, c.y, c.z, 1.f );
+	return vec4(c, 1.f);
 }
 
 }

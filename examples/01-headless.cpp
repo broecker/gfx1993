@@ -8,7 +8,6 @@
 
 #include "rendering/Framebuffer.h"
 #include "rendering/Depthbuffer.h"
-#include "common/Color.h"
 #include "common/Vertex.h"
 #include "rendering/Shader.h"
 #include "rendering/Rasterizer.h"
@@ -32,9 +31,8 @@ const static int MAX_FRAMES = 36;
 // A single frame -- rotates and draws the triangle.
 static void frame(int counter)
 {
-	// clear the buffers	
-	Color clearColour(0, 0, 0.2f, 1.f);
-	framebuffer->clear( clearColour );
+	// Clear the buffers
+	framebuffer->clear( glm::vec4(0, 0, 0.2f, 1) );
 	depthbuffer->clear();
 
 	// reset the render matrices
@@ -69,7 +67,7 @@ void writeImage(int counter)
     {
         for (unsigned int x = 0; x < framebuffer->getWidth(); ++x)
         {
-            const Color& c = framebuffer->getPixels()[x + y*framebuffer->getWidth()];
+            const glm::vec4& c = framebuffer->getPixels()[x + y*framebuffer->getWidth()];
             file << (int)(c.r * 255) << " " << (int)(c.g * 255) << " " << (int)(c.b * 255) << " ";
         }
         file << std::endl;

@@ -12,7 +12,11 @@
 #include <list>
 #include <boost/function.hpp>
 
-namespace render 
+using glm::ivec2;
+using glm::vec3;
+using glm::vec4;
+
+namespace render
 {
 
 // a helper struct/functor object for STL algorithms
@@ -48,8 +52,6 @@ Rasterizer::Rasterizer() : drawBoundingBoxes(false)
 
 unsigned int Rasterizer::drawPoints(const VertexList& vertices) const
 {
-	using namespace glm;
-
 	if (!fragmentShader)
 		throw "Fragment shader missing!";
 
@@ -101,7 +103,7 @@ unsigned int Rasterizer::drawPoints(const VertexList& vertices) const
 		sgeo.depth = pos_win.z;
 
 		// shade fragment and plot
-		Color fragColour = fragmentShader->shadeSingle(sgeo );
+		vec4 fragColour = fragmentShader->shadeSingle(sgeo );
 		framebuffer->plot(sgeo.windowCoord, fragColour);
 
 		++pointsDrawn;
@@ -228,7 +230,7 @@ unsigned int Rasterizer::drawTriangles(const VertexList& vertices, const IndexLi
 
 		}
 
-		// rasterise and interpolate triangle here
+		// rasterize and interpolate triangle here
 		drawTriangle( *tri );
 
 	}
@@ -273,7 +275,7 @@ void Rasterizer::drawLine(const LinePrimitive& line) const
 			sgeo.windowCoord = a;
 			sgeo.depth = depth;
 
-			Color c = fragmentShader->shadeSingle(sgeo);
+			vec4 c = fragmentShader->shadeSingle(sgeo);
 			framebuffer->plot(a, c);
 		}
 
@@ -331,7 +333,7 @@ void Rasterizer::drawTriangle(const TrianglePrimitive& triangle) const
 
 	if (drawBoundingBoxes) {
 		// draw bounding box	
-		Color bboxColour(1, 0, 0, 1);
+		vec4 bboxColour(1, 0, 0, 1);
 		for (int x = min.x; x <= max.x; ++x)
 		{
 			ivec2 p(x, min.y);
@@ -381,7 +383,7 @@ void Rasterizer::drawTriangle(const TrianglePrimitive& triangle) const
 					sgeo.windowCoord = p;
 					sgeo.depth = z;
 
-					Color c = fragmentShader->shadeSingle(sgeo);
+					vec4 c = fragmentShader->shadeSingle(sgeo);
 					framebuffer->plot(p, c);
 				}
 

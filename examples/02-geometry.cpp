@@ -8,7 +8,6 @@
 
 #include "rendering/Framebuffer.h"
 #include "rendering/Depthbuffer.h"
-#include "common/Color.h"
 #include "common/Vertex.h"
 #include "rendering/Shader.h"
 #include "rendering/Rasterizer.h"
@@ -78,9 +77,8 @@ static void idle()
 		frames = 0;
 	}
 
-	// clear the buffers	
-	Color clearColour(0.7f, 00.7f, 1.f, 1.f);
-	framebuffer->clear( clearColour );
+	// Clear the buffers
+	framebuffer->clear( glm::vec4(0.7f, 0.7f, 0.9f, 1));
 	depthbuffer->clear();
 
 	// reset the render matrices

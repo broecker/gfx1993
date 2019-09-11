@@ -2,7 +2,6 @@
 #define SHADER_INCLUDED
 
 #include "../common/Vertex.h"
-#include "../common/Color.h"
 #include "ShadingGeometry.h"
 
 namespace render 
@@ -38,21 +37,21 @@ class FragmentShader
 public:
 	virtual ~FragmentShader() = default;
 	
-	virtual Color shadeSingle(const ShadingGeometry& in) = 0;
+	virtual glm::vec4 shadeSingle(const ShadingGeometry& in) = 0;
 
 };
 
 class InputColourShader : public FragmentShader
 {
 public:
-	Color shadeSingle(const ShadingGeometry& in) override;
+    glm::vec4 shadeSingle(const ShadingGeometry& in) override;
 
 };
 
 class NormalColourShader : public FragmentShader
 {
 public:
-	Color shadeSingle(const ShadingGeometry& in) override;
+    glm::vec4 shadeSingle(const ShadingGeometry& in) override;
 
 };
 
