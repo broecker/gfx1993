@@ -5,11 +5,11 @@
 
 namespace geo {
 
-class Geometry2
+class Geometry
 {
 public:
-	Geometry2();
-	virtual ~Geometry2() = default;
+	Geometry();
+	virtual ~Geometry() = default;
 
 	virtual const VertexList& getVertices() const = 0;
 	virtual const IndexList& getIndices() const = 0;

@@ -1,11 +1,11 @@
 #ifndef RANDOM_TRIANGLE_GEOMETRY_INCLUDED
 #define RANDOM_TRIANGLE_GEOMETRY_INCLUDED
 
-#include "Geometry2.h"
+#include "Geometry.h"
 
 namespace geo {
 
-class RandomTriangleGeometry : public Geometry2
+class RandomTriangleGeometry : public Geometry
 {
 public:
 	RandomTriangleGeometry(const glm::vec3& boundsMin, const glm::vec3& boundsMax);

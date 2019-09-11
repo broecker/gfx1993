@@ -1,13 +1,13 @@
 #ifndef PLY_GEOMETRY_INCLUDED
 #define PLY_GEOMETRY_INCLUDED
 
-#include "Geometry2.h"
+#include "Geometry.h"
 
 #include <string>
 
 namespace geo {
 
-class PlyGeometry : public Geometry2
+class PlyGeometry : public Geometry
 {
 public:
 	PlyGeometry();
