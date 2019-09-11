@@ -1,10 +1,13 @@
 #include "PlyGeometry.h"
+#include "../rendering/Pipeline.h"
 
 #include <fstream>
 #include <algorithm>
 #include <cstdio>
 #include <cassert>
 #include <iostream>
+
+using render::Vertex;
 
 namespace geo {
 

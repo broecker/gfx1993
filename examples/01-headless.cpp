@@ -8,7 +8,7 @@
 
 #include "rendering/Framebuffer.h"
 #include "rendering/Depthbuffer.h"
-#include "common/Vertex.h"
+#include "rendering/Pipeline.h"
 #include "rendering/Shader.h"
 #include "rendering/Rasterizer.h"
 #include "rendering/Viewport.h"
@@ -16,8 +16,8 @@
 unsigned int 	width = 640, height = 480;
 std::string binaryName;
 
-VertexList vertices;
-IndexList indices;
+render::VertexList vertices;
+render::IndexList indices;
 
 std::shared_ptr<render::Framebuffer>	framebuffer;
 std::shared_ptr<render::Depthbuffer>	depthbuffer;
@@ -25,6 +25,8 @@ std::unique_ptr<render::Rasterizer>		rasterizer;
 
 std::shared_ptr<render::DefaultVertexTransform>	vertexShader;
 std::shared_ptr<render::FragmentShader>	fragmentShader;
+
+using render::Vertex;
 
 const static int MAX_FRAMES = 36;
 

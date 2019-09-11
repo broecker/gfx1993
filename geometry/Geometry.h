@@ -1,9 +1,13 @@
 #ifndef GEOMETRY2_INCLUDED
 #define GEOMETRY2_INCLUDED
 
-#include "../common/Vertex.h"
+#include "../rendering/Pipeline.h"
 
-namespace geo {
+namespace geo
+{
+
+using render::VertexList;
+using render::IndexList;
 
 class Geometry
 {

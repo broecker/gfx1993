@@ -25,15 +25,15 @@ VertexOut DefaultVertexTransform::transformSingle(const Vertex& in)
 	return result;
 }
 
-vec4 InputColourShader::shadeSingle(const ShadingGeometry& in)
+Fragment&& InputColourShader::shadeSingle(const ShadingGeometry& in)
 {
-	return in.color;
+	return std::move(Fragment{in.color});
 }
 
-vec4 NormalColourShader::shadeSingle(const ShadingGeometry& in)
+Fragment&& NormalColourShader::shadeSingle(const ShadingGeometry& in)
 {
 	vec3 c = abs(normalize(in.normal));
-	return vec4(c, 1.f);
+	return std::move(Fragment{ vec4(c, 1.f) });
 }
 
 }

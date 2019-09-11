@@ -1,8 +1,10 @@
 #include "Geometry.h"
 
-namespace geo {
+namespace geo
+{
 
 Geometry::Geometry() : transform()
 {
 }
+
 }

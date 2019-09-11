@@ -3,9 +3,9 @@
 
 #include <memory>
 
-#include "../common/Vertex.h"
+#include "Pipeline.h"
 
-namespace render 
+namespace render
 {
 
 class Framebuffer;
@@ -13,10 +13,6 @@ class Depthbuffer;
 class VertexShader;
 class FragmentShader;
 class Viewport;
-
-
-struct LinePrimitive;
-struct TrianglePrimitive;
 
 class Rasterizer
 {

@@ -4,8 +4,7 @@
 #include "Viewport.h"
 
 #include "Shader.h"
-#include "ShadingGeometry.h"
-#include "RenderPrimitive.h"
+#include "Pipeline.h"
 
 #include <algorithm>
 #include <iostream>
@@ -103,8 +102,8 @@ unsigned int Rasterizer::drawPoints(const VertexList& vertices) const
 		sgeo.depth = pos_win.z;
 
 		// shade fragment and plot
-		vec4 fragColour = fragmentShader->shadeSingle(sgeo );
-		framebuffer->plot(sgeo.windowCoord, fragColour);
+		Fragment frag = fragmentShader->shadeSingle(sgeo);
+		framebuffer->plot(sgeo.windowCoord, frag.color);
 
 		++pointsDrawn;
 	}
@@ -275,8 +274,8 @@ void Rasterizer::drawLine(const LinePrimitive& line) const
 			sgeo.windowCoord = a;
 			sgeo.depth = depth;
 
-			vec4 c = fragmentShader->shadeSingle(sgeo);
-			framebuffer->plot(a, c);
+			Fragment frag = fragmentShader->shadeSingle(sgeo);
+			framebuffer->plot(a, frag.color);
 		}
 
 		// 'core' bresenham
@@ -383,8 +382,8 @@ void Rasterizer::drawTriangle(const TrianglePrimitive& triangle) const
 					sgeo.windowCoord = p;
 					sgeo.depth = z;
 
-					vec4 c = fragmentShader->shadeSingle(sgeo);
-					framebuffer->plot(p, c);
+					Fragment frag = fragmentShader->shadeSingle(sgeo);
+					framebuffer->plot(p, frag.color);
 				}
 
 			}

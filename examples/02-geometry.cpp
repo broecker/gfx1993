@@ -8,13 +8,11 @@
 
 #include "rendering/Framebuffer.h"
 #include "rendering/Depthbuffer.h"
-#include "common/Vertex.h"
+#include "rendering/Pipeline.h"
 #include "rendering/Shader.h"
 #include "rendering/Rasterizer.h"
 #include "rendering/Viewport.h"
 #include "common/Camera.h"
-#include "geometry/CubeGeometry.h"
-#include "geometry/RandomTriangleGeometry.h"
 #include "geometry/GridGeometry.h"
 #include "geometry/PlyGeometry.h"
 

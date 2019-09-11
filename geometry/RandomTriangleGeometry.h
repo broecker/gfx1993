@@ -3,7 +3,15 @@
 
 #include "Geometry.h"
 
-namespace geo {
+namespace render
+{
+    struct Vertex;
+}
+
+namespace geo
+{
+
+using render::Vertex;
 
 class RandomTriangleGeometry : public Geometry
 {
@@ -19,7 +27,7 @@ public:
 private:
 	glm::vec3		boundsMin, boundsMax;
 
-	Vertex&& createRandomVertex() const;
+	render::Vertex&& createRandomVertex() const;
 	void addTriangle(const Vertex& a, const Vertex& b, const Vertex& c);
 };
 

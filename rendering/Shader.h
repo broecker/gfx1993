@@ -1,8 +1,7 @@
 #ifndef SHADER_INCLUDED
 #define SHADER_INCLUDED
 
-#include "../common/Vertex.h"
-#include "ShadingGeometry.h"
+#include "Pipeline.h"
 
 namespace render 
 {
@@ -37,21 +36,21 @@ class FragmentShader
 public:
 	virtual ~FragmentShader() = default;
 	
-	virtual glm::vec4 shadeSingle(const ShadingGeometry& in) = 0;
+	virtual Fragment&& shadeSingle(const ShadingGeometry& in) = 0;
 
 };
 
 class InputColourShader : public FragmentShader
 {
 public:
-    glm::vec4 shadeSingle(const ShadingGeometry& in) override;
+    Fragment&& shadeSingle(const ShadingGeometry& in) override;
 
 };
 
 class NormalColourShader : public FragmentShader
 {
 public:
-    glm::vec4 shadeSingle(const ShadingGeometry& in) override;
+    Fragment&& shadeSingle(const ShadingGeometry& in) override;
 
 };
 

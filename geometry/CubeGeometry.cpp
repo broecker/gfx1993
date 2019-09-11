@@ -1,8 +1,11 @@
 #include "CubeGeometry.h"
 
+#include "../rendering/Pipeline.h"
+
 #include <random>
 
 using glm::vec4;
+using render::Vertex;
 
 namespace geo {
 

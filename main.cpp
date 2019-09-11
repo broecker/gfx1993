@@ -8,7 +8,6 @@
 
 #include "rendering/Framebuffer.h"
 #include "rendering/Depthbuffer.h"
-#include "common/Vertex.h"
 #include "rendering/Shader.h"
 #include "rendering/Rasterizer.h"
 #include "rendering/Viewport.h"
