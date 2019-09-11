@@ -17,21 +17,10 @@ add_subdirectory(common)
 add_subdirectory(geometry)
 add_subdirectory(rendering)
 
+# The examples
+add_subdirectory(examples)
+
 # The full monty test
 add_executable(srender main.cpp)
-target_link_libraries(srender common geometry rendering)
-target_link_libraries(srender GLEW GL GLU glut)
-
-# A simple rotating triangle
-add_executable(00-triangle 00-triangle.cpp)
-target_link_libraries(00-triangle common geometry rendering)
-target_link_libraries(00-triangle GLEW GL GLU glut)
-
-# A simple rotating triangle, this time without OpenGL
-add_executable(01-headless 01-headless.cpp)
-target_link_libraries(01-headless common geometry rendering)
-
-# Basic camera controls and geometry loading
-add_executable(02-geometry 02-geometry.cpp)
-target_link_libraries(02-geometry common geometry rendering)
-target_link_libraries(02-geometry GLEW GL GLU glut)
+target_link_libraries(srender gfx93-common gfx93-geometry gfx93-rendering)
+target_link_libraries(srender GL GLU glut)

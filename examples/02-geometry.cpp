@@ -122,7 +122,7 @@ static void keyboard(unsigned char key, int x, int y)
 	{
 		std::unique_ptr<geo::PlyGeometry> bunny = std::make_unique<geo::PlyGeometry>();
 
-		bunny->loadPly("models/bunny/reconstruction/bun_zipper_res3.ply");
+		bunny->loadPly("../models/bunny/reconstruction/bun_zipper_res3.ply");
 
 		float randomAngle = (float)rand() / RAND_MAX;
 		glm::vec3 randomAxis = glm::sphericalRand(1);
@@ -203,7 +203,7 @@ int main(int argc, char** argv)
 
 
 
-	camera = std::make_unique<OrbitCamera>(glm::vec3(0,0,0), glm::vec3(0,1,0), 10.0f);
+	camera = std::make_unique<OrbitCamera>(glm::vec3(0, 0, 0), glm::vec3(0, 1, 0), 10.0f);
 
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);
