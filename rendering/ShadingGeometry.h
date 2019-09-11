@@ -12,7 +12,7 @@ struct ShadingGeometry
 	glm::vec3	position;
 	glm::vec3	normal;
 
-	glm::vec4	colour;
+	glm::vec4	color;
 	glm::vec2	texcoord;
 
 	glm::ivec2	windowCoord;
@@ -20,7 +20,7 @@ struct ShadingGeometry
 
 };
 
-ShadingGeometry interpolate(const ShadingGeometry& a, const ShadingGeometry& b, float d);
+ShadingGeometry&& interpolate(const ShadingGeometry& a, const ShadingGeometry& b, float d);
 
 }
 

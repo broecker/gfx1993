@@ -1,9 +1,11 @@
 #include "ShadingGeometry.h"
 
+#include <memory>
+
 namespace render 
 {
 
-ShadingGeometry interpolate(const ShadingGeometry& a, const ShadingGeometry& b, float d)
+ShadingGeometry&& interpolate(const ShadingGeometry& a, const ShadingGeometry& b, float d)
 {
 	using namespace glm;
 
@@ -12,10 +14,10 @@ ShadingGeometry interpolate(const ShadingGeometry& a, const ShadingGeometry& b, 
 	result.position = mix(a.position, b.position, d);
 	result.normal = normalize(mix(a.normal, b.normal, d));
 
-	result.colour = mix(a.colour, b.colour, d);
+	result.color = mix(a.color, b.color, d);
 	result.windowCoord = mix(a.windowCoord, b.windowCoord, d);
 
-	return result;
+	return std::move(result);
 }
 
 }

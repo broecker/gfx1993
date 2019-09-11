@@ -32,7 +32,7 @@ struct VertexOut
 	glm::vec2	texcoord;
 };
 
-inline VertexOut lerp(const VertexOut& a, const VertexOut& b, float d)
+inline VertexOut&& lerp(const VertexOut& a, const VertexOut& b, float d)
 {
 	VertexOut result;
 	result.clipPosition = glm::mix(a.clipPosition, b.clipPosition, d);
@@ -40,7 +40,7 @@ inline VertexOut lerp(const VertexOut& a, const VertexOut& b, float d)
 	result.worldNormal = glm::mix(a.worldNormal, b.worldNormal, d);
 	result.color = glm::mix(a.color, b.color, d);
 	result.texcoord = glm::mix(a.texcoord, b.texcoord, d);
-	return result;
+	return std::move(result);
 }
 
 

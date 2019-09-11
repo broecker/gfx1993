@@ -27,7 +27,7 @@ VertexOut DefaultVertexTransform::transformSingle(const Vertex& in)
 
 vec4 InputColourShader::shadeSingle(const ShadingGeometry& in)
 {
-	return in.colour;
+	return in.color;
 }
 
 vec4 NormalColourShader::shadeSingle(const ShadingGeometry& in)
