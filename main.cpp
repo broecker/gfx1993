@@ -27,12 +27,12 @@ std::unique_ptr<geo::GridGeometry> grid;
 
 std::vector<std::unique_ptr<geo::PlyGeometry> > bunnyList;
 
-std::shared_ptr<render::Framebuffer>	framebuffer;
-std::shared_ptr<render::Depthbuffer>	depthbuffer;
+render::Rasterizer::RenderOutput        renderTarget;
+render::Rasterizer::ShaderConfiguration shaders;
 
 std::unique_ptr<render::Rasterizer>		rasterizer;
 std::shared_ptr<render::DefaultVertexTransform>	vertexTransform;
-std::shared_ptr<render::FragmentShader>	fragmentShader;
+std::shared_ptr<render::FragmentShader>	singleColorShader;
 std::shared_ptr<render::FragmentShader>	normalShader;
 
 Camera*			camera;
@@ -45,7 +45,7 @@ static const int GLUT_MOUSEWHEEL_UP = 4;
 static void display()
 {
 	glBindTexture(GL_TEXTURE_2D, texture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, framebuffer->getPixels());
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, renderTarget.framebuffer->getPixels());
 
 	glEnable(GL_TEXTURE_2D);
 	glEnableClientState(GL_VERTEX_ARRAY);
@@ -83,49 +83,48 @@ static void idle()
 	}
 
 	// clear the buffers	
-	framebuffer->clear(glm::vec4(0, 0, 0.2f, 0));
-	depthbuffer->clear();
+    renderTarget.framebuffer->clear(glm::vec4(0, 0, 0.2f, 0));
+    renderTarget.depthbuffer->clear();
 
 	// reset the render matrices
     vertexTransform->modelMatrix = glm::mat4(1.f);
     vertexTransform->viewMatrix = camera->getViewMatrix();
     vertexTransform->projectionMatrix = camera->getProjectionMatrix();
-    rasterizer->vertexShader = vertexTransform;
 
 	try
 	{
 		if (triangles)
 		{
-			rasterizer->drawTriangles(triangles->getVertices(), triangles->getIndices());
+            rasterizer->drawTriangles(triangles->getVertices(), triangles->getIndices());
 		}
 
 		if (grid)
 		{
-			rasterizer->drawLines(grid->getVertices(), grid->getIndices());
+		    shaders.fragmentShader = singleColorShader;
+		    rasterizer->setShaders(shaders);
+            rasterizer->drawLines(grid->getVertices(), grid->getIndices());
 		}
 		
 		if (cube)
 		{
-			rasterizer->drawLines(cube->getVertices(), cube->getIndices());
+            shaders.fragmentShader = singleColorShader;
+            rasterizer->setShaders(shaders);
+            rasterizer->drawLines(cube->getVertices(), cube->getIndices());
 		}
 
-		for (auto bunny = bunnyList.begin(); bunny != bunnyList.end(); ++bunny)
-		{
-            vertexTransform->modelMatrix = (*bunny)->transform;
-            rasterizer->vertexShader = vertexTransform;
-
-            rasterizer->fragmentShader = normalShader;
-			rasterizer->drawTriangles((*bunny)->getVertices(), (*bunny)->getIndices() );
-
-            rasterizer->fragmentShader = fragmentShader;
-
-		}
+		if (!bunnyList.empty()) {
+            shaders.fragmentShader = normalShader;
+            rasterizer->setShaders(shaders);
+            for (auto bunny = bunnyList.begin(); bunny != bunnyList.end(); ++bunny) {
+                vertexTransform->modelMatrix = (*bunny)->transform;
+                rasterizer->drawTriangles((*bunny)->getVertices(), (*bunny)->getIndices());
+            }
+        }
 	}
 	catch (const char* txt)
 	{
 		std::cerr << "Render error :\"" << txt << "\"\n";
 	}
-
 
 	glutPostRedisplay();
 }
@@ -155,9 +154,8 @@ static void keyboard(unsigned char key, int x, int y)
 
 	if (key == 'g')
 	{
-		std::unique_ptr<geo::PlyGeometry> bunny = std::make_unique<geo::PlyGeometry>();
-
-		bunny->loadPly("models/bunny/reconstruction/bun_zipper_res3.ply");
+        std::unique_ptr<geo::PlyGeometry> bunny = std::make_unique<geo::PlyGeometry>();
+        bunny->loadPly("models/bunny/reconstruction/bun_zipper_res3.ply");
 
 		float randomAngle = (float)rand() / RAND_MAX;
 		glm::vec3 randomAxis = glm::sphericalRand(1);
@@ -223,23 +221,19 @@ int main(int argc, char** argv)
 	srand( time(0) );
 
     rasterizer = std::make_unique<render::Rasterizer>();
-    rasterizer->viewport = std::make_shared<render::Viewport>(0, 0, width, height);
-
-	framebuffer = std::make_shared<render::Framebuffer>(width, height);
-    rasterizer->framebuffer = framebuffer;
-
-	depthbuffer = std::make_shared<render::Depthbuffer>(width, height);
-    rasterizer->depthbuffer = depthbuffer;
+    renderTarget.viewport = std::make_shared<render::Viewport>(0, 0, width, height);
+	renderTarget.framebuffer = std::make_shared<render::Framebuffer>(width, height);
+	renderTarget.depthbuffer = std::make_shared<render::Depthbuffer>(width, height);
+    rasterizer->setRenderOutput(renderTarget);
 
     vertexTransform = std::make_shared<render::DefaultVertexTransform>();
-    rasterizer->vertexShader = vertexTransform;
+    singleColorShader = std::make_shared<render::InputColourShader>();
+    shaders.vertexShader = vertexTransform;
+    shaders.fragmentShader = singleColorShader;
+    normalShader = std::make_shared<render::NormalColourShader>();
+    rasterizer->setShaders(shaders);
 
 	grid = std::make_unique<geo::GridGeometry>();
-
-	fragmentShader = std::make_shared<render::InputColourShader>();
-    rasterizer->fragmentShader = fragmentShader;
-
-	normalShader = std::shared_ptr<render::NormalColourShader>();
 
 	camera = new OrbitCamera(glm::vec3(0,0,0), glm::vec3(0,1,0), 10.0f);
 

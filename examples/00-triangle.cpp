@@ -19,7 +19,8 @@ unsigned int 	width = 640, height = 480;
 render::VertexList vertices;
 render::IndexList indices;
 
-render::Rasterizer::RenderConfiguration renderConfiguration;
+render::Rasterizer::ShaderConfiguration shaders;
+render::Rasterizer::RenderOutput        renderTarget;
 std::unique_ptr<render::Rasterizer>		rasterizer;
 std::shared_ptr<render::DefaultVertexTransform>	vertexShader;
 
@@ -31,7 +32,7 @@ float rotationAngle = 0.f;
 static void display()
 {
 	glBindTexture(GL_TEXTURE_2D, texture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, renderConfiguration.framebuffer->getPixels());
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, renderTarget.framebuffer->getPixels());
 
 	glEnable(GL_TEXTURE_2D);
 	glEnableClientState(GL_VERTEX_ARRAY);
@@ -70,8 +71,8 @@ static void idle()
     rotationAngle += dt * 3.f;
 
 	// clear the buffers	
-    renderConfiguration.framebuffer->clear( glm::vec4(0, 0, 0.2f, 1) );
-    renderConfiguration.depthbuffer->clear();
+    renderTarget.framebuffer->clear( glm::vec4(0, 0, 0.2f, 1) );
+    renderTarget.depthbuffer->clear();
 
 	// reset the render matrices
     vertexShader->modelMatrix = glm::rotate(rotationAngle, glm::vec3(0,1,0));
@@ -80,7 +81,7 @@ static void idle()
 
 	try
 	{
-	    rasterizer->drawTriangles(vertices, indices, renderConfiguration);
+        rasterizer->drawTriangles(vertices, indices);
 	}
 	catch (const char* txt)
 	{
@@ -111,15 +112,17 @@ int main(int argc, char** argv)
 	srand( time(0) );
 
     rasterizer = std::make_unique<render::Rasterizer>();
-    renderConfiguration.viewport = std::make_shared<render::Viewport>(0, 0, width, height);
-    renderConfiguration.framebuffer = std::make_shared<render::Framebuffer>(width, height);
-    renderConfiguration.depthbuffer = std::make_shared<render::Depthbuffer>(width, height);
+    renderTarget.viewport = std::make_shared<render::Viewport>(0, 0, width, height);
+    renderTarget.framebuffer = std::make_shared<render::Framebuffer>(width, height);
+    renderTarget.depthbuffer = std::make_shared<render::Depthbuffer>(width, height);
 
     // Keep a separate reference to the vertex shader so we can change the transform easily.
     vertexShader = std::make_shared<render::DefaultVertexTransform>();
-    renderConfiguration.vertexShader = vertexShader;
+    shaders.vertexShader = vertexShader;
+    shaders.fragmentShader = std::make_shared<render::InputColourShader>();
 
-    renderConfiguration.fragmentShader = std::make_shared<render::InputColourShader>();
+    rasterizer->setRenderOutput(renderTarget);
+    rasterizer->setShaders(shaders);
 
     // Create the triangle geometry
     vertices.push_back(Vertex(glm::vec4(-5, 0, 0, 1), glm::vec3(1, 0, 0), glm::vec4(0, 0, 1, 1), glm::vec2(0,0)));
