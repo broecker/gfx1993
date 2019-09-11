@@ -40,7 +40,7 @@ struct NoVertexTransform
 		result.clipPosition = in.position;
 		result.worldPosition = glm::vec3(in.position);
 		result.worldNormal = in.normal;
-		result.colour = in.colour;
+		result.color = in.color;
 		result.texcoord = in.texcoord;
 		return result;
 	}
@@ -265,7 +265,7 @@ void Rasterizer::drawLine(const LinePrimitive& line) const
 
 	for(;;)
 	{
-		// interpolation for depth and texturing/colour
+		// interpolation for depth and texturing/color
 		float delta = std::min(1.f, positionCounter/lineLength);
 		float depth = mix(posA_win.z, posB_win.z, delta);
 

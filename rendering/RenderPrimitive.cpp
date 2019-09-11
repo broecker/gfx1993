@@ -87,7 +87,7 @@ ShadingGeometry PointPrimitive::rasterise() const
 	ShadingGeometry result;
 	result.position = p.worldPosition;
 	result.normal = p.worldNormal;
-	result.colour = p.colour;
+	result.colour = p.color;
 	result.texcoord = p.texcoord;
 
 	return result;
@@ -118,7 +118,7 @@ ShadingGeometry LinePrimitive::rasterise(float d) const
 	ShadingGeometry result;
 	result.position = mix(a.worldPosition, b.worldPosition, d);
 	result.normal = normalize(mix(a.worldNormal, b.worldNormal, d));
-	result.colour = mix(a.colour, b.colour, d);
+	result.colour = mix(a.color, b.color, d);
 	result.texcoord = mix(a.texcoord, b.texcoord, d);
 
 	return result;
@@ -154,7 +154,7 @@ ShadingGeometry TrianglePrimitive::rasterise(const glm::vec3& bary) const
 	ShadingGeometry sgeo;
 	sgeo.position = a.worldPosition*bary.x + b.worldPosition*bary.y + c.worldPosition*bary.z / bsum;
 	sgeo.normal = a.worldNormal*bary.x + b.worldNormal*bary.y + c.worldNormal*bary.z / bsum;
-	sgeo.colour = a.colour*bary.x + b.colour*bary.y + c.colour*bary.z / bsum;
+	sgeo.colour = a.color * bary.x + b.color * bary.y + c.color * bary.z / bsum;
 	sgeo.texcoord = a.texcoord*bary.x + b.texcoord*bary.y + c.texcoord*bary.z / bsum;
 
 

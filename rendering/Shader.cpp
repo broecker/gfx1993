@@ -19,7 +19,7 @@ VertexOut DefaultVertexTransform::transformSingle(const Vertex& in)
 	
 	// this assumes that no non-uniform scaling or shearing takes place
 	result.worldNormal = mat3(modelMatrix) * in.normal;
-	result.colour = in.colour;
+	result.color = in.color;
 	result.texcoord = in.texcoord;
 
 	return result;

@@ -29,7 +29,7 @@ GridGeometry::GridGeometry()
 	for (auto v : vertices)
 	{
 		v.normal = vec3(0, 1, 0);
-		v.colour = vec4(1, 1, 1, 1);
+		v.color = vec4(1, 1, 1, 1);
 	}
 }
 }

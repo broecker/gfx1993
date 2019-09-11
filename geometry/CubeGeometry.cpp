@@ -31,9 +31,9 @@ CubeGeometry::CubeGeometry(const glm::vec3& sidelength)
 		float r = (float)std::rand() / RAND_MAX;
 		float g = (float)std::rand() / RAND_MAX;
 		float b = 1.f - (r+g);
-		vertices[i].colour.r = r; 
-		vertices[i].colour.g = g; 
-		vertices[i].colour.b = b; 
+		vertices[i].color.r = r;
+		vertices[i].color.g = g;
+		vertices[i].color.b = b;
 	}
 
 	indices.push_back(0); indices.push_back(1);
