@@ -22,12 +22,8 @@ unsigned int 	width = 640, height = 480;
 
 std::unique_ptr<geo::GridGeometry> grid;
 std::vector<std::unique_ptr<geo::PlyGeometry> > bunnyList;
-
-std::shared_ptr<render::Framebuffer>	framebuffer;
-std::shared_ptr<render::Depthbuffer>	depthbuffer;
-
 std::unique_ptr<render::Rasterizer>		rasterizer;
-std::shared_ptr<render::DefaultVertexTransform>	vertexTransform;
+render::Rasterizer::RenderConfiguration renderConfig;
 
 std::unique_ptr<Camera>	camera;
 
@@ -39,7 +35,7 @@ static const int GLUT_MOUSEWHEEL_UP = 4;
 static void display()
 {
 	glBindTexture(GL_TEXTURE_2D, texture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, framebuffer->getPixels());
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, renderConfig.framebuffer->getPixels());
 
 	glEnable(GL_TEXTURE_2D);
 	glEnableClientState(GL_VERTEX_ARRAY);
@@ -76,24 +72,26 @@ static void idle()
 	}
 
 	// Clear the buffers
-	framebuffer->clear( glm::vec4(0.7f, 0.7f, 0.9f, 1));
-	depthbuffer->clear();
+    renderConfig.framebuffer->clear( glm::vec4(0.7f, 0.7f, 0.9f, 1));
+    renderConfig.depthbuffer->clear();
 
 	// reset the render matrices
-    vertexTransform->modelMatrix = glm::mat4(1.f);
-    vertexTransform->viewMatrix = camera->getViewMatrix();
-    vertexTransform->projectionMatrix = camera->getProjectionMatrix();
+    render::DefaultVertexTransform* dvt = dynamic_cast<render::DefaultVertexTransform*>(renderConfig.vertexShader.get());
+
+    dvt->modelMatrix = glm::mat4(1.f);
+    dvt->viewMatrix = camera->getViewMatrix();
+    dvt->projectionMatrix = camera->getProjectionMatrix();
 
 	try
 	{
 	    // Draw the floor grid.
-		rasterizer->drawLines(grid->getVertices(), grid->getIndices());
+		rasterizer->drawLines(grid->getVertices(), grid->getIndices(), renderConfig);
 
 		// Draw all the bunnies.
 		for (auto bunny = bunnyList.begin(); bunny != bunnyList.end(); ++bunny)
 		{
-            vertexTransform->modelMatrix = (*bunny)->transform;
-			rasterizer->drawTriangles((*bunny)->getVertices(), (*bunny)->getIndices() );
+            dvt->modelMatrix = (*bunny)->transform;
+			rasterizer->drawTriangles((*bunny)->getVertices(), (*bunny)->getIndices(), renderConfig );
 		}
 	}
 	catch (const char* txt)
@@ -182,18 +180,11 @@ int main(int argc, char** argv)
 	srand( time(0) );
 
     rasterizer = std::make_unique<render::Rasterizer>();
-    rasterizer->viewport = std::make_shared<render::Viewport>(0, 0, width, height);
-
-	framebuffer = std::make_shared<render::Framebuffer>(width, height);
-    rasterizer->framebuffer = framebuffer;
-
-	depthbuffer = std::make_shared<render::Depthbuffer>(width, height);
-    rasterizer->depthbuffer = depthbuffer;
-
-    vertexTransform = std::make_shared<render::DefaultVertexTransform>();
-    rasterizer->vertexShader = vertexTransform;
-    // We're not going to change the normal shader.
-    rasterizer->fragmentShader = std::make_shared<render::NormalColourShader>();
+    renderConfig.viewport = std::make_shared<render::Viewport>(0, 0, width, height);
+    renderConfig.framebuffer = std::make_shared<render::Framebuffer>(width, height);
+    renderConfig.depthbuffer = std::make_shared<render::Depthbuffer>(width, height);
+    renderConfig.vertexShader = std::make_shared<render::DefaultVertexTransform>();
+    renderConfig.fragmentShader = std::make_shared<render::NormalColourShader>();
 
 	grid = std::make_unique<geo::GridGeometry>();
 

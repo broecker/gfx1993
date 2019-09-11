@@ -45,28 +45,26 @@ struct NoVertexTransform
 	}
 };
 
+bool Rasterizer::RenderConfiguration::isValid() const {
+    return vertexShader && fragmentShader && viewport && framebuffer && depthbuffer;
+}
+
 Rasterizer::Rasterizer() : drawBoundingBoxes(false)
 {
 }
 
-unsigned int Rasterizer::drawPoints(const VertexList& vertices) const
+unsigned int Rasterizer::drawPoints(const VertexList& vertices, const RenderConfiguration& renderConfig) const
 {
-	if (!fragmentShader)
-		throw "Fragment shader missing!";
-
-	if (!framebuffer)
-		throw "Framebuffer missing!";
-
-	if (!depthbuffer)
-		throw "Depth buffer missing!";
-
-	if (!viewport)
-		throw "Viewport is missing!";
+    if (!renderConfig.isValid())
+    {
+        std::cerr << "Invalid render configuration!\n";
+        return 0;
+    }
 
 	unsigned int pointsDrawn = 0;
 
 	VertexOutList transformedVertices(vertices.size());
-	transformVertices(vertices, transformedVertices);
+	transformVertices(vertices, transformedVertices, renderConfig.vertexShader);
 
 
 	// build points
@@ -89,10 +87,10 @@ unsigned int Rasterizer::drawPoints(const VertexList& vertices) const
 		// perspective divide and window coordinates
 		const vec4& pos_clip = p.p.clipPosition;
 		const vec3 pos_ndc = vec3(pos_clip) / pos_clip.w;
-		const vec3 pos_win = viewport->calculateWindowCoordinates( pos_ndc );
+		const vec3 pos_win = renderConfig.viewport->calculateWindowCoordinates( pos_ndc );
 
 		// if there is a depth buffer but the depth test fails -> discard fragment (early) 
-		if (depthbuffer && !depthbuffer->conditionalPlot(pos_win))
+		if (renderConfig.depthbuffer && !renderConfig.depthbuffer->conditionalPlot(pos_win))
 			continue;
 
 
@@ -102,8 +100,8 @@ unsigned int Rasterizer::drawPoints(const VertexList& vertices) const
 		sgeo.depth = pos_win.z;
 
 		// shade fragment and plot
-		Fragment frag = fragmentShader->shadeSingle(sgeo);
-		framebuffer->plot(sgeo.windowCoord, frag.color);
+		Fragment frag = renderConfig.fragmentShader->shadeSingle(sgeo);
+        renderConfig.framebuffer->plot(sgeo.windowCoord, frag.color);
 
 		++pointsDrawn;
 	}
@@ -111,7 +109,7 @@ unsigned int Rasterizer::drawPoints(const VertexList& vertices) const
 	return pointsDrawn;
 }
 
-void Rasterizer::transformVertices(const VertexList& vertices, VertexOutList& out) const
+void Rasterizer::transformVertices(const VertexList& vertices, VertexOutList& out, std::shared_ptr<VertexShader> vertexShader) const
 {
 	if (vertexShader)
 	{
@@ -125,25 +123,19 @@ void Rasterizer::transformVertices(const VertexList& vertices, VertexOutList& ou
 	}
 }
 
-unsigned int Rasterizer::drawLines(const VertexList& vertices, const IndexList& indices) const
+unsigned int Rasterizer::drawLines(const VertexList& vertices, const IndexList& indices, const RenderConfiguration& renderConfig) const
 {
+    if (!renderConfig.isValid())
+    {
+        std::cerr << "Invalid render configuration!\n";
+        return 0;
+    }
+
 	unsigned int linesDrawn = 0;
-
-	using namespace glm;
-
-	if (!vertexShader)
-	    throw "Vertex shader missing!";
-
-	if (!fragmentShader)
-		throw "Fragment shader missing!";
-
-	if (!viewport)
-		throw "Viewport is missing!";
-			
 
 	// transform vertices
 	VertexOutList transformedVertices( vertices.size() );
-	transformVertices(vertices, transformedVertices);
+	transformVertices(vertices, transformedVertices, renderConfig.vertexShader);
 
 	// build lines
 	LinePrimitiveList lines;
@@ -165,7 +157,7 @@ unsigned int Rasterizer::drawLines(const VertexList& vertices, const IndexList& 
 			continue;
 		}
 
-		drawLine( line );
+        drawLine(line, renderConfig);
 		++linesDrawn;
 		
 	}
@@ -173,24 +165,19 @@ unsigned int Rasterizer::drawLines(const VertexList& vertices, const IndexList& 
 	return linesDrawn;
 }
 
-unsigned int Rasterizer::drawTriangles(const VertexList& vertices, const IndexList& indices) const
+unsigned int Rasterizer::drawTriangles(const VertexList& vertices, const IndexList& indices, const RenderConfiguration& renderConfig) const
 {
+    if (!renderConfig.isValid())
+    {
+        std::cerr << "Invalid render configuration!\n";
+        return 0;
+    }
+
 	unsigned int trianglesDrawn = 0;
 
-	using namespace glm;
-	
-	if (!vertexShader)
-		throw "Vertex shader missing!";
-	
-	if (!fragmentShader)
-		throw "Fragment shader missing!";
-
-	if (!viewport)
-		throw "Viewport is missing!";
-			
 	// transform vertices
 	VertexOutList transformedVertices( vertices.size() );
-	transformVertices( vertices, transformedVertices );
+	transformVertices( vertices, transformedVertices, renderConfig.vertexShader );
 
 	// build triangles
 	TrianglePrimitiveList triangles;
@@ -230,27 +217,26 @@ unsigned int Rasterizer::drawTriangles(const VertexList& vertices, const IndexLi
 		}
 
 		// rasterize and interpolate triangle here
-		drawTriangle( *tri );
-
+        drawTriangle(*tri, renderConfig);
 	}
 
 	return trianglesDrawn;
 }
 
 // Bresenham line drawing
-void Rasterizer::drawLine(const LinePrimitive& line) const
+void Rasterizer::drawLine(const LinePrimitive &line, const RenderConfiguration& renderConfig) const
 {
 	using namespace glm;
 
 	// point a
 	const vec4& posA_clip = line.a.clipPosition;
 	const vec3 posA_ndc = vec3(posA_clip) / posA_clip.w;
-	const vec3 posA_win = viewport->calculateWindowCoordinates( posA_ndc );
+	const vec3 posA_win = renderConfig.viewport->calculateWindowCoordinates(posA_ndc );
 
 	// point b
 	const vec4& posB_clip = line.b.clipPosition;
 	const vec3 posB_ndc = vec3(posB_clip) / posB_clip.w;
-	const vec3 posB_win = viewport->calculateWindowCoordinates( posB_ndc );
+	const vec3 posB_win = renderConfig.viewport->calculateWindowCoordinates( posB_ndc );
 
 	ivec2 a = ivec2(posA_win);
 	ivec2 b = ivec2(posB_win);
@@ -268,14 +254,14 @@ void Rasterizer::drawLine(const LinePrimitive& line) const
 		float delta = std::min(1.f, positionCounter/lineLength);
 		float depth = mix(posA_win.z, posB_win.z, delta);
 
-		if (viewport->isInside(a) && (!depthbuffer || (depthbuffer && depthbuffer->conditionalPlot(a.x, a.y, depth))))
+		if (renderConfig.viewport->isInside(a) && (!renderConfig.depthbuffer || (renderConfig.depthbuffer && renderConfig.depthbuffer->conditionalPlot(a.x, a.y, depth))))
 		{			
 			ShadingGeometry sgeo = line.rasterise( positionCounter/lineLength );
 			sgeo.windowCoord = a;
 			sgeo.depth = depth;
 
-			Fragment frag = fragmentShader->shadeSingle(sgeo);
-			framebuffer->plot(a, frag.color);
+			Fragment frag = renderConfig.fragmentShader->shadeSingle(sgeo);
+            renderConfig.framebuffer->plot(a, frag.color);
 		}
 
 		// 'core' bresenham
@@ -296,23 +282,23 @@ static inline int pointInHalfspace(const glm::ivec2& a, const glm::ivec2& b, con
 }
 
 // parameter-based rasterization of triangles
-void Rasterizer::drawTriangle(const TrianglePrimitive& triangle) const
+    void Rasterizer::drawTriangle(const TrianglePrimitive &t, const RenderConfiguration& renderConfig) const
 {
 	using namespace glm;
 	// point a
-	const vec4& posA_clip = triangle.a.clipPosition;
+	const vec4& posA_clip = t.a.clipPosition;
 	const vec3 posA_ndc = vec3(posA_clip) / posA_clip.w;
-	const vec3 posA_win = viewport->calculateWindowCoordinates( posA_ndc );
+	const vec3 posA_win = renderConfig.viewport->calculateWindowCoordinates( posA_ndc );
 
 	// point b
-	const vec4& posB_clip = triangle.b.clipPosition;
+	const vec4& posB_clip = t.b.clipPosition;
 	const vec3 posB_ndc = vec3(posB_clip) / posB_clip.w;
-	const vec3 posB_win = viewport->calculateWindowCoordinates( posB_ndc );
+	const vec3 posB_win = renderConfig.viewport->calculateWindowCoordinates( posB_ndc );
 
 	// point c
-	const vec4& posC_clip = triangle.c.clipPosition;
+	const vec4& posC_clip = t.c.clipPosition;
 	const vec3 posC_ndc = vec3(posC_clip) / posC_clip.w;
-	const vec3 posC_win = viewport->calculateWindowCoordinates( posC_ndc );
+	const vec3 posC_win = renderConfig.viewport->calculateWindowCoordinates( posC_ndc );
 
 	// three window/screen coordinates  
 	ivec2 a = ivec2(posA_win);
@@ -327,8 +313,8 @@ void Rasterizer::drawTriangle(const TrianglePrimitive& triangle) const
 	max.y = glm::max(a.y, glm::max(b.y, c.y));
 
 	// clip against screen coords
-	min = glm::max(viewport->origin, min);
-	max = glm::min(viewport->origin+viewport->size-1, max);
+	min = glm::max(renderConfig.viewport->origin, min);
+	max = glm::min(renderConfig.viewport->origin+renderConfig.viewport->size-1, max);
 
 	if (drawBoundingBoxes) {
 		// draw bounding box	
@@ -336,17 +322,17 @@ void Rasterizer::drawTriangle(const TrianglePrimitive& triangle) const
 		for (int x = min.x; x <= max.x; ++x)
 		{
 			ivec2 p(x, min.y);
-			framebuffer->plot(p, bboxColour);
+            renderConfig.framebuffer->plot(p, bboxColour);
 			p = ivec2(x, max.y);
-			framebuffer->plot(p, bboxColour);
+            renderConfig.framebuffer->plot(p, bboxColour);
 		}
 
 		for (int y = min.y; y <= max.y; ++y)
 		{
 			ivec2 p(min.x, y);
-			framebuffer->plot(p, bboxColour);
+            renderConfig.framebuffer->plot(p, bboxColour);
 			p = ivec2(max.x, y);
-			framebuffer->plot(p, bboxColour);
+            renderConfig.framebuffer->plot(p, bboxColour);
 		}
 	}
 	
@@ -376,14 +362,14 @@ void Rasterizer::drawTriangle(const TrianglePrimitive& triangle) const
 			{
 
 				// depth test
-				if (depthbuffer && (depthbuffer->conditionalPlot(x, y, z)))
+				if (renderConfig.depthbuffer && (renderConfig.depthbuffer->conditionalPlot(x, y, z)))
 				{		
-					ShadingGeometry sgeo = triangle.rasterise( lambda );
+					ShadingGeometry sgeo = t.rasterise(lambda );
 					sgeo.windowCoord = p;
 					sgeo.depth = z;
 
-					Fragment frag = fragmentShader->shadeSingle(sgeo);
-					framebuffer->plot(p, frag.color);
+					Fragment frag = renderConfig.fragmentShader->shadeSingle(sgeo);
+                    renderConfig.framebuffer->plot(p, frag.color);
 				}
 
 			}

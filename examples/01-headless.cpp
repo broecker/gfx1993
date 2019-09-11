@@ -19,12 +19,9 @@ std::string binaryName;
 render::VertexList vertices;
 render::IndexList indices;
 
-std::shared_ptr<render::Framebuffer>	framebuffer;
-std::shared_ptr<render::Depthbuffer>	depthbuffer;
-std::unique_ptr<render::Rasterizer>		rasterizer;
-
+std::unique_ptr<render::Rasterizer> rasterizer;
+render::Rasterizer::RenderConfiguration renderConfig;
 std::shared_ptr<render::DefaultVertexTransform>	vertexShader;
-std::shared_ptr<render::FragmentShader>	fragmentShader;
 
 using render::Vertex;
 
@@ -34,8 +31,8 @@ const static int MAX_FRAMES = 36;
 static void frame(int counter)
 {
 	// Clear the buffers
-	framebuffer->clear( glm::vec4(0, 0, 0.2f, 1) );
-	depthbuffer->clear();
+    renderConfig.framebuffer->clear( glm::vec4(0, 0, 0.2f, 1) );
+    renderConfig.depthbuffer->clear();
 
 	// reset the render matrices
 	float rotation = (float)counter / MAX_FRAMES * glm::pi<float>() * 2;
@@ -46,7 +43,7 @@ static void frame(int counter)
 
 	try
 	{
-	    rasterizer->drawTriangles(vertices, indices);
+	    rasterizer->drawTriangles(vertices, indices, renderConfig);
 	}
 	catch (const char* txt)
 	{
@@ -65,11 +62,11 @@ void writeImage(int counter)
     file << width << " " << height << std::endl;
     file << 255 << std::endl;
 
-    for (unsigned int y = 0; y < framebuffer->getHeight(); ++y)
+    for (unsigned int y = 0; y < renderConfig.framebuffer->getHeight(); ++y)
     {
-        for (unsigned int x = 0; x < framebuffer->getWidth(); ++x)
+        for (unsigned int x = 0; x < renderConfig.framebuffer->getWidth(); ++x)
         {
-            const glm::vec4& c = framebuffer->getPixels()[x + y*framebuffer->getWidth()];
+            const glm::vec4& c = renderConfig.framebuffer->getPixels()[x + y*renderConfig.framebuffer->getWidth()];
             file << (int)(c.r * 255) << " " << (int)(c.g * 255) << " " << (int)(c.b * 255) << " ";
         }
         file << std::endl;
@@ -88,19 +85,15 @@ int main(int argc, char** argv)
 
 	// Setup the rasterizer and the shaders.
     rasterizer = std::make_unique<render::Rasterizer>();
-    rasterizer->viewport = std::make_shared<render::Viewport>(0, 0, width, height);
+    renderConfig.viewport = std::make_shared<render::Viewport>(0, 0, width, height);
+    renderConfig.framebuffer = std::make_shared<render::Framebuffer>(width, height);
+    renderConfig.depthbuffer = std::make_shared<render::Depthbuffer>(width, height);
 
-	framebuffer = std::make_shared<render::Framebuffer>(width, height);
-    rasterizer->framebuffer = framebuffer;
-
-	depthbuffer = std::make_shared<render::Depthbuffer>(width, height);
-    rasterizer->depthbuffer = depthbuffer;
-
+    // Keep vertex shader separate so we can easily modify the transformation.
     vertexShader = std::make_shared<render::DefaultVertexTransform>();
-    rasterizer->vertexShader = vertexShader;
+    renderConfig.vertexShader = vertexShader;
 
-	fragmentShader = std::make_shared<render::InputColourShader>();
-    rasterizer->fragmentShader = fragmentShader;
+    renderConfig.fragmentShader = std::make_shared<render::InputColourShader>();
 
     // Create the triangle geometry
     vertices.push_back(Vertex(glm::vec4(-5, 0, 0, 1), glm::vec3(1, 0, 0), glm::vec4(0, 0, 1, 1), glm::vec2(0,0)));
