@@ -146,7 +146,7 @@ unsigned int Rasterizer::drawLines(const VertexList& vertices, const IndexList& 
 
 	// build lines
 	LinePrimitiveList lines;
-	for (int i = 0; i < indices.size(); i += 2)
+	for (size_t i = 0; i < indices.size(); i += 2)
 	{
 		const VertexOut& a = transformedVertices[ indices[i+0] ];
 		const VertexOut& b = transformedVertices[ indices[i+1] ];
@@ -193,7 +193,7 @@ unsigned int Rasterizer::drawTriangles(const VertexList& vertices, const IndexLi
 
 	// build triangles
 	TrianglePrimitiveList triangles;
-	for (int i = 0; i < indices.size(); i += 3)
+	for (size_t i = 0; i < indices.size(); i += 3)
 	{
 		const VertexOut& a = transformedVertices[ indices[i+0] ];
 		const VertexOut& b = transformedVertices[ indices[i+1] ];
@@ -332,7 +332,7 @@ void Rasterizer::drawTriangle(const TrianglePrimitive& triangle) const
 	if (drawBoundingBoxes) {
 		// draw bounding box	
 		Color bboxColour(1, 0, 0, 1);
-		for (unsigned int x = min.x; x <= max.x; ++x)
+		for (int x = min.x; x <= max.x; ++x)
 		{
 			ivec2 p(x, min.y);
 			framebuffer->plot(p, bboxColour);
@@ -340,7 +340,7 @@ void Rasterizer::drawTriangle(const TrianglePrimitive& triangle) const
 			framebuffer->plot(p, bboxColour);
 		}
 
-		for (unsigned int y = min.y; y <= max.y; ++y)
+		for (int y = min.y; y <= max.y; ++y)
 		{
 			ivec2 p(min.x, y);
 			framebuffer->plot(p, bboxColour);
@@ -350,9 +350,9 @@ void Rasterizer::drawTriangle(const TrianglePrimitive& triangle) const
 	}
 	
 	// Rasterize -- loop over the screen-space bounding box.
-	for (unsigned int y = min.y; y <= max.y; ++y)
+	for (int y = min.y; y <= max.y; ++y)
 	{
-		for (unsigned int x = min.x; x <= max.x; ++x)
+		for (int x = min.x; x <= max.x; ++x)
 		{
 			// position
 			ivec2 p(x,y);

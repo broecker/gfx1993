@@ -7,7 +7,6 @@ namespace render
 
 VertexOut DefaultVertexTransform::transformSingle(const Vertex& in)
 {
-	mat4 modelViewMatrix = viewMatrix * modelMatrix;
 	mat4 modelViewProjectionMatrix = projectionMatrix * viewMatrix * modelMatrix;
 	//mat3 normalMatrix = glm::inverse(glm::transpose(glm::mat3(modelViewMatrix)));
 
