@@ -137,38 +137,17 @@ unsigned int Rasterizer::drawLines(const VertexList &vertices, const IndexList &
 
 unsigned int Rasterizer::drawLineStrip(const render::VertexList &vertices, const render::IndexList &indices) const
 {
-    if (!shaders.isValid()) {
-        std::cerr << "Invalid shader configuration!\n";
-        return 0;
+    // We can reuse the existing code by expanding the current indices. We expand the indices by doubling the internal
+    // vertices; i.e. [0,2,4,6] -> [0,2,2,4,4,6]
+    render::IndexList expandedIndices(indices.size()-2);
+
+    for (size_t i = 0; i < indices.size()-1; ++i)
+    {
+        expandedIndices.push_back(indices[i+0]);
+        expandedIndices.push_back(indices[i+1]);
     }
 
-    unsigned int lineSegmentsDrawn = 0;
-
-    // transform vertices
-    VertexOutList transformedVertices(vertices.size());
-    transformVertices(vertices, transformedVertices, shaders.vertexShader);
-
-    // build lines
-    LinePrimitiveList lines;
-    for (size_t i = 0; i < indices.size()-1; ++i) {
-        const VertexOut &a = transformedVertices[indices[i + 0]];
-        const VertexOut &b = transformedVertices[indices[i + 1]];
-        lines.push_back(LinePrimitive(a, b));
-    }
-
-    for (auto line : lines) {
-        // clip and cull lines here
-        ClipResult cr = line.clipToNDC();
-        if (cr == DISCARD) {
-            // line completely outside -- discard it
-            continue;
-        }
-
-        drawLine(line);
-        ++lineSegmentsDrawn;
-    }
-
-    return lineSegmentsDrawn;
+    return drawLines(vertices, expandedIndices);
 }
 
 unsigned int Rasterizer::drawTriangles(const VertexList &vertices, const IndexList &indices) const
