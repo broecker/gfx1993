@@ -54,6 +54,20 @@ public:
 
 };
 
+class SingleColorShader : public FragmentShader
+{
+public:
+    SingleColorShader(const glm::vec4 initialColor) : color(initialColor) {}
+
+    Fragment&& shadeSingle(const ShadingGeometry& in) override;
+
+    inline void setColor(const glm::vec4& color) { this->color = color; }
+
+private:
+    glm::vec4       color;
+
+};
+
 }
 
 #endif

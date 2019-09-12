@@ -48,7 +48,11 @@ namespace render
         // Draws the vertices as lines. Every two indices define the endpoints of a line.
         unsigned int drawLines(const VertexList &vertices, const IndexList &indices) const;
 
-        // TODO: Add line loop/line strip.
+        // Draws a continuous line strip; each index is considered to be the either the midpoint between two lines, or
+        // the endpoint in case of the first and last index. To draw a closed loop, make sure that the first and last
+        // index are the same; i.e. [0, 1, 2, 3, 0]
+        unsigned int drawLineStrip(const VertexList& vertices, const IndexList& indices) const;
+
         // Draws the vertices as lines. Every three indices are treated as the three corners of a triangle. Triangles are
         // defined counter-clockwise.
         unsigned int drawTriangles(const VertexList &vertices, const IndexList &indices) const;

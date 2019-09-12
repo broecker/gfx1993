@@ -12,7 +12,7 @@ link_directories(../geometry)
 link_directories(../rendering)
 
 # A simple rotating triangle
-add_executable(00-triangle 00-triangle.cpp)
+add_executable(00-triangle 00-triangle.cpp 03-linestrips.cpp)
 target_link_libraries(00-triangle gfx93-common gfx93-geometry gfx93-rendering)
 target_link_libraries(00-triangle GL GLU glut)
 
@@ -24,3 +24,9 @@ target_link_libraries(01-headless gfx93-common gfx93-geometry gfx93-rendering)
 add_executable(02-geometry 02-geometry.cpp)
 target_link_libraries(02-geometry gfx93-common gfx93-geometry gfx93-rendering)
 target_link_libraries(02-geometry GL GLU glut)
+
+# Line strips and creating custom geometry
+# Basic camera controls and geometry loading
+add_executable(03-linestrips 03-linestrips.cpp)
+target_link_libraries(03-linestrips gfx93-common gfx93-geometry gfx93-rendering)
+target_link_libraries(03-linestrips GL GLU glut)
