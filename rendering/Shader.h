@@ -12,10 +12,10 @@ class VertexShader
 public:
 	virtual ~VertexShader() = default;
 
-	virtual VertexOut transformSingle(const Vertex& in) = 0;
+	virtual VertexOut&& transformSingle(const Vertex& in) = 0;
 
 	// for STL algorithms
-	VertexOut operator () (const Vertex& in)
+	VertexOut&& operator () (const Vertex& in)
 	{
 		return transformSingle( in );
 	}
@@ -29,7 +29,7 @@ public:
 	glm::mat4	viewMatrix;
 	glm::mat4	projectionMatrix;
 
-	VertexOut transformSingle(const Vertex& in) override;
+	VertexOut&& transformSingle(const Vertex& in) override;
 };
 
 // Base class for shading fragments. This shader is called once the fragment actually passes the depth test.

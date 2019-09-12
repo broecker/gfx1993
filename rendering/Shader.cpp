@@ -8,7 +8,7 @@ using glm::mat4;
 namespace render 
 {
 
-VertexOut DefaultVertexTransform::transformSingle(const Vertex& in)
+VertexOut&& DefaultVertexTransform::transformSingle(const Vertex& in)
 {
 	mat4 modelViewProjectionMatrix = projectionMatrix * viewMatrix * modelMatrix;
 	//mat3 normalMatrix = glm::inverse(glm::transpose(glm::mat3(modelViewMatrix)));
@@ -22,7 +22,7 @@ VertexOut DefaultVertexTransform::transformSingle(const Vertex& in)
 	result.color = in.color;
 	result.texcoord = in.texcoord;
 
-	return result;
+	return std::move(result);
 }
 
 Fragment&& InputColorShader::shadeSingle(const ShadingGeometry& in)
