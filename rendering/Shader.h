@@ -6,6 +6,7 @@
 namespace render 
 {
 
+// Base class for vertex transformations. This is called on all given vertices for a draw operation.
 class VertexShader
 {
 public:
@@ -20,6 +21,7 @@ public:
 	}
 };
 
+// Simulates the OpenGL fixed function pipeline. It transforms vertices using a model, view and projection matrix.
 class DefaultVertexTransform : public VertexShader
 {
 public:
@@ -28,9 +30,9 @@ public:
 	glm::mat4	projectionMatrix;
 
 	VertexOut transformSingle(const Vertex& in) override;
-
 };
 
+// Base class for shading fragments. This shader is called once the fragment actually passes the depth test.
 class FragmentShader
 {
 public:
@@ -40,20 +42,21 @@ public:
 
 };
 
+// Shades all fragments as the geometry's unlit color vertex attribute.
 class InputColorShader : public FragmentShader
 {
 public:
     Fragment&& shadeSingle(const ShadingGeometry& in) override;
-
 };
 
+// Shades all fragments as the underlying normal in world coordinates.
 class NormalColorShader : public FragmentShader
 {
 public:
     Fragment&& shadeSingle(const ShadingGeometry& in) override;
-
 };
 
+// Shades all fragments in a single, constant color.
 class SingleColorShader : public FragmentShader
 {
 public:
@@ -65,7 +68,6 @@ public:
 
 private:
     glm::vec4       color;
-
 };
 
 }
