@@ -40,14 +40,14 @@ public:
 
 };
 
-class InputColourShader : public FragmentShader
+class InputColorShader : public FragmentShader
 {
 public:
     Fragment&& shadeSingle(const ShadingGeometry& in) override;
 
 };
 
-class NormalColourShader : public FragmentShader
+class NormalColorShader : public FragmentShader
 {
 public:
     Fragment&& shadeSingle(const ShadingGeometry& in) override;

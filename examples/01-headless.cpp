@@ -95,7 +95,7 @@ int main(int argc, char** argv)
     // Keep vertex shader separate so we can easily modify the transformation.
     vertexShader = std::make_shared<render::DefaultVertexTransform>();
     shaders.vertexShader = vertexShader;
-    shaders.fragmentShader = std::make_shared<render::InputColourShader>();
+    shaders.fragmentShader = std::make_shared<render::InputColorShader>();
 
     rasterizer->setRenderOutput(renderTarget);
     rasterizer->setShaders(shaders);

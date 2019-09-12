@@ -185,7 +185,7 @@ int main(int argc, char** argv)
     renderTarget.framebuffer = std::make_shared<render::Framebuffer>(width, height);
     renderTarget.depthbuffer = std::make_shared<render::Depthbuffer>(width, height);
     shaders.vertexShader = std::make_shared<render::DefaultVertexTransform>();
-    shaders.fragmentShader = std::make_shared<render::NormalColourShader>();
+    shaders.fragmentShader = std::make_shared<render::NormalColorShader>();
 
     rasterizer->setRenderOutput(renderTarget);
     rasterizer->setShaders(shaders);

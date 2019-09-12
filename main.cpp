@@ -227,10 +227,10 @@ int main(int argc, char** argv)
     rasterizer->setRenderOutput(renderTarget);
 
     vertexTransform = std::make_shared<render::DefaultVertexTransform>();
-    singleColorShader = std::make_shared<render::InputColourShader>();
+    singleColorShader = std::make_shared<render::InputColorShader>();
     shaders.vertexShader = vertexTransform;
     shaders.fragmentShader = singleColorShader;
-    normalShader = std::make_shared<render::NormalColourShader>();
+    normalShader = std::make_shared<render::NormalColorShader>();
     rasterizer->setShaders(shaders);
 
 	grid = std::make_unique<geo::GridGeometry>();
