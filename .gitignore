@@ -2,3 +2,4 @@ srender
 *.o
 models/bunny/*
 old/
+*.ppm
