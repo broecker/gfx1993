@@ -220,17 +220,17 @@ int main(int argc, char **argv)
     rasterizer->setRenderOutput(renderTarget);
     rasterizer->setShaders(shaders);
 
-    // Create 3 slightly offset quads.
+    // Create 3 slightly offset quads. The render order becomes fairly important as the center quad (z=0) is added last.
     std::unique_ptr<Quad> q = std::make_unique<Quad>(glm::vec4(0.8f, 0.2f, 0.f, 0.4f));
     q->transform = glm::translate(glm::vec3(-2, 1, 2));
     quads.emplace_back(std::move(q));
 
-    q = std::make_unique<Quad>(glm::vec4(0.1f, 0.9f, 0.f, 0.4f));
-    q->transform = glm::translate(glm::vec3(0, 1, 0));
-    quads.emplace_back(std::move(q));
-
     q = std::make_unique<Quad>(glm::vec4(0.1f, 0.1f, 0.8f, 0.4f));
     q->transform = glm::translate(glm::vec3(2, 1, -2));
+    quads.emplace_back(std::move(q));
+
+    q = std::make_unique<Quad>(glm::vec4(0.1f, 0.9f, 0.f, 0.4f));
+    q->transform = glm::translate(glm::vec3(0, 1, 0));
     quads.emplace_back(std::move(q));
 
     camera = std::make_unique<OrbitCamera>(glm::vec3(0, 0, 0), glm::vec3(0, 1, 0), 10.0f);
