@@ -19,3 +19,29 @@ Dependencies:
 - libglm
 - glut/freeglut
 - GLU and and OpenGL
+
+## TODOs
+This is an unsorted list of outstanding tasks.
+
+- Clean up the rasterizer. There's a lot of old, untouched code in there. Rasterizer should become an abstract class so 
+that specialized rasterizers can be easily implemented.
+- Write tests! Especially for framebuffer and rasterizer.
+- Add backface culling.
+- Implement bounding geometries and view frustum culling
+- Add FPS camera
+- Add true 256 color rendering. We can override the Framebuffer to do so. Add a RGB -> indexed color translation table
+and do a Voronoi triangulation on the input. Then, when plotting, pick the correct index color through the
+triangulation.
+- Add transparencies. True blending and dithering
+- Add textures and texture lookups
+- Add png input/output
+- Add sample shaders that read a framebuffer as a texture
+- Enable selective color/depth writes
+- Add other rasterizers; for example a Span Renderer
+- Implement tile-based rendering and parallel/async rasterization
+- Add WAD file loading :) 
+- Add Voxel and Voxelspace-like rendering
+- Add example with textures and programmatic skybox rendering
+- Add example about depth sorting
+- Add profiler
+- Add portal-based rendering demo

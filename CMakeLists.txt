@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 2.6)
-project (srender)
+project (gfx1993)
 
 # The version number.
 set (SRenderer_VERSION_MAJOR 0)
