@@ -1,5 +1,13 @@
-srender
+*.a
 *.o
+*.so
 models/bunny/*
 old/
 *.ppm
+Makefile
+.idea/
+CMakeCache.txt
+CMakeFiles
+*.cmake
+*.cbp
+
