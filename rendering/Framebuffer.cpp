@@ -25,7 +25,16 @@ void Framebuffer::plot(int x, int y, const glm::vec4& c)
 {
 	if (x >= 0 && x < width && y >= 0 && y < height)
 	{
-		data[x + y*width] = c;
+	    const int index = x + y*width;
+	    if (c.a == 1)
+        {
+            data[index] = c;
+        }
+	    else
+        {
+	        // GL_ALPHA, GL_ONE_MINUS_ALPHA blend function.
+	        data[index] = data[index] * (1.f - c.a) + c * c.a;
+        }
 	}
 }
 
