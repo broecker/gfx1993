@@ -16,29 +16,16 @@ using glm::vec4;
 
 using namespace render;
 
-// a helper struct/functor object for STL algorithms
-struct CallVertexShader
-{
-    std::shared_ptr<VertexShader> shader;
-
-    inline CallVertexShader(const std::shared_ptr<VertexShader> &sh) : shader(sh) {}
-
-    inline VertexOut operator()(const Vertex &in)
-    {
-        return shader->transformSingle(in);
-    };
-};
-
 bool Rasterizer::ShaderConfiguration::isValid() const
 {
     return vertexShader && fragmentShader;
 }
 
-Rasterizer::Rasterizer() : drawBoundingBoxes(false)
+Rasterizer::Rasterizer() : clipper(), drawBoundingBoxes(false)
 {
 }
 
-unsigned int Rasterizer::drawPoints(const VertexList &vertices) const
+unsigned int Rasterizer::drawPoints(const VertexList &vertices, const IndexList& indices) const
 {
     if (!shaders.isValid()) {
         std::cerr << "Invalid shader configuration!\n";
@@ -47,34 +34,31 @@ unsigned int Rasterizer::drawPoints(const VertexList &vertices) const
 
     unsigned int pointsDrawn = 0;
 
+    // Vertex transform.
     VertexOutList transformedVertices(vertices.size());
     transformVertices(vertices, transformedVertices, shaders.vertexShader);
 
-
-    // build points
+    // Primitive assembly
     PointPrimitiveList points;
-    for (VertexOutList::const_iterator po = transformedVertices.begin(); po != transformedVertices.end(); ++po) {
-        PointPrimitive pt(*po);
-
-        // check clipping/culling here
-        if (pt.clipToNDC() == DISCARD)
-            continue;
-
-        points.push_back(pt);
+    for (size_t i = 0; i < indices.size(); ++i) {
+        points.push_back(PointPrimitive(transformedVertices[indices[i]]));
     }
 
-    for (PointPrimitiveList::const_iterator it = points.begin(); it != points.end(); ++it) {
-        const PointPrimitive &p = *it;
+    // Perspective divide
+    for (auto& p : points) {
+        p.p.clipPosition /= p.p.clipPosition.w;
+    }
 
-        // perspective divide and window coordinates
-        const vec4 &pos_clip = p.p.clipPosition;
-        const vec3 pos_ndc = vec3(pos_clip) / pos_clip.w;
-        const vec3 pos_win = output.viewport->calculateWindowCoordinates(pos_ndc);
+    // Clipping
+    PointPrimitiveList clipped = clipper.clipPoints(points);
 
-        // if there is a depth buffer but the depth test fails -> discard fragment (early)
+    // Rasterization
+    for (const auto& p : clipped) {
+        const vec3 pos_win = output.viewport->calculateWindowCoordinates(p.p.clipPosition);
+
+        // If there is a depth buffer but the depth test fails -> discard fragment (early)
         if (output.depthbuffer && !output.depthbuffer->conditionalPlot(pos_win))
             continue;
-
 
         // calculate shading geometry
         ShadingGeometry sgeo = p.rasterize();
@@ -95,8 +79,11 @@ void Rasterizer::transformVertices(const VertexList &vertices, VertexOutList &ou
                                    std::shared_ptr<VertexShader> vertexShader) const
 {
     assert(vertexShader);
-    CallVertexShader vertexTransform(vertexShader);
-    std::transform(vertices.begin(), vertices.end(), out.begin(), vertexTransform);
+    std::transform(
+            vertices.begin(),
+            vertices.end(),
+            out.begin(),
+            [vertexShader](const auto& v) { return vertexShader->transformSingle(v);});
 }
 
 unsigned int Rasterizer::drawLines(const VertexList &vertices, const IndexList &indices) const
@@ -108,11 +95,11 @@ unsigned int Rasterizer::drawLines(const VertexList &vertices, const IndexList &
 
     unsigned int linesDrawn = 0;
 
-    // transform vertices
+    // Vertex transformation
     VertexOutList transformedVertices(vertices.size());
     transformVertices(vertices, transformedVertices, shaders.vertexShader);
 
-    // build lines
+    // Primitive assembly
     LinePrimitiveList lines;
     for (size_t i = 0; i < indices.size(); i += 2) {
         const VertexOut &a = transformedVertices[indices[i + 0]];
@@ -120,14 +107,17 @@ unsigned int Rasterizer::drawLines(const VertexList &vertices, const IndexList &
         lines.push_back(LinePrimitive(a, b));
     }
 
-    for (auto line : lines) {
-        // clip and cull lines here
-        ClipResult cr = line.clipToNDC();
-        if (cr == DISCARD) {
-            // line completely outside -- discard it
-            continue;
-        }
+    // Perspective divide
+    for (auto& line : lines) {
+        line.a.clipPosition /= line.a.clipPosition.w;
+        line.b.clipPosition /= line.b.clipPosition.w;
+    }
 
+    // Clipping
+    LinePrimitiveList clipped = clipper.clipLines(lines);
+
+    // Rasterization
+    for (auto line : clipped) {
         drawLine(line);
         ++linesDrawn;
     }
@@ -207,15 +197,8 @@ void Rasterizer::drawLine(const LinePrimitive &line) const
 
     using namespace glm;
 
-    // point a
-    const vec4 &posA_clip = line.a.clipPosition;
-    const vec3 posA_ndc = vec3(posA_clip) / posA_clip.w;
-    const vec3 posA_win = output.viewport->calculateWindowCoordinates(posA_ndc);
-
-    // point b
-    const vec4 &posB_clip = line.b.clipPosition;
-    const vec3 posB_ndc = vec3(posB_clip) / posB_clip.w;
-    const vec3 posB_win = output.viewport->calculateWindowCoordinates(posB_ndc);
+    const vec3 posA_win = output.viewport->calculateWindowCoordinates(line.a.clipPosition);
+    const vec3 posB_win = output.viewport->calculateWindowCoordinates(line.b.clipPosition);
 
     ivec2 a = ivec2(posA_win);
     ivec2 b = ivec2(posB_win);
@@ -244,7 +227,7 @@ void Rasterizer::drawLine(const LinePrimitive &line) const
             }
         }
 
-        // 'core' bresenham
+        // 'Core' Bresenham algorithm.
         if (a.x == b.x && a.y == b.y)
             break;
         e2 = err;

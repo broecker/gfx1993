@@ -34,3 +34,8 @@ target_link_libraries(03-linestrips GL GLU glut)
 add_executable(04-transparency 04-transparency.cpp)
 target_link_libraries(04-transparency gfx93-common gfx93-geometry gfx93-rendering)
 target_link_libraries(04-transparency GL GLU glut)
+
+# Line clipping
+add_executable(05-clipping 05-clipping.cpp)
+target_link_libraries(05-clipping gfx93-common gfx93-geometry gfx93-rendering)
+target_link_libraries(05-clipping GL GLU glut)

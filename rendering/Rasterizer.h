@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "Pipeline.h"
+#include "Clipper.h"
 
 namespace render
 {
@@ -42,8 +43,8 @@ namespace render
 
         virtual ~Rasterizer() = default;
 
-        // Draws all the points given.
-        unsigned int drawPoints(const VertexList &points) const;
+        // Draws the vertices as points. Only the indexed vertices are drawn.
+        unsigned int drawPoints(const VertexList& vertices, const IndexList& indices) const;
 
         // Draws the vertices as lines. Every two indices define the endpoints of a line.
         unsigned int drawLines(const VertexList &vertices, const IndexList &indices) const;
@@ -78,6 +79,10 @@ namespace render
 
         RenderOutput output;
         ShaderConfiguration shaders;
+
+        std::vector<glm::vec4> clipPlanes;
+
+        Clipper clipper;
 
         bool drawBoundingBoxes;
     };
