@@ -174,8 +174,6 @@ static void renderFrame() {
     }
 
     try {
-        rasterizer->setClippingPlanesFromMatrix(camera->getViewMatrix() * camera->getProjectionMatrix());
-
         rasterizer->drawLines(lines->getVertices(), lines->getIndices());
         rasterizer->drawPoints(points->getVertices(), points->getIndices());
         rasterizer->drawTriangles(triangles->getVertices(), triangles->getIndices());

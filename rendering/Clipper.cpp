@@ -54,14 +54,19 @@ PointPrimitiveList Clipper::clipPoints(const PointPrimitiveList &points) const {
     return clipped;
 }
 
+inline static bool insideNDC(const glm::vec4& clipCoords) {
+    return clipCoords.x >= -clipCoords.w && clipCoords.x <= clipCoords.w &&
+            clipCoords.y >= -clipCoords.w && clipCoords.y <= clipCoords.w &&
+            clipCoords.z >= -clipCoords.w && clipCoords.z <= clipCoords.w;
+}
+
 PointPrimitiveList Clipper::clipPointsToNdc(const PointPrimitiveList& points) const {
     PointPrimitiveList clipped; clipped.reserve(points.size());
 
     for (const PointPrimitive& p : points) {
-        if (p.p.clipPosition.x >= -p.p.clipPosition.w && p.p.clipPosition.x <= p.p.clipPosition.w &&
-            p.p.clipPosition.y >= -p.p.clipPosition.w && p.p.clipPosition.y <= p.p.clipPosition.w &&
-            p.p.clipPosition.z >= -p.p.clipPosition.w && p.p.clipPosition.z <= p.p.clipPosition.w)
-        clipped.push_back(p);
+        if (insideNDC(p.p.clipPosition)) {
+            clipped.push_back(p);
+        }
     }
     return clipped;
 }
@@ -242,138 +247,19 @@ TrianglePrimitiveList Clipper::clipTrianglesToNdc(TrianglePrimitiveList clipspac
 
     TrianglePrimitiveList clipped;
 
-    // Note: OpenGL's clip space is LEFT-handed, see: https://stackoverflow.com/questions/4124041/is-opengl-coordinate-system-left-handed-or-right-handed
-    std::vector<vec4> planes;
-    /*
-    planes.push_back(vec4(0,0,1,1)); // near plane
-    planes.push_back(vec4(0,0,-1,1)); // far plane
-    planes.push_back(vec4(0,1,0,1)); // bottom
-    planes.push_back(vec4(0,-1,0,1)); // top
-    */
-    planes.push_back(vec4(1, 0, 0, 1)); // left
-    //planes.push_back(vec4(-1, 0, 0, 1)); // right
+    // Clip space is left-handed: https://www.ntu.edu.sg/home/ehchua/programming/opengl/CG_BasicsTheory.html so that
+    // positive z points towards the far distance.
 
-    // safe-guard against adding too many clipped triangles.
-    const size_t MAX_TRIS = 100;
-
-    for (size_t i = 0; i < clipspaceTriangles.size() && i < MAX_TRIS; ++i) {
-        TrianglePrimitive triangle = clipspaceTriangles[i];
-
-        bool keepTriangle = true;
-        for (const vec4& plane : planes) {
-            //std::clog << "plane " << plane << std::endl;
-
-            // Signed plane-vertex distances.
-            float da = dot(triangle.a.clipPosition, plane);
-            float db = dot(triangle.b.clipPosition, plane);
-            float dc = dot(triangle.c.clipPosition, plane);
-
-            float e = glm::epsilon<float>();
-            if (da > -e || da < e) da = 0;
-            if (db > -e || db < e) db = 0;
-            if (dc > -e || dc > e) dc = 0;
-
-
-            if (da < 0 && db < 0 && dc < 0) {
-                //std::clog << "All outside -- discarding.\n";
-                keepTriangle = false;
-                break;
-            } else if (da >= 0 && db >= 0 && dc >= 0) {
-                //std::clog << "All inside -- continuing.\n";
-                continue;
-            } else {
-                // a inside; b,c outside;
-                if (da >= 0 && db < 0 && dc < 0) {
-                    //std::clog << "Clip bc\n";
-                    float tab = da / (da - db);
-                    triangle.b = lerp(triangle.a, triangle.b, tab);
-                    float tac = da / (da - dc);
-                    triangle.c = lerp(triangle.a, triangle.c, tac);
-
-                    triangle.setColor(vec4(1,0,0,1));
-                    continue;
-                }
-
-                // b inside; a,c outside;
-                if (db >= 0 && da < 0 && dc < 0) {
-                    //std::clog << "Clip ac\n";
-                    float tba = db / (db - da);
-                    triangle.a = lerp(triangle.b, triangle.a, tba);
-                    float tbc = db / (db - dc);
-                    triangle.c = lerp(triangle.b, triangle.c, tbc);
-
-                    triangle.setColor(vec4(0,1,0,1));
-                    continue;
-                }
-
-                // c inside, a,b outside
-                if (dc >= 0 && da < 0 && db < 0) {
-                    //std::clog << "Clip ab\n";
-                    float tca = dc / (dc - da);
-                    triangle.a = lerp(triangle.c, triangle.a, tca);
-                    float tcb = dc / (dc - db);
-                    triangle.b = lerp(triangle.c, triangle.b, tcb);
-
-                    triangle.setColor(vec4(0,0,1,1));
-                    continue;
-                }
-
-                if (db >= 0 && dc >= 0) {
-                    //std::clog << "Clip a\n";
-                    float tab = da / (da - db);
-                    float tac = da / (da - dc);
-
-                    VertexOut p = lerp(triangle.a, triangle.b, tab);
-                    VertexOut q = lerp(triangle.a, triangle.c, tac);
-                    triangle.a = p;
-                    triangle.setColor(vec4(0,1,1,1));
-
-                    TrianglePrimitive t(p, triangle.c, q);
-                    t.setColor(vec4(0,0.5,0.5,1));
-                    clipspaceTriangles.push_back(t);
-                    continue;
-                }
-
-                if (da >= 0 && dc >= 0) {
-                    //std::clog << "Clip b\n";
-                    float tba = db / (db - da);
-                    float tbc = db / (db - dc);
-
-                    VertexOut p = lerp(triangle.b, triangle.a, tba);
-                    VertexOut q = lerp(triangle.b, triangle.c, tbc);
-                    triangle.b = p;
-                    triangle.setColor(vec4(1,0,1,1));
-
-                    TrianglePrimitive t(p, q, triangle.c);
-                    t.setColor(vec4(0.5,0,0.5,1));
-                    clipspaceTriangles.push_back(t);
-                    continue;
-                }
-
-                if (da >= 0 && db >= 0) {
-                    //std::clog << "Clip c\n";
-                    float tca = dc / (dc / da);
-                    float tcb = dc / (dc / db);
-
-                    VertexOut p = lerp(triangle.c, triangle.a, tca);
-                    VertexOut q = lerp(triangle.c, triangle.b, tcb);
-                    triangle.c = p;
-                    triangle.setColor(vec4(1,1,0,1));
-
-                    TrianglePrimitive t(p, triangle.b, q);
-                    t.setColor(vec4(0.5,0.5,0,1));
-                    clipspaceTriangles.push_back(t);
-                    continue;
-                }
-            }
-        }
-
-        if (keepTriangle) {
+    // This currently culls, rather than clips the triangles ...
+    for (const auto& triangle : clipspaceTriangles) {
+        if (insideNDC(triangle.a.clipPosition) &&
+            insideNDC(triangle.b.clipPosition) &&
+            insideNDC(triangle.c.clipPosition)) {
             clipped.push_back(triangle);
         }
     }
 
-    std::clog << "Clipped to " << clipped.size() << " visible tris.\n";
+    //std::clog << "Clipped to " << clipped.size() << " visible tris.\n";
 
     return clipped;
 }

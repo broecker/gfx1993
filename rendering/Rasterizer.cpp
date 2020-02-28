@@ -185,17 +185,17 @@ unsigned int Rasterizer::drawTriangles(const VertexList &vertices, const IndexLi
         triangles.push_back(TrianglePrimitive(a, b, c));
     }
 
-    // Clipping.
-    TrianglePrimitiveList clipped = clipper.clipTrianglesToNdc(triangles);
-
     // Perspective divide
-    for (auto& triangle : clipped) {
+    for (auto& triangle : triangles) {
         triangle.a.clipPosition /= triangle.a.clipPosition.w;
         triangle.b.clipPosition /= triangle.b.clipPosition.w;
         triangle.c.clipPosition /= triangle.c.clipPosition.w;
 
         // Add backface culling here
     }
+
+    // At this point all triangles are in clip space [-1 .. 1] and can be clipped to NDC.
+    TrianglePrimitiveList clipped = clipper.clipTrianglesToNdc(triangles);
 
     for (const TrianglePrimitive& triangle : clipped) {
         drawTriangle(triangle);
