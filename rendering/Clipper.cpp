@@ -7,6 +7,15 @@
 
 namespace render {
 
+Clipper::Plane::Plane(const glm::vec3 &a, const glm::vec3 &b, const glm::vec3 &c) {
+    auto r = glm::normalize(b - a);
+    auto s = glm::normalize(c - a);
+    auto normal = glm::normalize(glm::cross(r, s));
+    float distance = glm::dot(normal, a);
+
+    plane = glm::vec4(normal, -distance);
+}
+
 Clipper::Clipper(const Clipper::Plane &plane) {
     planes.push_back(plane);
 }
@@ -121,8 +130,6 @@ TrianglePrimitiveList Clipper::clipTriangles(render::TrianglePrimitiveList trian
     for (size_t i = 0; i < triangles.size() && i < MAX_TRI_COUNT; ++i) {
         // Triangles might change during iteration, as new triangles are created by clipping.
         TrianglePrimitive triangle = triangles[i];
-
-
 
         std::vector<glm::vec4> clipPositions;
         clipPositions.push_back(triangle.a.clipPosition);

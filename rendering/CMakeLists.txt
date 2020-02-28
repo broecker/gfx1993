@@ -10,6 +10,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O0 -g -DGLM_ENABLE_EXPERIMENTAL")
 add_executable(gfx93-rendering-clipper-test ClipperTest.cpp)
 target_link_libraries(gfx93-rendering-clipper-test gfx93-rendering)
 
+add_test(PlaneFromPoints gfx93-rendering-clipper-test "plane-from-points")
 add_test(PlaneWithFrontSpacePoint gfx93-rendering-clipper-test "plane-frontspace")
 add_test(PlaneWithBackSpacePoint gfx93-rendering-clipper-test "plane-backspace")
 add_test(PlaneWithCoplanarPoint gfx93-rendering-clipper-test "plane-coplanar")
@@ -26,4 +27,5 @@ add_test(ClipTriangleOnSinglePlaneDiscardsBehind gfx93-rendering-clipper-test "c
 add_test(ClipTriangleOnSinglePlaneKeepsCoplanar gfx93-rendering-clipper-test "clipper-triangle-single-coplanar-plane-keep")
 add_test(ClipTriangleOnSinglePlaneClipsSinglePointInside gfx93-rendering-clipper-test "clipper-triangle-single-plane-single-inside")
 add_test(ClipTriangleOnSinglePlaneClipsTwoPointsInside gfx93-rendering-clipper-test "clipper-triangle-single-plane-double-inside")
+add_test(ClipTriangleOnMultiplePlanes gfx93-rendering-clipper-test "clipper-triangle-multiple-planes")
 add_test(ClipperCreatesNdcPlanes gfx93-rendering-clipper-test "clipper-creates-ndc-plane")

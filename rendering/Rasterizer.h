@@ -79,8 +79,6 @@ namespace render
         RenderOutput output;
         ShaderConfiguration shaders;
 
-        std::vector<glm::vec4> clipPlanes;
-
         Clipper clipper;
 
         bool drawBoundingBoxes;

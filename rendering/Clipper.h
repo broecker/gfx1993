@@ -16,6 +16,8 @@ namespace render
 
             // Creates a plane given by a normal and a distance to the origin along that normal.
             Plane(const glm::vec3& normal, float distance) : plane(normalize(normal), -distance) {}
+            // Creates a plane from 3 given counter-clockwise points.
+            Plane(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c);
 
             inline bool inFrontSpace(const glm::vec3& point) const {
                 return distance(point) >= 0;
@@ -28,6 +30,8 @@ namespace render
             inline float distance(const glm::vec4& pt) const {
                 return dot(pt, plane);
             }
+
+            inline glm::vec3 getNormal() const { return glm::vec3(plane); }
         };
 
         Clipper(const Plane& plane);

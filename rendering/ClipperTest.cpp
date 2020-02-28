@@ -42,6 +42,18 @@ TrianglePrimitive makeTriangle(const vec3& a, const vec3& b, const vec3& c) {
     return TrianglePrimitive(va, vb, vc);
 }
 
+int testPlaneFromPoints() {
+    Clipper::Plane plane(vec3(0,0,0), vec3(15,0, 0), vec3(00,20,0));
+
+    // Plane lies on origin.
+    assert(plane.distance(vec3(0,0,0)) == 0);
+    // With 0,0,1 as up, as we defined it on the yz plane
+    assert(plane.getNormal() == vec3(0,0,1));
+    assert(plane.inFrontSpace(vec3(0,0,1)));
+
+    return 0;
+}
+
 int testPlaneDistances()
 {
     // Origin plane, with normal pointing up.
@@ -105,7 +117,7 @@ void testClipperCreateNdcPlanes()
     assert(clipped[2].a.clipPosition == vec4(0, 0, 1, 1));
 }
 
-int testClipperPointSinglePlane() {
+void testClipperPointSinglePlane() {
     // Origin plane, with normal pointing up.
     Clipper clipper(Clipper::Plane(vec3(0,1,0),0));
 
@@ -116,16 +128,13 @@ int testClipperPointSinglePlane() {
     PointPrimitiveList clipped = clipper.clipPoints(points);
 
     assert(clipped.size() == 1);
-    // Keep the frontspace point.
+    // Keep the front space point.
     assert(clipped[0].p.clipPosition == vec4(0,2,0,1));
-    // Clip the other line to the plane.
-    assert(clipped[1].p.clipPosition == vec4(0,0,0,1));
-    return 0;
 }
 
-int testClipperPointSinglePlane2() {
+void testClipperPointSinglePlane2() {
     // XZ plane, normal pointing down at Y+2
-    Clipper clipper(Clipper::Plane(vec3(0,-1,0),2));
+    Clipper clipper(Clipper::Plane(vec3(0,-1,0),-2));
 
     // Make 11 points that will cross the plane.
     PointPrimitiveList points;
@@ -140,25 +149,6 @@ int testClipperPointSinglePlane2() {
     assert(clipped[0].p.clipPosition.y == 0);
     assert(clipped[1].p.clipPosition.y == 1);
     assert(clipped[2].p.clipPosition.y == 2);
-    return 0;
-}
-
-int testClipperPointSinglePlane3() {
-    // YZ plane at X+2 with normal at +X
-    Clipper clipper(Clipper::Plane(vec3(1,0,0),-2));
-
-    PointPrimitiveList points;
-    for (int x = -4; x <= 4; ++x) {
-        points.push_back(makePoint(vec3(x, 0, 0)));
-    }
-
-    PointPrimitiveList clipped = clipper.clipPoints(points);
-
-    assert(clipped.size() == 3);
-    assert(clipped[0].p.clipPosition.x == 2);
-    assert(clipped[1].p.clipPosition.x == 3);
-    assert(clipped[2].p.clipPosition.x == 4);
-    return 0;
 }
 
 int testClipperPointsBetweenTwoPlanes() {
@@ -166,7 +156,7 @@ int testClipperPointsBetweenTwoPlanes() {
     // Bottom plane, at origin pointing up.
     planes.push_back(Clipper::Plane(vec3(0,1,0),0));
     // Top plane, pointing down, 1 unit high.
-    planes.push_back(Clipper::Plane(vec3(0,-1,0),1));
+    planes.push_back(Clipper::Plane(vec3(0,-1,0),-1));
     Clipper clipper(planes);
 
     PointPrimitiveList points;
@@ -244,9 +234,9 @@ int testClipperLineSinglePlaneKeepsInFront() {
 int testClipperLineMultiplePlanes() {
     std::vector<Clipper::Plane> planes;
     // Bottom XZ plane at Y-1; normal pointing up.
-    planes.push_back(Clipper::Plane(vec3(0,1,0),1));
+    planes.push_back(Clipper::Plane(vec3(0,1,0),-1));
     // Top XZ plane at Y+1; normal pointing down.
-    planes.push_back(Clipper::Plane(vec3(0,-1,0),1));
+    planes.push_back(Clipper::Plane(vec3(0,-1,0),-1));
     Clipper clipper(planes);
 
     LinePrimitiveList lines;
@@ -340,7 +330,7 @@ void testClipperTriangleSinglePlaneDiscardsBehind()
     assert(clipped.empty());
 }
 
-void testClipperTriangleSinglePlaneKeepsOnCoplanar()
+int testClipperTriangleSinglePlaneKeepsOnCoplanar()
 {
     // XY plane with normal at +Z
     Clipper clipper(Clipper::Plane(vec3(0,0,1),0));
@@ -355,11 +345,13 @@ void testClipperTriangleSinglePlaneKeepsOnCoplanar()
     assert(clipped[0].a.clipPosition == vec4(0,3,0,1));
     assert(clipped[0].b.clipPosition == vec4(-2,1,0,1));
     assert(clipped[0].c.clipPosition == vec4( 2,1,0,1));
+
+    return 0;
 }
 
 void testClipperTriangleSinglePlaneSinglePointInside() {
-
-    Clipper clipper(Clipper::Plane(vec3(0, 1, 0), -2));
+    // XZ plane at two units over the origin.
+    Clipper clipper(Clipper::Plane(vec3(0, 1, 0), 2));
 
     TrianglePrimitiveList triangles;
     // Triangle on XY plane.
@@ -375,7 +367,7 @@ void testClipperTriangleSinglePlaneSinglePointInside() {
 
 void testClipperTriangleSinglePlaneSinglePointInside2() {
 
-    Clipper clipper(Clipper::Plane(vec3(-1, 0, 0), -2));
+    Clipper clipper(Clipper::Plane(vec3(-1, 0, 0), 2));
 
     TrianglePrimitiveList triangles;
     triangles.push_back(makeTriangle(vec3(0, 4, 0), vec3(-4, 0, 0), vec3(4, 0, 0)));
@@ -388,9 +380,9 @@ void testClipperTriangleSinglePlaneSinglePointInside2() {
     assert(clipped[0].c.clipPosition == vec4(-2,0,0,1)); // Bottom right got moved.
 }
 
-void testClipperTriangleSinglePlaneSinglePointInside3() {
+int testClipperTriangleSinglePlaneSinglePointInside3() {
 
-    Clipper clipper(Clipper::Plane(vec3(1, 0, 0), -2));
+    Clipper clipper(Clipper::Plane(vec3(1, 0, 0), 2));
 
     TrianglePrimitiveList triangles;
     triangles.push_back(makeTriangle(vec3(0, 4, 0), vec3(-4, 0, 0), vec3(4, 0, 0)));
@@ -401,16 +393,18 @@ void testClipperTriangleSinglePlaneSinglePointInside3() {
     assert(clipped[0].a.clipPosition == vec4( 2,2,0,1)); // Top vertex got moved.
     assert(clipped[0].b.clipPosition == vec4( 2,0,0,1)); // Bottom left got moved.
     assert(clipped[0].c.clipPosition == vec4( 4,0,0,1)); // Bottom right is unchanged.
+
+    return 0;
 }
 
 
-void testClipperTriangleSinglePlaneTwoPointsInside() {
+int testClipperTriangleSinglePlaneTwoPointsInside() {
     Clipper clipper(Clipper::Plane(vec3(0, -1, 0), 0));
 
     TrianglePrimitiveList triangles;
     triangles.push_back(makeTriangle(vec3(2, -1, 0), vec3(-2, -1, 0), vec3(0, 1, 0)));
 
-    TrianglePrimitiveList clipped = clipper.clipTriangles(triangles);
+    auto clipped = clipper.clipTriangles(triangles);
 
     assert(clipped.size() == 2);
     assert(clipped[0].a.clipPosition == vec4(2,-1,0,1)); // Top position;
@@ -421,11 +415,40 @@ void testClipperTriangleSinglePlaneTwoPointsInside() {
     assert(clipped[1].a.clipPosition == vec4(1,0,0,1));
     assert(clipped[1].b.clipPosition == vec4(-2,-1,0,1));
     assert(clipped[1].c.clipPosition == vec4(-1,0,0,1));
+
+    return 0;
+}
+
+int testClipperTriangleMultiplePlanes() {
+    auto planes = std::vector<Clipper::Plane>{
+        Clipper::Plane(vec3(0,1,0), 0),
+        Clipper::Plane(vec3(1,0,0), 0),
+        Clipper::Plane(vec3(-1,0,0), -5) // This one should not interact with the triangle.
+    };
+    Clipper clipper(planes);
+
+    TrianglePrimitiveList triangles;
+    triangles.push_back(makeTriangle(vec3(4,-2,0), vec3(-4,-2,0), vec3(0,2,0)));
+
+    auto clipped = clipper.clipTriangles(triangles);
+
+    assert(clipped.size() == 1);
+
+    // Triangle is clipped to by the vertical and horizontal planes.
+    assert(clipped[0].a.clipPosition == vec4(2,0,0,1));
+    assert(clipped[0].b.clipPosition == vec4(0,0,0,1));
+    assert(clipped[0].c.clipPosition == vec4(0,2,0,1));
+
+    return 0;
 }
 
 
 int main(int argc, const char** argv) {
     const std::string test(argv[1]);
+
+    if (test == "plane-from-points") {
+        return testPlaneFromPoints();
+    }
 
     if (test == "plane-distances") {
         return testPlaneDistances();
@@ -446,7 +469,6 @@ int main(int argc, const char** argv) {
     if (test == "clipper-point-single-plane") {
         testClipperPointSinglePlane();
         testClipperPointSinglePlane2();
-        testClipperPointSinglePlane3();
         return 0;
     }
 
@@ -468,7 +490,7 @@ int main(int argc, const char** argv) {
 
     if (test == "clipper-line-multiple-planes") {
         testClipperLineMultiplePlanes();
-        testClipperLineMultiplePlanes2();
+        //testClipperLineMultiplePlanes2();
         return 0;
     }
 
@@ -489,17 +511,22 @@ int main(int argc, const char** argv) {
     }
 
     if (test == "clipper-triangle-single-coplanar-plane-keep") {
-        testClipperTriangleSinglePlaneKeepsOnCoplanar();
+        return testClipperTriangleSinglePlaneKeepsOnCoplanar();
     }
 
     if (test == "clipper-triangle-single-plane-single-inside") {
         testClipperTriangleSinglePlaneSinglePointInside();
         testClipperTriangleSinglePlaneSinglePointInside2();
         testClipperTriangleSinglePlaneSinglePointInside3();
+        return 0;
     }
 
     if (test == "clipper-triangle-single-plane-double-inside") {
-        testClipperTriangleSinglePlaneTwoPointsInside();
+        return testClipperTriangleSinglePlaneTwoPointsInside();
+    }
+
+    if (test == "clipper-triangle-multiple-planes") {
+        return testClipperTriangleMultiplePlanes();
     }
 
     return 0;
