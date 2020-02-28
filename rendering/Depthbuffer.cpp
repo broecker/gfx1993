@@ -26,17 +26,21 @@ void Depthbuffer::clear()
 
 bool Depthbuffer::conditionalPlot(const glm::vec3& pos)
 {
-	auto x = (unsigned int)pos.x;
-	auto y = (unsigned int)pos.y;
+	auto x = (int)pos.x;
+	auto y = (int)pos.y;
 	float z = pos.z;
 	return conditionalPlot(x, y, z);
 }
 
-bool Depthbuffer::conditionalPlot(unsigned int x, unsigned int y, float z)
-{	
-	// TODO(mbroecker): This is off by one!
-	assert(x <= width);
-	assert(y <= height);
+bool Depthbuffer::conditionalPlot(int x, int y, float z)
+{
+    if (x < 0 || y < 0) {
+        return false;
+    }
+	if (x >= width || y >= height) {
+	    return false;
+	}
+
 	unsigned int i = x + width*y;
 	if (data[i] > z)
 	{

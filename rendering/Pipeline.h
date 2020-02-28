@@ -56,14 +56,6 @@ namespace render
     // Linearly interpolates between two vertexouts.
     VertexOut &&lerp(const VertexOut &a, const VertexOut &b, float d);
 
-
-    enum ClipResult
-    {
-        KEEP,
-        DISCARD,
-        CLIPPED
-    };
-
     struct PointPrimitive
     {
         VertexOut p;
@@ -71,8 +63,6 @@ namespace render
         inline explicit PointPrimitive(const VertexOut &o) : p(o) {}
 
         ShadingGeometry &&rasterize() const;
-
-        ClipResult clipToNDC() const;
     };
 
     struct LinePrimitive
@@ -82,8 +72,6 @@ namespace render
         inline LinePrimitive(const VertexOut &a_, const VertexOut &b_) : a(a_), b(b_) {};
 
         ShadingGeometry &&rasterize(float d) const;
-
-        ClipResult clipToNDC();
     };
 
     struct TrianglePrimitive
@@ -94,7 +82,11 @@ namespace render
 
         ShadingGeometry &&rasterize(const glm::vec3 &bary) const;
 
-        ClipResult clipToNDC();
+        inline void setColor(const glm::vec4& color) {
+            a.color = color;
+            b.color = color;
+            c.color = color;
+        }
     };
 
     // Shading Geometry is the input of a fragment shader.

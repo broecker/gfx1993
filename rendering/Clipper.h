@@ -12,18 +12,21 @@ namespace render
     {
     public:
         struct Plane {
-            glm::vec3   normal;
-            float       d;
+            glm::vec4   plane;
 
-            // Create a plane. Make sure that plane.w is the *negative* distance from the Origin.
-            explicit Plane(const glm::vec4& plane) : normal(glm::normalize(glm::vec3(plane.x, plane.y, plane.z))), d(-plane.w) {}
+            // Creates a plane given by a normal and a distance to the origin along that normal.
+            Plane(const glm::vec3& normal, float distance) : plane(normalize(normal), -distance) {}
 
             inline bool inFrontSpace(const glm::vec3& point) const {
                 return distance(point) >= 0;
             }
 
             inline float distance(const glm::vec3& point) const {
-                return glm::dot(point, normal) - d;
+                return distance(glm::vec4(point, 1.f));
+            }
+
+            inline float distance(const glm::vec4& pt) const {
+                return dot(pt, plane);
             }
         };
 
@@ -32,8 +35,12 @@ namespace render
         Clipper();
 
         PointPrimitiveList clipPoints(const PointPrimitiveList& points) const;
+        PointPrimitiveList clipPointsToNdc(const PointPrimitiveList& points) const;
 
         LinePrimitiveList clipLines(const LinePrimitiveList& lines) const;
+
+        TrianglePrimitiveList clipTriangles(TrianglePrimitiveList triangles) const;
+        TrianglePrimitiveList clipTrianglesToNdc(TrianglePrimitiveList triangles) const;
 
     private:
         std::vector<Plane>      planes;

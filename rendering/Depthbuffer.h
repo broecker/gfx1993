@@ -25,7 +25,7 @@ public:
 	}
 	
 	bool conditionalPlot(const glm::vec3& pos);
-	bool conditionalPlot(unsigned int x, unsigned int y, float z);
+	bool conditionalPlot(int x, int y, float z);
 
 
 protected:

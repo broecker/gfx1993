@@ -9,6 +9,8 @@
 #include <algorithm>
 #include <iostream>
 #include <list>
+#include <glm/gtx/io.hpp>
+#include <glm/gtx/transform.hpp>
 
 using glm::ivec2;
 using glm::vec3;
@@ -35,8 +37,7 @@ unsigned int Rasterizer::drawPoints(const VertexList &vertices, const IndexList&
     unsigned int pointsDrawn = 0;
 
     // Vertex transform.
-    VertexOutList transformedVertices(vertices.size());
-    transformVertices(vertices, transformedVertices, shaders.vertexShader);
+    VertexOutList transformedVertices = transformVertices(vertices, shaders.vertexShader);
 
     // Primitive assembly
     PointPrimitiveList points;
@@ -44,13 +45,16 @@ unsigned int Rasterizer::drawPoints(const VertexList &vertices, const IndexList&
         points.push_back(PointPrimitive(transformedVertices[indices[i]]));
     }
 
+    // Clipping
+    PointPrimitiveList clipped = clipper.clipPointsToNdc(points);
+
     // Perspective divide
-    for (auto& p : points) {
+    for (auto& p : clipped) {
+        if (p.p.clipPosition.w <= 0) {
+            std::cout << "p: " << p.p.clipPosition << std::endl;
+        }
         p.p.clipPosition /= p.p.clipPosition.w;
     }
-
-    // Clipping
-    PointPrimitiveList clipped = clipper.clipPoints(points);
 
     // Rasterization
     for (const auto& p : clipped) {
@@ -75,15 +79,23 @@ unsigned int Rasterizer::drawPoints(const VertexList &vertices, const IndexList&
     return pointsDrawn;
 }
 
-void Rasterizer::transformVertices(const VertexList &vertices, VertexOutList &out,
-                                   std::shared_ptr<VertexShader> vertexShader) const
+VertexOutList Rasterizer::transformVertices(const VertexList &vertices, std::shared_ptr<VertexShader> vertexShader) const
 {
     assert(vertexShader);
+    VertexOutList out(vertices.size());
     std::transform(
             vertices.begin(),
             vertices.end(),
             out.begin(),
             [vertexShader](const auto& v) { return vertexShader->transformSingle(v);});
+    return out;
+}
+
+
+static inline bool insideClipSpace(const VertexOut& v) {
+    return v.clipPosition.x >= -1 && v.clipPosition.x <= 1 &&
+            v.clipPosition.y >= -1 && v.clipPosition.y <= 1 &&
+            v.clipPosition.z >= -1 && v.clipPosition.z <= 1;
 }
 
 unsigned int Rasterizer::drawLines(const VertexList &vertices, const IndexList &indices) const
@@ -96,8 +108,13 @@ unsigned int Rasterizer::drawLines(const VertexList &vertices, const IndexList &
     unsigned int linesDrawn = 0;
 
     // Vertex transformation
-    VertexOutList transformedVertices(vertices.size());
-    transformVertices(vertices, transformedVertices, shaders.vertexShader);
+    VertexOutList transformedVertices = transformVertices(vertices, shaders.vertexShader);
+
+    for (const auto& v : transformedVertices) {
+        if (!insideClipSpace(v)) {
+            //std::clog << "Outside: " << v.clipPosition << std::endl;
+        }
+    }
 
     // Primitive assembly
     LinePrimitiveList lines;
@@ -107,17 +124,22 @@ unsigned int Rasterizer::drawLines(const VertexList &vertices, const IndexList &
         lines.push_back(LinePrimitive(a, b));
     }
 
+    // Clipping
+    LinePrimitiveList clipped = clipper.clipLines(lines);
+
     // Perspective divide
-    for (auto& line : lines) {
+    for (auto& line : clipped) {
+
+        if (line.a.clipPosition.w < 0 || line.b.clipPosition.w < 0) {
+            std::cout << "a: " << line.a.clipPosition << " b: " << line.b.clipPosition << std::endl;
+        }
+
         line.a.clipPosition /= line.a.clipPosition.w;
         line.b.clipPosition /= line.b.clipPosition.w;
     }
 
-    // Clipping
-    LinePrimitiveList clipped = clipper.clipLines(lines);
-
     // Rasterization
-    for (auto line : clipped) {
+    for (const auto& line : clipped) {
         drawLine(line);
         ++linesDrawn;
     }
@@ -150,41 +172,34 @@ unsigned int Rasterizer::drawTriangles(const VertexList &vertices, const IndexLi
     unsigned int trianglesDrawn = 0;
 
     // transform vertices
-    VertexOutList transformedVertices(vertices.size());
-    transformVertices(vertices, transformedVertices, shaders.vertexShader);
+    VertexOutList transformedVertices = transformVertices(vertices, shaders.vertexShader);
 
-    // build triangles
+    // Primitive assembly.
     TrianglePrimitiveList triangles;
+    // https://www.gamasutra.com/view/news/168577/Indepth_Software_rasterizer_and_triangle_clipping.php
+    // https://fgiesen.wordpress.com/2011/07/05/a-trip-through-the-graphics-pipeline-2011-part-5/
     for (size_t i = 0; i < indices.size(); i += 3) {
         const VertexOut &a = transformedVertices[indices[i + 0]];
         const VertexOut &b = transformedVertices[indices[i + 1]];
         const VertexOut &c = transformedVertices[indices[i + 2]];
-
-        // backface culling in NDC
-        vec3 a_ndc = vec3(a.clipPosition / a.clipPosition.w);
-        vec3 b_ndc = vec3(b.clipPosition / b.clipPosition.w);
-        vec3 c_ndc = vec3(c.clipPosition / c.clipPosition.w);
-
-        vec3 n = cross(b_ndc - a_ndc, c_ndc - a_ndc);
-        if (n.z >= 0)
-            triangles.push_back(TrianglePrimitive(a, b, c));
+        triangles.push_back(TrianglePrimitive(a, b, c));
     }
 
-    for (auto tri = triangles.begin(); tri != triangles.end(); ++tri) {
-        // clip and cull triangles here
-        ClipResult cr = tri->clipToNDC();
-        if (cr == DISCARD) {
-            // triangle completely outside -- discard it
-            continue;
-        }
+    // Clipping.
+    TrianglePrimitiveList clipped = clipper.clipTrianglesToNdc(triangles);
 
-        if (cr == CLIPPED) {
-            // TODO: insert newly created triangles at the end
+    // Perspective divide
+    for (auto& triangle : clipped) {
+        triangle.a.clipPosition /= triangle.a.clipPosition.w;
+        triangle.b.clipPosition /= triangle.b.clipPosition.w;
+        triangle.c.clipPosition /= triangle.c.clipPosition.w;
 
-        }
+        // Add backface culling here
+    }
 
-        // rasterize and interpolate triangle here
-        drawTriangle(*tri);
+    for (const TrianglePrimitive& triangle : clipped) {
+        drawTriangle(triangle);
+        ++trianglesDrawn;
     }
 
     return trianglesDrawn;
@@ -258,20 +273,10 @@ void Rasterizer::drawTriangle(const TrianglePrimitive &t) const
     assert(shaders.fragmentShader);
 
     using namespace glm;
-    // point a
-    const vec4 &posA_clip = t.a.clipPosition;
-    const vec3 posA_ndc = vec3(posA_clip) / posA_clip.w;
-    const vec3 posA_win = output.viewport->calculateWindowCoordinates(posA_ndc);
 
-    // point b
-    const vec4 &posB_clip = t.b.clipPosition;
-    const vec3 posB_ndc = vec3(posB_clip) / posB_clip.w;
-    const vec3 posB_win = output.viewport->calculateWindowCoordinates(posB_ndc);
-
-    // point c
-    const vec4 &posC_clip = t.c.clipPosition;
-    const vec3 posC_ndc = vec3(posC_clip) / posC_clip.w;
-    const vec3 posC_win = output.viewport->calculateWindowCoordinates(posC_ndc);
+    const vec3 posA_win = output.viewport->calculateWindowCoordinates(t.a.clipPosition);
+    const vec3 posB_win = output.viewport->calculateWindowCoordinates(t.b.clipPosition);
+    const vec3 posC_win = output.viewport->calculateWindowCoordinates(t.c.clipPosition);
 
     // three window/screen coordinates
     ivec2 a = ivec2(posA_win);

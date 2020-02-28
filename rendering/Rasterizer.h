@@ -74,8 +74,7 @@ namespace render
         void drawTriangle(const TrianglePrimitive &t) const;
 
         // Vertex transform of the input vertices
-        void transformVertices(const VertexList &verticesIn, VertexOutList &out,
-                               std::shared_ptr<VertexShader> vertexShader) const;
+        VertexOutList transformVertices(const VertexList &verticesIn, std::shared_ptr<VertexShader> vertexShader) const;
 
         RenderOutput output;
         ShaderConfiguration shaders;
