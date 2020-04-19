@@ -6,27 +6,29 @@
 namespace geo
 {
 
-using render::VertexList;
-using render::IndexList;
+    using render::VertexList;
+    using render::IndexList;
 
-class Geometry
-{
-public:
-	Geometry();
-	virtual ~Geometry() = default;
+    class Geometry
+    {
+    public:
+        Geometry();
 
-	inline const VertexList& getVertices() const { return vertices; }
-	inline const IndexList& getIndices() const  { return indices; }
+        virtual ~Geometry() = default;
 
-	// Access to transform is public -- no reason to write getter+setter
-	// for the most-used member.	
-	glm::mat4 transform;
+        inline const VertexList &getVertices() const { return vertices; }
 
-protected:
-    // Child classes should write to these two members.
-    VertexList  vertices;
-    IndexList   indices;
-};
+        inline const IndexList &getIndices() const { return indices; }
+
+        // Access to transform is public -- no reason to write getter+setter
+        // for the most-used member.
+        glm::mat4 transform;
+
+    protected:
+        // Child classes should write to these two members.
+        VertexList vertices;
+        IndexList indices;
+    };
 
 }
 

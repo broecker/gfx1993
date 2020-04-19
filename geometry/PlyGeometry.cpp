@@ -9,144 +9,134 @@
 
 using render::Vertex;
 
-namespace geo {
-
-PlyGeometry::PlyGeometry() : boundingSphereRadius(0)
+namespace geo
 {
-}
 
-bool PlyGeometry::loadPly(const std::string& filename)
-{
-	boundingSphereRadius = 0.f;
+    PlyGeometry::PlyGeometry() : boundingSphereRadius(0)
+    {
+    }
 
-	std::ifstream file(filename.c_str());
-	if (!file.is_open())
-	{
-		std::cerr << "Unable to open file \"" << filename << "\"\n";
-		return false;
-	}
-	else
-		std::clog << "Loading file " << filename << std::endl;
+    bool PlyGeometry::loadPly(const std::string &filename)
+    {
+        boundingSphereRadius = 0.f;
 
-	std::string buffer;
+        std::ifstream file(filename.c_str());
+        if (!file.is_open()) {
+            std::cerr << "Unable to open file \"" << filename << "\"\n";
+            return false;
+        } else
+            std::clog << "Loading file " << filename << std::endl;
 
-	bool readHeader = true;
-	unsigned int vertexCount = 0, readVertices = 0;
-	unsigned int faceCount = 0;
-	while (!file.eof())
-	{
-		std::getline(file, buffer);
+        std::string buffer;
 
-		if (buffer.empty())
-			continue;
+        bool readHeader = true;
+        unsigned int vertexCount = 0, readVertices = 0;
+        unsigned int faceCount = 0;
+        while (!file.eof()) {
+            std::getline(file, buffer);
 
-		if (readHeader)
-		{
-			if (buffer == "end_header")
-				readHeader = false;
+            if (buffer.empty())
+                continue;
 
-			if (buffer.find("element vertex") != std::string::npos)
-			{
-				assert( sscanf(buffer.c_str(), "element vertex %i", &vertexCount) == 1 );
-				vertices.reserve( vertexCount );
-			}
+            if (readHeader) {
+                if (buffer == "end_header")
+                    readHeader = false;
 
-			if (buffer.find("element face") != std::string::npos)
-			{
-				assert( sscanf(buffer.c_str(), "element face %i", &faceCount) == 1);
-				indices.reserve( faceCount*3 );
-			}
+                if (buffer.find("element vertex") != std::string::npos) {
+                    assert(sscanf(buffer.c_str(), "element vertex %i", &vertexCount) == 1);
+                    vertices.reserve(vertexCount);
+                }
 
-			continue;
-		}
+                if (buffer.find("element face") != std::string::npos) {
+                    assert(sscanf(buffer.c_str(), "element face %i", &faceCount) == 1);
+                    indices.reserve(faceCount * 3);
+                }
 
-		// read number of vertices
-		if (readVertices < vertexCount)
-		{
-			float x, y, z, c, i;
-			assert( sscanf(buffer.c_str(), "%f %f %f %f %f", &x, &y, &z, &c, &i) == 5);
+                continue;
+            }
 
-			vertices.push_back( Vertex( glm::vec4(x,y,z,1) ) );
-		
-			boundingSphereRadius = std::max(	boundingSphereRadius,
-												sqrtf(x*x+y*y+z*z) );
+            // read number of vertices
+            if (readVertices < vertexCount) {
+                float x, y, z, c, i;
+                assert(sscanf(buffer.c_str(), "%f %f %f %f %f", &x, &y, &z, &c, &i) == 5);
 
-			++readVertices;
-		}
+                vertices.push_back(Vertex(glm::vec4(x, y, z, 1)));
 
-		// and then the faces
-		else
-		{
-			unsigned int a, b, c;
-			assert( sscanf(buffer.c_str(), "3 %i %i %i", &a, &b, &c) == 3);
+                boundingSphereRadius = std::max(boundingSphereRadius,
+                                                sqrtf(x * x + y * y + z * z));
 
-			indices.push_back( a );
-			indices.push_back( b );
-			indices.push_back( c );
-		
-			if (a >= vertices.size())
-				std::cerr << "Illegal index: " << a << "?\n";
-		
-			if (b >= vertices.size())
-				std::cerr << "Illegal index: " << b << "?\n";
+                ++readVertices;
+            }
 
-			if (c >= vertices.size())
-				std::cerr << "Illegal index: " << c << "?\n";
-		}
-	}
+                // and then the faces
+            else {
+                unsigned int a, b, c;
+                assert(sscanf(buffer.c_str(), "3 %i %i %i", &a, &b, &c) == 3);
 
-	std::clog << "Read " << vertices.size() << " vertices, " << indices.size() << " indices" << std::endl;
+                indices.push_back(a);
+                indices.push_back(b);
+                indices.push_back(c);
 
-	// calculate normals
-	for (size_t i = 0; i < indices.size(); i += 3)
-	{
+                if (a >= vertices.size())
+                    std::cerr << "Illegal index: " << a << "?\n";
 
-		// triangle
-		Vertex& a = vertices[ indices[i+0] ];
-		Vertex& b = vertices[ indices[i+1] ];
-		Vertex& c = vertices[ indices[i+2] ];
+                if (b >= vertices.size())
+                    std::cerr << "Illegal index: " << b << "?\n";
 
-		// normal
-		glm::vec3 n = glm::normalize( glm::cross(	glm::vec3(b.position-a.position), 
-													glm::vec3(c.position-a.position) ) );
+                if (c >= vertices.size())
+                    std::cerr << "Illegal index: " << c << "?\n";
+            }
+        }
 
-		a.normal += n;
-		b.normal += n;
-		c.normal += n;
-	}
+        std::clog << "Read " << vertices.size() << " vertices, " << indices.size() << " indices" << std::endl;
 
-	std::clog << "Renormalizing " << vertices.size() << " vertex normals." << std::endl;
-	// scale normal to length 1;
-	for (auto v : vertices) {
-		v.normal = glm::normalize(v.normal);
-	}
+        // calculate normals
+        for (size_t i = 0; i < indices.size(); i += 3) {
 
-	return true;
-}
+            // triangle
+            Vertex &a = vertices[indices[i + 0]];
+            Vertex &b = vertices[indices[i + 1]];
+            Vertex &c = vertices[indices[i + 2]];
 
-void PlyGeometry::center()
-{
-	// find bounding box
-	glm::vec3 min(FLT_MAX), max(FLT_MIN);
-	
-	for (auto v : vertices)
-	{
-		min.x = std::min(min.x, v.position.x);
-		min.y = std::min(min.y, v.position.y);
-		min.z = std::min(min.z, v.position.z);
-		
-		max.x = std::max(max.x, v.position.x);
-		max.y = std::max(max.y, v.position.y);
-		max.z = std::max(max.z, v.position.z);
-	}
+            // normal
+            glm::vec3 n = glm::normalize(glm::cross(glm::vec3(b.position - a.position),
+                                                    glm::vec3(c.position - a.position)));
 
-	// update vertices and find new bounding sphere radius
-	boundingSphereRadius = 0.f;
-	for (auto v : vertices)
-	{
-		v.position = v.position - glm::vec4(min, 0.f) - glm::vec4((max-min)*0.5f, 0.f);
-		boundingSphereRadius = std::max(boundingSphereRadius, glm::length(glm::vec3(v.position)));
-	}
+            a.normal += n;
+            b.normal += n;
+            c.normal += n;
+        }
 
-}
+        std::clog << "Renormalizing " << vertices.size() << " vertex normals." << std::endl;
+        // scale normal to length 1;
+        for (auto v : vertices) {
+            v.normal = glm::normalize(v.normal);
+        }
+
+        return true;
+    }
+
+    void PlyGeometry::center()
+    {
+        // find bounding box
+        glm::vec3 min(FLT_MAX), max(FLT_MIN);
+
+        for (auto v : vertices) {
+            min.x = std::min(min.x, v.position.x);
+            min.y = std::min(min.y, v.position.y);
+            min.z = std::min(min.z, v.position.z);
+
+            max.x = std::max(max.x, v.position.x);
+            max.y = std::max(max.y, v.position.y);
+            max.z = std::max(max.z, v.position.z);
+        }
+
+        // update vertices and find new bounding sphere radius
+        boundingSphereRadius = 0.f;
+        for (auto v : vertices) {
+            v.position = v.position - glm::vec4(min, 0.f) - glm::vec4((max - min) * 0.5f, 0.f);
+            boundingSphereRadius = std::max(boundingSphereRadius, glm::length(glm::vec3(v.position)));
+        }
+
+    }
 }

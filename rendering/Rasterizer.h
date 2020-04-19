@@ -10,9 +10,13 @@ namespace render
 {
     // Forward declarations.
     class Framebuffer;
+
     class Depthbuffer;
+
     class VertexShader;
+
     class FragmentShader;
+
     class Viewport;
 
     // Main class that does the heavy lifting in putting fragments into the framebuffer.
@@ -44,7 +48,7 @@ namespace render
         virtual ~Rasterizer() = default;
 
         // Draws the vertices as points. Only the indexed vertices are drawn.
-        unsigned int drawPoints(const VertexList& vertices, const IndexList& indices) const;
+        unsigned int drawPoints(const VertexList &vertices, const IndexList &indices) const;
 
         // Draws the vertices as lines. Every two indices define the endpoints of a line.
         unsigned int drawLines(const VertexList &vertices, const IndexList &indices) const;
@@ -52,7 +56,7 @@ namespace render
         // Draws a continuous line strip; each index is considered to be the either the midpoint between two lines, or
         // the endpoint in case of the first and last index. To draw a closed loop, make sure that the first and last
         // index are the same; i.e. [0, 1, 2, 3, 0]
-        unsigned int drawLineStrip(const VertexList& vertices, const IndexList& indices) const;
+        unsigned int drawLineStrip(const VertexList &vertices, const IndexList &indices) const;
 
         // Draws the vertices as lines. Every three indices are treated as the three corners of a triangle. Triangles are
         // defined counter-clockwise.
@@ -70,6 +74,7 @@ namespace render
     private:
         // Draws a line after it was clipped to the Viewport.
         void drawLine(const LinePrimitive &line) const;
+
         // Draws a triangle that was clipped to the viewport.
         void drawTriangle(const TrianglePrimitive &t) const;
 

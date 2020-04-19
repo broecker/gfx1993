@@ -3,13 +3,14 @@
 
 #include "Geometry.h"
 
-namespace geo {
-
-class CubeGeometry : public Geometry
+namespace geo
 {
-public:
-    explicit CubeGeometry(const glm::vec3& sideLength);
-};
+
+    class CubeGeometry : public Geometry
+    {
+    public:
+        explicit CubeGeometry(const glm::vec3 &sideLength);
+    };
 
 }
 

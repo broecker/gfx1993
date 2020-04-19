@@ -5,40 +5,40 @@ using glm::vec4;
 using glm::mat3;
 using glm::mat4;
 
-namespace render 
+namespace render
 {
 
-VertexOut&& DefaultVertexTransform::transformSingle(const Vertex& in)
-{
-	mat4 modelViewProjectionMatrix = projectionMatrix * viewMatrix * modelMatrix;
-	//mat3 normalMatrix = glm::inverse(glm::transpose(glm::mat3(modelViewMatrix)));
+    VertexOut &&DefaultVertexTransform::transformSingle(const Vertex &in)
+    {
+        mat4 modelViewProjectionMatrix = projectionMatrix * viewMatrix * modelMatrix;
+        //mat3 normalMatrix = glm::inverse(glm::transpose(glm::mat3(modelViewMatrix)));
 
-	VertexOut result;
-	result.clipPosition = modelViewProjectionMatrix * in.position;
-	result.worldPosition = vec3(modelMatrix * in.position);
-	
-	// this assumes that no non-uniform scaling or shearing takes place
-	result.worldNormal = mat3(modelMatrix) * in.normal;
-	result.color = in.color;
-	result.texcoord = in.texcoord;
+        VertexOut result;
+        result.clipPosition = modelViewProjectionMatrix * in.position;
+        result.worldPosition = vec3(modelMatrix * in.position);
 
-	return std::move(result);
-}
+        // this assumes that no non-uniform scaling or shearing takes place
+        result.worldNormal = mat3(modelMatrix) * in.normal;
+        result.color = in.color;
+        result.texcoord = in.texcoord;
 
-Fragment&& InputColorShader::shadeSingle(const ShadingGeometry& in)
-{
-	return std::move(Fragment{in.color});
-}
+        return std::move(result);
+    }
 
-Fragment&& NormalColorShader::shadeSingle(const ShadingGeometry& in)
-{
-	vec3 c = abs(normalize(in.normal));
-	return std::move(Fragment{ vec4(c, 1.f) });
-}
+    Fragment &&InputColorShader::shadeSingle(const ShadingGeometry &in)
+    {
+        return std::move(Fragment{in.color});
+    }
 
-Fragment&& SingleColorShader::shadeSingle(const ShadingGeometry& in)
-{
-    return std::move(Fragment{ color });
-}
+    Fragment &&NormalColorShader::shadeSingle(const ShadingGeometry &in)
+    {
+        vec3 c = abs(normalize(in.normal));
+        return std::move(Fragment{vec4(c, 1.f)});
+    }
+
+    Fragment &&SingleColorShader::shadeSingle(const ShadingGeometry &in)
+    {
+        return std::move(Fragment{color});
+    }
 
 }

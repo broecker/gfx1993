@@ -11,33 +11,36 @@ using glm::dot;
 using glm::normalize;
 
 
-OrbitCamera::OrbitCamera(const vec3& t, const vec3& u, float r) : projectionMatrix(glm::perspective(90.f, 1.3f, 1.f, 100.f)),
-	target(t), up(u), position(t), radius(r), phi(0.f), theta(0.f), mode(ROTATE)
+OrbitCamera::OrbitCamera(const vec3 &t, const vec3 &u, float r) : projectionMatrix(
+        glm::perspective(90.f, 1.3f, 1.f, 100.f)),
+                                                                  target(t), up(u), position(t), radius(r), phi(0.f),
+                                                                  theta(0.f), mode(ROTATE)
 {
 }
 
 void OrbitCamera::handleKeyPress(unsigned char key)
 {
-	switch(key) {
-		case 'a':
-		case '-':
-			//radius *= 1.4f;
+    switch (key) {
+        case 'a':
+        case '-':
+            //radius *= 1.4f;
             radius += 0.4f;
-			break;
-		case 'z':
-		case '=':
-		case '+':
-		    // Don't go closer than the near plane.
-		    radius = glm::max(1.f, radius -= 0.5f);
-		    //radius -= 0.4f;
-			break;
-		default:
-			break;
-	}
+            break;
+        case 'z':
+        case '=':
+        case '+':
+            // Don't go closer than the near plane.
+            radius = glm::max(1.f, radius -= 0.5f);
+            //radius -= 0.4f;
+            break;
+        default:
+            break;
+    }
 }
 
 
-void OrbitCamera::handleMousePress(int button, int state) {
+void OrbitCamera::handleMousePress(int button, int state)
+{
     if (button == 1 && state == 0) {
         mode = PAN;
     }
@@ -47,7 +50,7 @@ void OrbitCamera::handleMousePress(int button, int state) {
     }
 }
 
-void OrbitCamera::handleMouseMove(const glm::ivec2& delta)
+void OrbitCamera::handleMouseMove(const glm::ivec2 &delta)
 {
     if (mode == ROTATE) {
         phi += delta.y;
@@ -72,13 +75,13 @@ void OrbitCamera::handleMouseMove(const glm::ivec2& delta)
 
 glm::mat4 OrbitCamera::getViewMatrix()
 {
-	position = glm::euclidean(glm::radians(glm::vec2(phi, theta))) * radius;
-	position += target;
+    position = glm::euclidean(glm::radians(glm::vec2(phi, theta))) * radius;
+    position += target;
 
-	return glm::lookAt(position, target, up);
+    return glm::lookAt(position, target, up);
 }
 
 glm::mat4 OrbitCamera::getProjectionMatrix()
 {
-	return projectionMatrix;
+    return projectionMatrix;
 }

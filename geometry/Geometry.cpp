@@ -3,8 +3,8 @@
 namespace geo
 {
 
-Geometry::Geometry() : transform()
-{
-}
+    Geometry::Geometry() : transform()
+    {
+    }
 
 }

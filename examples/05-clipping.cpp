@@ -22,15 +22,18 @@
 unsigned int texture;
 unsigned int width = 640, height = 480;
 
-class BoundedGeometry : public geo::Geometry {
+class BoundedGeometry : public geo::Geometry
+{
 public:
-    BoundedGeometry(const glm::vec3& min, const glm::vec3& max) : maxBounds(max), minBounds(min) {}
+    BoundedGeometry(const glm::vec3 &min, const glm::vec3 &max) : maxBounds(max), minBounds(min) {}
+
     virtual ~BoundedGeometry() = default;
 
 protected:
-    glm::vec3           maxBounds, minBounds;
+    glm::vec3 maxBounds, minBounds;
 
-    static glm::vec4 getRandomColor() {
+    static glm::vec4 getRandomColor()
+    {
         float r = glm::linearRand(0.f, 1.f);
         float g = glm::linearRand(0.f, 1.f);
         float b = 1.f - r - g;
@@ -42,21 +45,25 @@ protected:
 class RandomLinesGeometry : public BoundedGeometry
 {
 public:
-    RandomLinesGeometry(const glm::vec3& min, const glm::vec3& max) : BoundedGeometry(min, max) {}
+    RandomLinesGeometry(const glm::vec3 &min, const glm::vec3 &max) : BoundedGeometry(min, max) {}
 
-    void add() {
-        const glm::vec4 a(glm::linearRand(minBounds.x, maxBounds.x), glm::linearRand(minBounds.y, maxBounds.y), glm::linearRand(minBounds.z, maxBounds.z), 1.f);
-        const glm::vec4 b(glm::linearRand(minBounds.x, maxBounds.x), glm::linearRand(minBounds.y, maxBounds.y), glm::linearRand(minBounds.z, maxBounds.z), 1.f);
+    void add()
+    {
+        const glm::vec4 a(glm::linearRand(minBounds.x, maxBounds.x), glm::linearRand(minBounds.y, maxBounds.y),
+                          glm::linearRand(minBounds.z, maxBounds.z), 1.f);
+        const glm::vec4 b(glm::linearRand(minBounds.x, maxBounds.x), glm::linearRand(minBounds.y, maxBounds.y),
+                          glm::linearRand(minBounds.z, maxBounds.z), 1.f);
         const glm::vec3 zero(0);
 
 
         vertices.push_back(render::Vertex(a, zero, getRandomColor(), glm::vec2(0)));
         vertices.push_back(render::Vertex(b, zero, getRandomColor(), glm::vec2(1)));
-        indices.push_back(vertices.size()-2);
-        indices.push_back(vertices.size()-1);
+        indices.push_back(vertices.size() - 2);
+        indices.push_back(vertices.size() - 1);
     }
 
-    void clear() {
+    void clear()
+    {
         vertices.clear();
         indices.clear();
     }
@@ -65,44 +72,49 @@ public:
 class RandomPointsGeometry : public BoundedGeometry
 {
 public:
-    RandomPointsGeometry(const glm::vec3& min, const glm::vec3& max) : BoundedGeometry(min, max) {}
+    RandomPointsGeometry(const glm::vec3 &min, const glm::vec3 &max) : BoundedGeometry(min, max) {}
 
-    void add() {
-        const glm::vec4 p(glm::linearRand(minBounds.x, maxBounds.x), glm::linearRand(minBounds.y, maxBounds.y), glm::linearRand(minBounds.z, maxBounds.z), 1.f);
+    void add()
+    {
+        const glm::vec4 p(glm::linearRand(minBounds.x, maxBounds.x), glm::linearRand(minBounds.y, maxBounds.y),
+                          glm::linearRand(minBounds.z, maxBounds.z), 1.f);
         const glm::vec3 zero(0);
 
         vertices.push_back(render::Vertex(p, zero, getRandomColor(), glm::vec2(0)));
-        indices.push_back(vertices.size()-1);
+        indices.push_back(vertices.size() - 1);
     }
 
-    void clear() {
+    void clear()
+    {
         vertices.clear();
         indices.clear();
     }
 };
 
-class RandomTriangleGeometry : public BoundedGeometry {
+class RandomTriangleGeometry : public BoundedGeometry
+{
 public:
-    RandomTriangleGeometry(const glm::vec3& min, const glm::vec3& max) : BoundedGeometry(min, max) {}
+    RandomTriangleGeometry(const glm::vec3 &min, const glm::vec3 &max) : BoundedGeometry(min, max) {}
 
-    void add(const glm::vec3& a_, const glm::vec3& b_, const glm::vec3& c_, bool doublesided=true) {
+    void add(const glm::vec3 &a_, const glm::vec3 &b_, const glm::vec3 &c_, bool doublesided = true)
+    {
         const glm::vec4 a(a_, 1);
         const glm::vec4 b(b_, 1);
         const glm::vec4 c(c_, 1);
         const glm::vec3 zero(0);
 
 
-        const glm::vec4 red(1,0,0,1);
-        const glm::vec4 grn(0,1,0,1);
-        const glm::vec4 blu(0,0,1,1);
+        const glm::vec4 red(1, 0, 0, 1);
+        const glm::vec4 grn(0, 1, 0, 1);
+        const glm::vec4 blu(0, 0, 1, 1);
 
         vertices.push_back(render::Vertex(a, zero, red, glm::vec2(0)));
         vertices.push_back(render::Vertex(b, zero, grn, glm::vec2(1)));
         vertices.push_back(render::Vertex(c, zero, blu, glm::vec2(1)));
 
-        indices.push_back(vertices.size()-3);
-        indices.push_back(vertices.size()-2);
-        indices.push_back(vertices.size()-1);
+        indices.push_back(vertices.size() - 3);
+        indices.push_back(vertices.size() - 2);
+        indices.push_back(vertices.size() - 1);
 
         if (doublesided) {
             indices.push_back(vertices.size() - 3);
@@ -111,14 +123,19 @@ public:
         }
     }
 
-    void add() {
-        const glm::vec3 a(glm::linearRand(minBounds.x, maxBounds.x), glm::linearRand(minBounds.y, maxBounds.y), glm::linearRand(minBounds.z, maxBounds.z));
-        const glm::vec3 b(glm::linearRand(minBounds.x, maxBounds.x), glm::linearRand(minBounds.y, maxBounds.y), glm::linearRand(minBounds.z, maxBounds.z));
-        const glm::vec3 c(glm::linearRand(minBounds.x, maxBounds.x), glm::linearRand(minBounds.y, maxBounds.y), glm::linearRand(minBounds.z, maxBounds.z));
+    void add()
+    {
+        const glm::vec3 a(glm::linearRand(minBounds.x, maxBounds.x), glm::linearRand(minBounds.y, maxBounds.y),
+                          glm::linearRand(minBounds.z, maxBounds.z));
+        const glm::vec3 b(glm::linearRand(minBounds.x, maxBounds.x), glm::linearRand(minBounds.y, maxBounds.y),
+                          glm::linearRand(minBounds.z, maxBounds.z));
+        const glm::vec3 c(glm::linearRand(minBounds.x, maxBounds.x), glm::linearRand(minBounds.y, maxBounds.y),
+                          glm::linearRand(minBounds.z, maxBounds.z));
         add(a, b, c);
     }
 
-    void clear() {
+    void clear()
+    {
         indices.clear();
         vertices.clear();
     }
@@ -143,7 +160,8 @@ glm::ivec2 mousePosition;
 static const int GLUT_MOUSEWHEEL_DOWN = 3;
 static const int GLUT_MOUSEWHEEL_UP = 4;
 
-enum ProjectionMode {
+enum ProjectionMode
+{
     PERSPECTIVE,
     ORTHO
 } projectionMode = PERSPECTIVE;
@@ -151,7 +169,8 @@ enum ProjectionMode {
 bool drawGrid = true;
 bool singleFrameMode = false;
 
-static void renderFrame() {
+static void renderFrame()
+{
     // Clear the buffers
     renderTarget.framebuffer->clear(glm::vec4(0.7f, 0.7f, 0.9f, 1));
     renderTarget.depthbuffer->clear();
@@ -310,7 +329,8 @@ static void mouse(int button, int state, int x, int y)
     camera->handleMousePress(button, state);
 }
 
-static void makeLine(const glm::vec3& a, const glm::vec3& b, const glm::vec4& color) {
+static void makeLine(const glm::vec3 &a, const glm::vec3 &b, const glm::vec4 &color)
+{
     render::Vertex p(glm::vec4(a, 1));
     p.color = color;
     render::Vertex q(glm::vec4(b, 1));
@@ -318,8 +338,8 @@ static void makeLine(const glm::vec3& a, const glm::vec3& b, const glm::vec4& co
 
     lineVertices.push_back(p);
     lineVertices.push_back(q);
-    lineIndices.push_back(lineVertices.size()-2);
-    lineIndices.push_back(lineVertices.size()-1);
+    lineIndices.push_back(lineVertices.size() - 2);
+    lineIndices.push_back(lineVertices.size() - 1);
 }
 
 int main(int argc, char **argv)
@@ -337,7 +357,7 @@ int main(int argc, char **argv)
     glutMouseFunc(mouse);
 
     rasterizer = std::make_unique<render::Rasterizer>();
-    renderTarget.viewport = std::make_shared<render::Viewport>(64, 64, width-128, height-128);
+    renderTarget.viewport = std::make_shared<render::Viewport>(64, 64, width - 128, height - 128);
     renderTarget.framebuffer = std::make_shared<render::Framebuffer>(width, height);
     renderTarget.depthbuffer = std::make_shared<render::Depthbuffer>(width, height);
 
@@ -353,9 +373,9 @@ int main(int argc, char **argv)
     grid = std::make_unique<geo::GridGeometry>();
     camera = std::make_unique<OrbitCamera>(glm::vec3(0, 0, 0), glm::vec3(0, 1, 0), 15.0f);
 
-    makeLine(glm::vec3(0.f), glm::vec3(20.f,0,0), glm::vec4(1,0,0,1));
-    makeLine(glm::vec3(0.f), glm::vec3(0,20.f,0), glm::vec4(0,1,0,1));
-    makeLine(glm::vec3(0.f), glm::vec3(0,0,20.f), glm::vec4(0,0,1,1));
+    makeLine(glm::vec3(0.f), glm::vec3(20.f, 0, 0), glm::vec4(1, 0, 0, 1));
+    makeLine(glm::vec3(0.f), glm::vec3(0, 20.f, 0), glm::vec4(0, 1, 0, 1));
+    makeLine(glm::vec3(0.f), glm::vec3(0, 0, 20.f), glm::vec4(0, 0, 1, 1));
 
     triangles->add(glm::vec3(0, 0, 20), glm::vec3(20, 0, -20), glm::vec3(-20, 0, -20), false);
 

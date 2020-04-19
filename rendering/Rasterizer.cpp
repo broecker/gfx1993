@@ -27,7 +27,7 @@ Rasterizer::Rasterizer() : clipper(), drawBoundingBoxes(false)
 {
 }
 
-unsigned int Rasterizer::drawPoints(const VertexList &vertices, const IndexList& indices) const
+unsigned int Rasterizer::drawPoints(const VertexList &vertices, const IndexList &indices) const
 {
     if (!shaders.isValid()) {
         std::cerr << "Invalid shader configuration!\n";
@@ -49,7 +49,7 @@ unsigned int Rasterizer::drawPoints(const VertexList &vertices, const IndexList&
     PointPrimitiveList clipped = clipper.clipPointsToNdc(points);
 
     // Perspective divide
-    for (auto& p : clipped) {
+    for (auto &p : clipped) {
         if (p.p.clipPosition.w <= 0) {
             std::cout << "p: " << p.p.clipPosition << std::endl;
         }
@@ -57,7 +57,7 @@ unsigned int Rasterizer::drawPoints(const VertexList &vertices, const IndexList&
     }
 
     // Rasterization
-    for (const auto& p : clipped) {
+    for (const auto &p : clipped) {
         const vec3 pos_win = output.viewport->calculateWindowCoordinates(p.p.clipPosition);
 
         // If there is a depth buffer but the depth test fails -> discard fragment (early)
@@ -79,7 +79,8 @@ unsigned int Rasterizer::drawPoints(const VertexList &vertices, const IndexList&
     return pointsDrawn;
 }
 
-VertexOutList Rasterizer::transformVertices(const VertexList &vertices, std::shared_ptr<VertexShader> vertexShader) const
+VertexOutList
+Rasterizer::transformVertices(const VertexList &vertices, std::shared_ptr<VertexShader> vertexShader) const
 {
     assert(vertexShader);
     VertexOutList out(vertices.size());
@@ -87,15 +88,16 @@ VertexOutList Rasterizer::transformVertices(const VertexList &vertices, std::sha
             vertices.begin(),
             vertices.end(),
             out.begin(),
-            [vertexShader](const auto& v) { return vertexShader->transformSingle(v);});
+            [vertexShader](const auto &v) { return vertexShader->transformSingle(v); });
     return out;
 }
 
 
-static inline bool insideClipSpace(const VertexOut& v) {
+static inline bool insideClipSpace(const VertexOut &v)
+{
     return v.clipPosition.x >= -1 && v.clipPosition.x <= 1 &&
-            v.clipPosition.y >= -1 && v.clipPosition.y <= 1 &&
-            v.clipPosition.z >= -1 && v.clipPosition.z <= 1;
+           v.clipPosition.y >= -1 && v.clipPosition.y <= 1 &&
+           v.clipPosition.z >= -1 && v.clipPosition.z <= 1;
 }
 
 unsigned int Rasterizer::drawLines(const VertexList &vertices, const IndexList &indices) const
@@ -110,7 +112,7 @@ unsigned int Rasterizer::drawLines(const VertexList &vertices, const IndexList &
     // Vertex transformation
     VertexOutList transformedVertices = transformVertices(vertices, shaders.vertexShader);
 
-    for (const auto& v : transformedVertices) {
+    for (const auto &v : transformedVertices) {
         if (!insideClipSpace(v)) {
             //std::clog << "Outside: " << v.clipPosition << std::endl;
         }
@@ -128,7 +130,7 @@ unsigned int Rasterizer::drawLines(const VertexList &vertices, const IndexList &
     LinePrimitiveList clipped = clipper.clipLines(lines);
 
     // Perspective divide
-    for (auto& line : clipped) {
+    for (auto &line : clipped) {
 
         if (line.a.clipPosition.w < 0 || line.b.clipPosition.w < 0) {
             std::cout << "a: " << line.a.clipPosition << " b: " << line.b.clipPosition << std::endl;
@@ -139,7 +141,7 @@ unsigned int Rasterizer::drawLines(const VertexList &vertices, const IndexList &
     }
 
     // Rasterization
-    for (const auto& line : clipped) {
+    for (const auto &line : clipped) {
         drawLine(line);
         ++linesDrawn;
     }
@@ -151,12 +153,11 @@ unsigned int Rasterizer::drawLineStrip(const render::VertexList &vertices, const
 {
     // We can reuse the existing code by expanding the current indices. We expand the indices by doubling the internal
     // vertices; i.e. [0,2,4,6] -> [0,2,2,4,4,6]
-    render::IndexList expandedIndices(indices.size()-2);
+    render::IndexList expandedIndices(indices.size() - 2);
 
-    for (size_t i = 0; i < indices.size()-1; ++i)
-    {
-        expandedIndices.push_back(indices[i+0]);
-        expandedIndices.push_back(indices[i+1]);
+    for (size_t i = 0; i < indices.size() - 1; ++i) {
+        expandedIndices.push_back(indices[i + 0]);
+        expandedIndices.push_back(indices[i + 1]);
     }
 
     return drawLines(vertices, expandedIndices);
@@ -186,7 +187,7 @@ unsigned int Rasterizer::drawTriangles(const VertexList &vertices, const IndexLi
     }
 
     // Perspective divide
-    for (auto& triangle : triangles) {
+    for (auto &triangle : triangles) {
         triangle.a.clipPosition /= triangle.a.clipPosition.w;
         triangle.b.clipPosition /= triangle.b.clipPosition.w;
         triangle.c.clipPosition /= triangle.c.clipPosition.w;
@@ -197,7 +198,7 @@ unsigned int Rasterizer::drawTriangles(const VertexList &vertices, const IndexLi
     // At this point all triangles are in clip space [-1 .. 1] and can be clipped to NDC.
     TrianglePrimitiveList clipped = clipper.clipTrianglesToNdc(triangles);
 
-    for (const TrianglePrimitive& triangle : clipped) {
+    for (const TrianglePrimitive &triangle : clipped) {
         drawTriangle(triangle);
         ++trianglesDrawn;
     }

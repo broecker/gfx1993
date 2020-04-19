@@ -13,16 +13,16 @@
 #include "rendering/Rasterizer.h"
 #include "rendering/Viewport.h"
 
-unsigned int 	texture;
-unsigned int 	width = 640, height = 480;
+unsigned int texture;
+unsigned int width = 640, height = 480;
 
 render::VertexList vertices;
 render::IndexList indices;
 
 render::Rasterizer::ShaderConfiguration shaders;
-render::Rasterizer::RenderOutput        renderTarget;
-std::unique_ptr<render::Rasterizer>		rasterizer;
-std::shared_ptr<render::DefaultVertexTransform>	vertexShader;
+render::Rasterizer::RenderOutput renderTarget;
+std::unique_ptr<render::Rasterizer> rasterizer;
+std::shared_ptr<render::DefaultVertexTransform> vertexShader;
 
 using render::Vertex;
 
@@ -31,85 +31,82 @@ float rotationAngle = 0.f;
 // Copies the rendered image back to OpenGL to display in a glut window.
 static void display()
 {
-	glBindTexture(GL_TEXTURE_2D, texture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, renderTarget.framebuffer->getPixels());
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, renderTarget.framebuffer->getPixels());
 
-	glEnable(GL_TEXTURE_2D);
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    glEnable(GL_TEXTURE_2D);
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
-	const int vertices[] = {0,0, 1,0, 1,1, 0,1};
-	glVertexPointer(2, GL_INT, 0, vertices);
-	glTexCoordPointer(2, GL_INT, 0, vertices);
+    const int vertices[] = {0, 0, 1, 0, 1, 1, 0, 1};
+    glVertexPointer(2, GL_INT, 0, vertices);
+    glTexCoordPointer(2, GL_INT, 0, vertices);
 
-	glDrawArrays(GL_QUADS, 0, 4);
+    glDrawArrays(GL_QUADS, 0, 4);
 
-	glutSwapBuffers();
+    glutSwapBuffers();
 }
 
 static void idle()
 {
-	// update time
-	static unsigned int oldTime = 0;
+    // update time
+    static unsigned int oldTime = 0;
 
-	int elapsedTime = glutGet(GLUT_ELAPSED_TIME);
-	float dt = (float)(elapsedTime-oldTime) / 1000.f;
-	oldTime = elapsedTime;
+    int elapsedTime = glutGet(GLUT_ELAPSED_TIME);
+    float dt = (float) (elapsedTime - oldTime) / 1000.f;
+    oldTime = elapsedTime;
 
-	static float timer = 0.f;
-	static unsigned int frames = 0;
-	timer += dt;
-	++frames;
-	if (timer >= 2.f)
-	{
-		std::clog << "dt: " << dt << " " << frames/2 << " fps" << std::endl;
+    static float timer = 0.f;
+    static unsigned int frames = 0;
+    timer += dt;
+    ++frames;
+    if (timer >= 2.f) {
+        std::clog << "dt: " << dt << " " << frames / 2 << " fps" << std::endl;
 
-		timer = 0.f;
-		frames = 0;
-	}
+        timer = 0.f;
+        frames = 0;
+    }
 
     rotationAngle += dt * 3.f;
 
-	// clear the buffers	
-    renderTarget.framebuffer->clear( glm::vec4(0, 0, 0.2f, 1) );
+    // clear the buffers
+    renderTarget.framebuffer->clear(glm::vec4(0, 0, 0.2f, 1));
     renderTarget.depthbuffer->clear();
 
-	// reset the render matrices
-    vertexShader->modelMatrix = glm::rotate(rotationAngle, glm::vec3(0,1,0));
-    vertexShader->viewMatrix = glm::lookAt(glm::vec3(0, 1, -10), glm::vec3(0,0,0), glm::vec3(0,1,0));
-    vertexShader->projectionMatrix = glm::perspective(glm::radians(60.f), (float)width/height, 0.2f, 100.f);
+    // reset the render matrices
+    vertexShader->modelMatrix = glm::rotate(rotationAngle, glm::vec3(0, 1, 0));
+    vertexShader->viewMatrix = glm::lookAt(glm::vec3(0, 1, -10), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+    vertexShader->projectionMatrix = glm::perspective(glm::radians(60.f), (float) width / height, 0.2f, 100.f);
 
-	try
-	{
+    try {
         rasterizer->drawTriangles(vertices, indices);
-	}
-	catch (const char* txt)
-	{
-		std::cerr << "Render error :\"" << txt << "\"\n";
-	}
+    }
+    catch (const char *txt) {
+        std::cerr << "Render error :\"" << txt << "\"\n";
+    }
 
-	glutPostRedisplay();
+    glutPostRedisplay();
 }
 
 static void keyboard(unsigned char key, int x, int y)
 {
-	if (key == 27)
-		exit(0);
+    if (key == 27)
+        exit(0);
 }
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
-	glutInit(&argc, argv);
+    glutInit(&argc, argv);
 
-	glutInitDisplayMode(GLUT_RGBA|GLUT_DOUBLE|GLUT_DEPTH);
-	glutInitWindowSize(width,height);
-	glutCreateWindow("srender");
+    glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
+    glutInitWindowSize(width, height);
+    glutCreateWindow("srender");
 
-	glutIdleFunc(idle);
-	glutDisplayFunc(display);
-	glutKeyboardFunc(keyboard);
+    glutIdleFunc(idle);
+    glutDisplayFunc(display);
+    glutKeyboardFunc(keyboard);
 
-	srand( time(0) );
+    srand(time(0));
 
     rasterizer = std::make_unique<render::Rasterizer>();
     renderTarget.viewport = std::make_shared<render::Viewport>(0, 0, width, height);
@@ -125,9 +122,9 @@ int main(int argc, char** argv)
     rasterizer->setShaders(shaders);
 
     // Create the triangle geometry
-    vertices.push_back(Vertex(glm::vec4(-5, 0, 0, 1), glm::vec3(1, 0, 0), glm::vec4(0, 0, 1, 1), glm::vec2(0,0)));
-    vertices.push_back(Vertex(glm::vec4( 0, 5, 0, 1), glm::vec3(1, 0, 0), glm::vec4(1, 0, 0, 1), glm::vec2(0,0)));
-    vertices.push_back(Vertex(glm::vec4( 5, 0, 0, 1), glm::vec3(1, 0, 0), glm::vec4(0, 1, 0, 1), glm::vec2(0,0)));
+    vertices.push_back(Vertex(glm::vec4(-5, 0, 0, 1), glm::vec3(1, 0, 0), glm::vec4(0, 0, 1, 1), glm::vec2(0, 0)));
+    vertices.push_back(Vertex(glm::vec4(0, 5, 0, 1), glm::vec3(1, 0, 0), glm::vec4(1, 0, 0, 1), glm::vec2(0, 0)));
+    vertices.push_back(Vertex(glm::vec4(5, 0, 0, 1), glm::vec3(1, 0, 0), glm::vec4(0, 1, 0, 1), glm::vec2(0, 0)));
 
     indices.push_back(0);
     indices.push_back(2);
@@ -137,19 +134,19 @@ int main(int argc, char** argv)
     indices.push_back(1);
 
     // OpenGL texture setup
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, 0);
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, 0);
 
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glOrtho(0, 1, 0, 1, 0, 1);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(0, 1, 0, 1, 0, 1);
 
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
 
-	glutMainLoop();
-	return 0;
+    glutMainLoop();
+    return 0;
 }

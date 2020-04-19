@@ -19,8 +19,8 @@
 #include "geometry/PlyGeometry.h"
 
 // OpenGL texture Id
-unsigned int 	texture;
-unsigned int 	width = 640, height = 480;
+unsigned int texture;
+unsigned int width = 640, height = 480;
 
 class WireSphere : public geo::Geometry
 {
@@ -62,13 +62,13 @@ public:
     }
 };
 
-std::unique_ptr<WireSphere>         sphere;
+std::unique_ptr<WireSphere> sphere;
 
-std::unique_ptr<render::Rasterizer>		    rasterizer;
-render::Rasterizer::ShaderConfiguration     shaders;
-render::Rasterizer::RenderOutput            renderTarget;
+std::unique_ptr<render::Rasterizer> rasterizer;
+render::Rasterizer::ShaderConfiguration shaders;
+render::Rasterizer::RenderOutput renderTarget;
 
-std::unique_ptr<Camera>	camera;
+std::unique_ptr<Camera> camera;
 
 glm::ivec2 mousePosition;
 
@@ -84,7 +84,7 @@ static void display()
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
-    const int vertices[] = {0,0, 1,0, 1,1, 0,1};
+    const int vertices[] = {0, 0, 1, 0, 1, 1, 0, 1};
     glVertexPointer(2, GL_INT, 0, vertices);
     glTexCoordPointer(2, GL_INT, 0, vertices);
 
@@ -99,38 +99,35 @@ static void idle()
     static unsigned int oldTime = 0;
 
     unsigned int elapsedTime = glutGet(GLUT_ELAPSED_TIME);
-    float dt = (float)(elapsedTime-oldTime) / 1000.f;
+    float dt = (float) (elapsedTime - oldTime) / 1000.f;
     oldTime = elapsedTime;
 
     static float timer = 0.f;
     static unsigned int frames = 0;
     timer += dt;
     ++frames;
-    if (timer >= 2.f)
-    {
-        std::clog << "dt: " << dt << " " << frames/2 << " fps" << std::endl;
+    if (timer >= 2.f) {
+        std::clog << "dt: " << dt << " " << frames / 2 << " fps" << std::endl;
 
         timer = 0.f;
         frames = 0;
     }
 
     // Clear the buffers
-    renderTarget.framebuffer->clear( glm::vec4(0.7f, 0.7f, 0.9f, 1));
+    renderTarget.framebuffer->clear(glm::vec4(0.7f, 0.7f, 0.9f, 1));
     renderTarget.depthbuffer->clear();
 
     // reset the render matrices
-    render::DefaultVertexTransform* dvt = dynamic_cast<render::DefaultVertexTransform*>(shaders.vertexShader.get());
+    render::DefaultVertexTransform *dvt = dynamic_cast<render::DefaultVertexTransform *>(shaders.vertexShader.get());
 
     dvt->modelMatrix = glm::mat4(1.f);
     dvt->viewMatrix = camera->getViewMatrix();
     dvt->projectionMatrix = camera->getProjectionMatrix();
 
-    try
-    {
+    try {
         rasterizer->drawLineStrip(sphere->getVertices(), sphere->getIndices());
     }
-    catch (const char* txt)
-    {
+    catch (const char *txt) {
         std::cerr << "Render error :\"" << txt << "\"\n";
     }
 
@@ -161,23 +158,21 @@ static void mouse(int button, int state, int x, int y)
 {
     mousePosition = glm::ivec2(x, y);
 
-    if (button == GLUT_MOUSEWHEEL_DOWN && state == GLUT_DOWN)
-    {
+    if (button == GLUT_MOUSEWHEEL_DOWN && state == GLUT_DOWN) {
         camera->handleKeyPress('a');
     }
 
-    if (button == GLUT_MOUSEWHEEL_UP && state == GLUT_DOWN)
-    {
+    if (button == GLUT_MOUSEWHEEL_UP && state == GLUT_DOWN) {
         camera->handleKeyPress('z');
     }
 }
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
     glutInit(&argc, argv);
 
-    glutInitDisplayMode(GLUT_RGBA|GLUT_DOUBLE|GLUT_DEPTH);
-    glutInitWindowSize(width,height);
+    glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
+    glutInitWindowSize(width, height);
     glutCreateWindow("srender");
 
     glutIdleFunc(idle);
@@ -186,7 +181,7 @@ int main(int argc, char** argv)
     glutMotionFunc(motion);
     glutMouseFunc(mouse);
 
-    srand( time(0) );
+    srand(time(0));
 
     rasterizer = std::make_unique<render::Rasterizer>();
     renderTarget.viewport = std::make_shared<render::Viewport>(0, 0, width, height);

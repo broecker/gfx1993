@@ -82,7 +82,8 @@ namespace render
 
         ShadingGeometry &&rasterize(const glm::vec3 &bary) const;
 
-        inline void setColor(const glm::vec4& color) {
+        inline void setColor(const glm::vec4 &color)
+        {
             a.color = color;
             b.color = color;
             c.color = color;

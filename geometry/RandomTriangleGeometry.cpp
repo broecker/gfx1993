@@ -1,67 +1,68 @@
 #include "RandomTriangleGeometry.h"
 #include "../rendering/Pipeline.h"
 
-#include <glm/gtc/random.hpp> 
+#include <glm/gtc/random.hpp>
 
 #include <random>
 
 using glm::vec3;
 
-namespace geo {
-
-RandomTriangleGeometry::RandomTriangleGeometry(const vec3& min, const vec3& max) : boundsMin(min), boundsMax(max)
+namespace geo
 {
-}
 
-void RandomTriangleGeometry::addTriangle()
-{
-	Vertex a = createRandomVertex();
-	Vertex b = createRandomVertex();
-	Vertex c = createRandomVertex();
+    RandomTriangleGeometry::RandomTriangleGeometry(const vec3 &min, const vec3 &max) : boundsMin(min), boundsMax(max)
+    {
+    }
 
-	addTriangle(a, b, c);
-	addTriangle(a, c, b);
-}
+    void RandomTriangleGeometry::addTriangle()
+    {
+        Vertex a = createRandomVertex();
+        Vertex b = createRandomVertex();
+        Vertex c = createRandomVertex();
 
-void RandomTriangleGeometry::addTriangle(const Vertex& a, const Vertex& b, const Vertex& c)
-{
-	vertices.push_back(a);
-	indices.push_back( vertices.size()-1 );
+        addTriangle(a, b, c);
+        addTriangle(a, c, b);
+    }
 
-	vertices.push_back(b);
-	indices.push_back( vertices.size()-1 );
+    void RandomTriangleGeometry::addTriangle(const Vertex &a, const Vertex &b, const Vertex &c)
+    {
+        vertices.push_back(a);
+        indices.push_back(vertices.size() - 1);
 
-	vertices.push_back(c);
-	indices.push_back( vertices.size()-1 );
+        vertices.push_back(b);
+        indices.push_back(vertices.size() - 1);
 
-	// Calculate normal for the triangle.
-	vec3 u = glm::normalize(b.position - a.position);
-	vec3 v = glm::normalize(c.position - a.position);
-	vec3 n = glm::normalize(glm::cross(u, v));
+        vertices.push_back(c);
+        indices.push_back(vertices.size() - 1);
 
-	vertices[vertices.size()-3].normal = n;
-	vertices[vertices.size()-2].normal = n;
-	vertices[vertices.size()-1].normal = n;
-}
+        // Calculate normal for the triangle.
+        vec3 u = glm::normalize(b.position - a.position);
+        vec3 v = glm::normalize(c.position - a.position);
+        vec3 n = glm::normalize(glm::cross(u, v));
 
-void RandomTriangleGeometry::clear()
-{
-	indices.clear();
-	vertices.clear();
-}
+        vertices[vertices.size() - 3].normal = n;
+        vertices[vertices.size() - 2].normal = n;
+        vertices[vertices.size() - 1].normal = n;
+    }
 
-Vertex&& RandomTriangleGeometry::createRandomVertex() const
-{
-	vec3 pos = glm::linearRand(boundsMin, boundsMax);
-	vec3 normal = glm::ballRand(1.f);
+    void RandomTriangleGeometry::clear()
+    {
+        indices.clear();
+        vertices.clear();
+    }
 
-	glm::vec2 texcoord(0,0);
+    Vertex &&RandomTriangleGeometry::createRandomVertex() const
+    {
+        vec3 pos = glm::linearRand(boundsMin, boundsMax);
+        vec3 normal = glm::ballRand(1.f);
 
-	float r = (float)std::rand() / RAND_MAX;
-	float g = (float)std::rand() / RAND_MAX;
-	float b = 1.f - r - g;
+        glm::vec2 texcoord(0, 0);
 
-	return std::move(Vertex(glm::vec4(pos, 1.f), normal, glm::vec4(r,g,b,1.f), texcoord));		
-}
+        float r = (float) std::rand() / RAND_MAX;
+        float g = (float) std::rand() / RAND_MAX;
+        float b = 1.f - r - g;
+
+        return std::move(Vertex(glm::vec4(pos, 1.f), normal, glm::vec4(r, g, b, 1.f), texcoord));
+    }
 
 }

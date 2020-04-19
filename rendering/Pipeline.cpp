@@ -6,7 +6,7 @@ using glm::vec4;
 
 namespace render
 {
-    VertexOut&& lerp(const VertexOut& a, const VertexOut& b, float d)
+    VertexOut &&lerp(const VertexOut &a, const VertexOut &b, float d)
     {
         VertexOut result;
         result.clipPosition = glm::mix(a.clipPosition, b.clipPosition, d);
@@ -17,7 +17,7 @@ namespace render
         return std::move(result);
     }
 
-    ShadingGeometry&& interpolate(const ShadingGeometry& a, const ShadingGeometry& b, float d)
+    ShadingGeometry &&interpolate(const ShadingGeometry &a, const ShadingGeometry &b, float d)
     {
         ShadingGeometry result;
 
@@ -30,7 +30,7 @@ namespace render
         return std::move(result);
     }
 
-    ShadingGeometry&& PointPrimitive::rasterize() const
+    ShadingGeometry &&PointPrimitive::rasterize() const
     {
         ShadingGeometry result;
         result.position = p.worldPosition;
@@ -40,7 +40,7 @@ namespace render
         return std::move(result);
     }
 
-    ShadingGeometry&& LinePrimitive::rasterize(float d) const
+    ShadingGeometry &&LinePrimitive::rasterize(float d) const
     {
         ShadingGeometry result;
         result.position = mix(a.worldPosition, b.worldPosition, d);
@@ -50,15 +50,15 @@ namespace render
         return std::move(result);
     }
 
-    ShadingGeometry&& TrianglePrimitive::rasterize(const glm::vec3& bary) const
+    ShadingGeometry &&TrianglePrimitive::rasterize(const glm::vec3 &bary) const
     {
-        float bsum = bary.x+bary.y+bary.z;
+        float bsum = bary.x + bary.y + bary.z;
 
         ShadingGeometry sgeo;
-        sgeo.position = a.worldPosition*bary.x + b.worldPosition*bary.y + c.worldPosition*bary.z / bsum;
-        sgeo.normal = a.worldNormal*bary.x + b.worldNormal*bary.y + c.worldNormal*bary.z / bsum;
+        sgeo.position = a.worldPosition * bary.x + b.worldPosition * bary.y + c.worldPosition * bary.z / bsum;
+        sgeo.normal = a.worldNormal * bary.x + b.worldNormal * bary.y + c.worldNormal * bary.z / bsum;
         sgeo.color = a.color * bary.x + b.color * bary.y + c.color * bary.z / bsum;
-        sgeo.texcoord = a.texcoord*bary.x + b.texcoord*bary.y + c.texcoord*bary.z / bsum;
+        sgeo.texcoord = a.texcoord * bary.x + b.texcoord * bary.y + c.texcoord * bary.z / bsum;
 
         return std::move(sgeo);
     }

@@ -4,13 +4,13 @@
 class ShaderMissingException
 {
 public:
-	ShaderMissingException(const std::string& str) {};
+    ShaderMissingException(const std::string &str) {};
 };
 
 class OutofBoundsException
 {
 public:
-	OutofBoundsException(int w, int h) {}
+    OutofBoundsException(int w, int h) {}
 
 };
 
