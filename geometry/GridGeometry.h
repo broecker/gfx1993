@@ -3,7 +3,7 @@
 
 #include "Geometry.h"
 
-namespace geo
+namespace geometry
 {
 
 // A 2D grid on the XZ plane.

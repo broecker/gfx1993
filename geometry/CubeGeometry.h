@@ -3,9 +3,10 @@
 
 #include "Geometry.h"
 
-namespace geo
+namespace geometry
 {
 
+    // A three-dimensional cube with solid faces.
     class CubeGeometry : public Geometry
     {
     public:

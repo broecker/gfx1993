@@ -2,7 +2,9 @@ cmake_minimum_required(VERSION 2.6)
 enable_testing()
 
 # Main renderer library
-add_library(gfx93-rendering STATIC Rasterizer.cpp Framebuffer.cpp Depthbuffer.cpp Viewport.cpp Shader.cpp Pipeline.cpp Clipper.cpp Clipper.h)
+add_library(gfx93-rendering STATIC Rasterizer.cpp Framebuffer.cpp Depthbuffer.cpp Viewport.cpp Shader.cpp Pipeline.cpp Clipper.cpp Clipper.h Texture.h Texture.cpp)
+
+set_property(TARGET gfx93-rendering PROPERTY CXX_STANDARD 17)
 
 # Compile + link setup
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O0 -g -DGLM_ENABLE_EXPERIMENTAL")

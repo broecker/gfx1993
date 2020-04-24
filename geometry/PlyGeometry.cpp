@@ -9,7 +9,7 @@
 
 using render::Vertex;
 
-namespace geo
+namespace geometry
 {
 
     PlyGeometry::PlyGeometry() : boundingSphereRadius(0)

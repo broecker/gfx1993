@@ -7,7 +7,7 @@
 
 using glm::vec3;
 
-namespace geo
+namespace geometry
 {
 
     RandomTriangleGeometry::RandomTriangleGeometry(const vec3 &min, const vec3 &max) : boundsMin(min), boundsMax(max)

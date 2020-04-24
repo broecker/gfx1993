@@ -1,6 +1,6 @@
 #include "Geometry.h"
 
-namespace geo
+namespace geometry
 {
 
     Geometry::Geometry() : transform()

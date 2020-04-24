@@ -3,7 +3,7 @@
 
 #include "../rendering/Pipeline.h"
 
-namespace geo
+namespace geometry
 {
 
     using render::VertexList;

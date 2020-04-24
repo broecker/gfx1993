@@ -7,7 +7,7 @@ using glm::vec3;
 using glm::vec4;
 using render::Vertex;
 
-namespace geo
+namespace geometry
 {
 
     GridGeometry::GridGeometry()
