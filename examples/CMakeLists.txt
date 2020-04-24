@@ -42,7 +42,6 @@ target_link_libraries(04-transparency gfx93-demo-app)
 add_executable(05-clipping 05-clipping.cpp)
 target_link_libraries(05-clipping gfx93-demo-app)
 
-# Textures
+# Line and triangle clipping
 add_executable(06-textures 06-textures.cpp)
-target_link_libraries(06-textures gfx93-common gfx93-geometry gfx93-rendering)
-target_link_libraries(06-textures GL GLU glut)
+target_link_libraries(06-textures gfx93-demo-app)
