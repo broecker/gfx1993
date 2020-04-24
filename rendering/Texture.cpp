@@ -9,11 +9,11 @@
 
 namespace render{
 
-    Texture::Texture(int width, int height, const glm::vec4& fillColor) : width(width), height(height)
+    Texture::Texture(int width, int height) : width(width), height(height)
     {
         data = new glm::vec4[width*height];
         for (int i = 0; i < width*height; ++i) {
-            data[i] = fillColor;
+            data[i] = glm::vec4(0,0,0,1);
         }
     }
 
@@ -26,8 +26,8 @@ namespace render{
         float u = glm::clamp(texCoords.x, 0.f, 1.f);
         float v = glm::clamp(texCoords.y, 0.f, 1.f);
 
-        int x = std::ceil(u * width);
-        int y = std::ceil(v * height);
+        int x = std::floor(u * width);
+        int y = std::floor(v * height);
 
         return getTexel(x, y);
     }
@@ -70,8 +70,8 @@ namespace render{
             return false;
         }
 
-        int w, h;
-        file >> w >> h;
+        int w, h, maxVal;
+        file >> w >> h >> maxVal;
         if (w != width || h != height) {
             width = w;
             height = h;
@@ -83,7 +83,7 @@ namespace render{
         {
             int r, g, b;
             file >> r >> g >> b;
-            data[i] = glm::vec4(glm::vec3(r, g, b) / 255.f, 1);
+            data[i] = glm::vec4(glm::vec3(r, g, b) / (float)maxVal, 1);
         }
 
         return true;

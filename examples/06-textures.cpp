@@ -13,18 +13,34 @@
 
 class TextureShader : public render::FragmentShader {
 public:
-    TextureShader(std::unique_ptr<render::Texture>&& texture) : texture(std::move(texture)) {
+    TextureShader() : texture(nullptr) {
     }
 
     render::Fragment &&shadeSingle(const render::ShadingGeometry &in) override
     {
         render::Fragment fragment;
-        fragment.color = texture->getTexel(in.texcoord);
+
+        if (texture) {
+            fragment.color = texture->getTexel(in.texcoord);
+        }
         return std::move(fragment);
     }
 
+    inline void setTexture(std::shared_ptr<render::Texture> texture) {this->texture = texture;}
+
 private:
-    std::unique_ptr<render::Texture> texture;
+    std::shared_ptr<render::Texture> texture;
+};
+
+class TexCoordShader : public render::FragmentShader
+{
+public:
+    render::Fragment &&shadeSingle(const render::ShadingGeometry &in) override
+    {
+        render::Fragment fragment;
+        fragment.color = glm::vec4(in.texcoord, 0.f, 1.f);
+        return std::move(fragment);
+    }
 };
 
 class Demo06 : public GlutDemoApp
@@ -35,12 +51,12 @@ public:
 protected:
     void init() override
     {
+        textureShader = std::make_shared<TextureShader>();
+        auto texture = std::make_shared<render::Texture>(64, 64);
+        texture->makeCheckerboard(glm::vec4(1.f, 0.f, 0.f, 1.f), glm::vec4(1.f, 1.f, 0.f, 1.f), 8);
+        textureShader->setTexture(texture);
 
-        auto quadTexture = std::make_unique<render::Texture>(64, 64, glm::vec4(5.f, 0.f, 5.f, 1.f));
-        quadTexture->makeCheckerboard(glm::vec4(1.f, 0.f, 0.f, 1.f), glm::vec4(1.f, 1.f, 0.f, 1.f), 8);
-        //quadTexture->loadPPM("./colors.ppm");
-
-        textureShader = std::make_shared<TextureShader>(std::move(quadTexture));
+        texCoordShader = std::make_shared<TexCoordShader>();
 
         shaders.vertexShader = std::make_shared<render::DefaultVertexTransform>();
         shaders.fragmentShader = textureShader;
@@ -82,9 +98,46 @@ protected:
         }
     }
 
+    void handleKeyboard(unsigned char key, int x, int y)
+    {
+        if (key == 'c')
+        {
+            auto texture = std::make_shared<render::Texture>(64, 64);
+            texture->makeCheckerboard(glm::vec4(1.f, 0.f, 0.f, 1.f), glm::vec4(1.f, 1.f, 0.f, 1.f), 8);
+            textureShader->setTexture(texture);
+        }
+
+        if (key == 'f')
+        {
+            auto texture = std::make_shared<render::Texture>(64, 64);
+            texture->loadPPM("./colors.ppm");
+            textureShader->setTexture(texture);
+        }
+
+        if (key == 'l')
+        {
+            auto texture = std::make_shared<render::Texture>(64, 64);
+            texture->loadPPM("./lenna.ppm");
+            textureShader->setTexture(texture);
+        }
+
+        // Toggle shaders
+        if (key == 't')
+        {
+            if (shaders.fragmentShader == textureShader)
+                shaders.fragmentShader = texCoordShader;
+            else
+                shaders.fragmentShader = textureShader;
+            rasterizer->setShaders(shaders);
+        }
+
+    }
+
+
 private:
     std::unique_ptr<geometry::Quad> quad;
     std::shared_ptr<TextureShader> textureShader;
+    std::shared_ptr<TexCoordShader> texCoordShader;
 };
 
 

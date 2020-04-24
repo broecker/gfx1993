@@ -14,7 +14,7 @@ namespace render
 class Texture
 {
 public:
-    explicit Texture(int width, int height, const glm::vec4& fillColor);
+    explicit Texture(int width, int height);
     virtual ~Texture();
 
     const glm::vec4& getTexel(const glm::vec2& texCoords) const;
