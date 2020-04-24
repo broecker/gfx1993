@@ -11,9 +11,11 @@
 #include "rendering/Texture.h"
 #include "GlutDemoApp.h"
 
-class TextureShader : public render::FragmentShader {
+class TextureShader : public render::FragmentShader
+{
 public:
-    TextureShader() : texture(nullptr) {
+    TextureShader() : texture(nullptr)
+    {
     }
 
     render::Fragment &&shadeSingle(const render::ShadingGeometry &in) override
@@ -26,7 +28,7 @@ public:
         return std::move(fragment);
     }
 
-    inline void setTexture(std::shared_ptr<render::Texture> texture) {this->texture = texture;}
+    inline void setTexture(std::shared_ptr<render::Texture> texture) { this->texture = texture; }
 
 private:
     std::shared_ptr<render::Texture> texture;
@@ -52,14 +54,10 @@ protected:
     void init() override
     {
         textureShader = std::make_shared<TextureShader>();
-        auto texture = std::make_shared<render::Texture>(64, 64);
-        texture->makeCheckerboard(glm::vec4(1.f, 0.f, 0.f, 1.f), glm::vec4(1.f, 1.f, 0.f, 1.f), 8);
-        textureShader->setTexture(texture);
-
         texCoordShader = std::make_shared<TexCoordShader>();
 
         shaders.vertexShader = std::make_shared<render::DefaultVertexTransform>();
-        shaders.fragmentShader = textureShader;
+        shaders.fragmentShader = texCoordShader;
 
         rasterizer->setRenderOutput(renderTarget);
         rasterizer->setShaders(shaders);
@@ -67,7 +65,7 @@ protected:
         quad = std::make_unique<geometry::Quad>(glm::vec4(1));
 
         // Put the quad on the floor.
-        quad->transform = glm::rotate(glm::radians(90.f), glm::vec3(1.f,0.f,0.f));
+        quad->transform = glm::rotate(glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f));
         // And scale it up by 5
         quad->transform *= glm::scale(glm::vec3(5));
     }
@@ -100,37 +98,30 @@ protected:
 
     void handleKeyboard(unsigned char key, int x, int y)
     {
-        if (key == 'c')
-        {
-            auto texture = std::make_shared<render::Texture>(64, 64);
-            texture->makeCheckerboard(glm::vec4(1.f, 0.f, 0.f, 1.f), glm::vec4(1.f, 1.f, 0.f, 1.f), 8);
-            textureShader->setTexture(texture);
-        }
-
-        if (key == 'f')
-        {
-            auto texture = std::make_shared<render::Texture>(64, 64);
-            texture->loadPPM("./colors.ppm");
-            textureShader->setTexture(texture);
-        }
-
-        if (key == 'l')
-        {
-            auto texture = std::make_shared<render::Texture>(64, 64);
-            texture->loadPPM("./lenna.ppm");
-            textureShader->setTexture(texture);
-        }
-
-        // Toggle shaders
-        if (key == 't')
-        {
-            if (shaders.fragmentShader == textureShader)
-                shaders.fragmentShader = texCoordShader;
-            else
-                shaders.fragmentShader = textureShader;
+        if (key == 'c') {
+            textureShader->setTexture(render::Texture::makeCheckerboard(64, 64, 8, glm::vec4(1.f, 0.f, 0.f, 1.f),
+                                                                        glm::vec4(1.f, 1.f, 0.f, 1.f)));
+            shaders.fragmentShader = textureShader;
             rasterizer->setShaders(shaders);
         }
 
+        if (key == 'f') {
+            textureShader->setTexture(render::Texture::loadPPM("./colors.ppm"));
+            shaders.fragmentShader = textureShader;
+            rasterizer->setShaders(shaders);
+        }
+
+        if (key == 'l') {
+            textureShader->setTexture(render::Texture::loadPPM("./lenna.ppm"));
+            shaders.fragmentShader = textureShader;
+            rasterizer->setShaders(shaders);
+        }
+
+        // Set texture coord debugging shader.
+        if (key == 't') {
+            shaders.fragmentShader = texCoordShader;
+            rasterizer->setShaders(shaders);
+        }
     }
 
 
