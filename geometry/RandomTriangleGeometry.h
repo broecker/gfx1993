@@ -8,7 +8,7 @@ namespace render
     struct Vertex;
 }
 
-namespace geo
+namespace geometry
 {
 
     using render::Vertex;

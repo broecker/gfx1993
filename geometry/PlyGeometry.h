@@ -5,7 +5,7 @@
 
 #include <string>
 
-namespace geo
+namespace geometry
 {
 
     class PlyGeometry : public Geometry

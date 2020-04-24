@@ -5,7 +5,7 @@
 
 #include <glm/glm.hpp>
 
-namespace geo
+namespace geometry
 {
 
     class Quad : public Geometry

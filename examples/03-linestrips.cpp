@@ -22,7 +22,7 @@
 unsigned int texture;
 unsigned int width = 640, height = 480;
 
-class WireSphere : public geo::Geometry
+class WireSphere : public geometry::Geometry
 {
 public:
     WireSphere(float radius)

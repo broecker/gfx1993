@@ -7,7 +7,7 @@
 using glm::vec4;
 using render::Vertex;
 
-namespace geo
+namespace geometry
 {
 
     CubeGeometry::CubeGeometry(const glm::vec3 &sidelength)

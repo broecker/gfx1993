@@ -1,6 +1,6 @@
 #include "Quad.h"
 
-namespace geo
+namespace geometry
 {
     Quad::Quad(const glm::vec4 &color)
     {

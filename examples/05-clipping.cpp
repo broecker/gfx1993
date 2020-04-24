@@ -22,7 +22,7 @@
 unsigned int texture;
 unsigned int width = 640, height = 480;
 
-class BoundedGeometry : public geo::Geometry
+class BoundedGeometry : public geometry::Geometry
 {
 public:
     BoundedGeometry(const glm::vec3 &min, const glm::vec3 &max) : maxBounds(max), minBounds(min) {}
@@ -144,7 +144,7 @@ public:
 std::unique_ptr<RandomLinesGeometry> lines;
 std::unique_ptr<RandomPointsGeometry> points;
 std::unique_ptr<RandomTriangleGeometry> triangles;
-std::unique_ptr<geo::GridGeometry> grid;
+std::unique_ptr<geometry::GridGeometry> grid;
 
 render::VertexList lineVertices;
 render::IndexList lineIndices;
@@ -370,7 +370,7 @@ int main(int argc, char **argv)
     lines = std::make_unique<RandomLinesGeometry>(glm::vec3(-10), glm::vec3(10));
     points = std::make_unique<RandomPointsGeometry>(glm::vec3(-10), glm::vec3(10));
     triangles = std::make_unique<RandomTriangleGeometry>(glm::vec3(-10), glm::vec3(10));
-    grid = std::make_unique<geo::GridGeometry>();
+    grid = std::make_unique<geometry::GridGeometry>();
     camera = std::make_unique<OrbitCamera>(glm::vec3(0, 0, 0), glm::vec3(0, 1, 0), 15.0f);
 
     makeLine(glm::vec3(0.f), glm::vec3(20.f, 0, 0), glm::vec4(1, 0, 0, 1));

@@ -20,8 +20,8 @@
 unsigned int texture;
 unsigned int width = 640, height = 480;
 
-std::unique_ptr<geo::GridGeometry> grid;
-std::vector<std::unique_ptr<geo::PlyGeometry> > bunnyList;
+std::unique_ptr<geometry::GridGeometry> grid;
+std::vector<std::unique_ptr<geometry::PlyGeometry> > bunnyList;
 std::unique_ptr<render::Rasterizer> rasterizer;
 render::Rasterizer::ShaderConfiguration shaders;
 render::Rasterizer::RenderOutput renderTarget;
@@ -109,7 +109,7 @@ static void keyboard(unsigned char key, int x, int y)
     }
 
     if (key == 'g') {
-        std::unique_ptr<geo::PlyGeometry> bunny = std::make_unique<geo::PlyGeometry>();
+        std::unique_ptr<geometry::PlyGeometry> bunny = std::make_unique<geometry::PlyGeometry>();
 
         bunny->loadPly("../models/bunny/reconstruction/bun_zipper_res3.ply");
 
@@ -181,7 +181,7 @@ int main(int argc, char **argv)
     rasterizer->setRenderOutput(renderTarget);
     rasterizer->setShaders(shaders);
 
-    grid = std::make_unique<geo::GridGeometry>();
+    grid = std::make_unique<geometry::GridGeometry>();
 
 
     camera = std::make_unique<OrbitCamera>(glm::vec3(0, 0, 0), glm::vec3(0, 1, 0), 30.0f);

@@ -24,7 +24,7 @@
 unsigned int texture;
 unsigned int width = 640, height = 480;
 
-std::vector<std::unique_ptr<geo::Quad> > quads;
+std::vector<std::unique_ptr<geometry::Quad> > quads;
 
 std::unique_ptr<render::Rasterizer> rasterizer;
 render::Rasterizer::ShaderConfiguration shaders;
@@ -91,7 +91,7 @@ static void idle()
     if (sortByDepth) {
         const glm::mat4 &viewMatrix = camera->getViewMatrix();
         std::sort(quads.begin(), quads.end(),
-                  [&viewMatrix](const std::unique_ptr<geo::Quad> &a, const std::unique_ptr<geo::Quad> &b) {
+                  [&viewMatrix](const std::unique_ptr<geometry::Quad> &a, const std::unique_ptr<geometry::Quad> &b) {
                       // Calculates the quad's position in eye coordinates.
                       const glm::vec4 posA = viewMatrix * a->transform * glm::vec4(0, 0, 0, 1);
                       const glm::vec4 posB = viewMatrix * b->transform * glm::vec4(0, 0, 0, 1);
@@ -179,15 +179,15 @@ int main(int argc, char **argv)
     rasterizer->setShaders(shaders);
 
     // Create 3 slightly offset quads. The render order becomes fairly important as the center quad (z=0) is added last.
-    auto q = std::make_unique<geo::Quad>(glm::vec4(0.8f, 0.2f, 0.f, 0.4f));
+    auto q = std::make_unique<geometry::Quad>(glm::vec4(0.8f, 0.2f, 0.f, 0.4f));
     q->transform = glm::translate(glm::vec3(-2, 1, 2));
     quads.emplace_back(std::move(q));
 
-    q = std::make_unique<geo::Quad>(glm::vec4(0.1f, 0.1f, 0.8f, 0.4f));
+    q = std::make_unique<geometry::Quad>(glm::vec4(0.1f, 0.1f, 0.8f, 0.4f));
     q->transform = glm::translate(glm::vec3(2, 1, -2));
     quads.emplace_back(std::move(q));
 
-    q = std::make_unique<geo::`Quad>(glm::vec4(0.1f, 0.9f, 0.f, 0.4f));
+    q = std::make_unique<geometry::`Quad > (glm::vec4(0.1f, 0.9f, 0.f, 0.4f));
     q->transform = glm::translate(glm::vec3(0, 1, 0));
     quads.emplace_back(std::move(q));
 

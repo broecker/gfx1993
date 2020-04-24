@@ -21,11 +21,11 @@ unsigned int texture;
 
 unsigned int width = 640, height = 480;
 
-std::unique_ptr<geo::CubeGeometry> cube = nullptr;
-std::unique_ptr<geo::RandomTriangleGeometry> triangles = nullptr;
-std::unique_ptr<geo::GridGeometry> grid;
+std::unique_ptr<geometry::CubeGeometry> cube = nullptr;
+std::unique_ptr<geometry::RandomTriangleGeometry> triangles = nullptr;
+std::unique_ptr<geometry::GridGeometry> grid;
 
-std::vector<std::unique_ptr<geo::PlyGeometry> > bunnyList;
+std::vector<std::unique_ptr<geometry::PlyGeometry> > bunnyList;
 
 render::Rasterizer::RenderOutput renderTarget;
 render::Rasterizer::ShaderConfiguration shaders;
@@ -130,7 +130,7 @@ static void keyboard(unsigned char key, int x, int y)
 
     if (key == 't') {
         if (!triangles)
-            triangles = std::make_unique<geo::RandomTriangleGeometry>(glm::vec3(-10, -10, -10), glm::vec3(10, 10, 10));
+            triangles = std::make_unique<geometry::RandomTriangleGeometry>(glm::vec3(-10, -10, -10), glm::vec3(10, 10, 10));
         triangles->addTriangle();
     }
 
@@ -140,11 +140,11 @@ static void keyboard(unsigned char key, int x, int y)
 
     if (key == 'c') {
         // create a cube
-        cube = std::make_unique<geo::CubeGeometry>(glm::vec3(2.f, 2.f, 2.f));
+        cube = std::make_unique<geometry::CubeGeometry>(glm::vec3(2.f, 2.f, 2.f));
     }
 
     if (key == 'g') {
-        std::unique_ptr<geo::PlyGeometry> bunny = std::make_unique<geo::PlyGeometry>();
+        std::unique_ptr<geometry::PlyGeometry> bunny = std::make_unique<geometry::PlyGeometry>();
         bunny->loadPly("models/bunny/reconstruction/bun_zipper_res3.ply");
 
         float randomAngle = (float) rand() / RAND_MAX;
@@ -221,7 +221,7 @@ int main(int argc, char **argv)
     normalShader = std::make_shared<render::NormalColorShader>();
     rasterizer->setShaders(shaders);
 
-    grid = std::make_unique<geo::GridGeometry>();
+    grid = std::make_unique<geometry::GridGeometry>();
 
     camera = new OrbitCamera(glm::vec3(0, 0, 0), glm::vec3(0, 1, 0), 10.0f);
 
