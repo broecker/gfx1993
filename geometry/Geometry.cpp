@@ -1,10 +1,7 @@
 #include "Geometry.h"
 
-namespace geometry
-{
+namespace geometry {
 
-    Geometry::Geometry() : transform()
-    {
-    }
+Geometry::Geometry() : transform() {}
 
 }

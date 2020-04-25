@@ -3,23 +3,21 @@
 
 #include <glm/glm.hpp>
 
-namespace render
-{
+namespace render {
 
-    class Viewport
-    {
-    public:
-        Viewport(unsigned int x, unsigned int y, unsigned int width, unsigned int height);
+class Viewport {
+public:
+  Viewport(unsigned int x, unsigned int y, unsigned int width,
+           unsigned int height);
 
+  bool isInside(const glm::ivec2 &p) const;
 
-        bool isInside(const glm::ivec2 &p) const;
+  glm::vec3 calculateWindowCoordinates(const glm::vec3 &ndc) const;
 
-        glm::vec3 calculateWindowCoordinates(const glm::vec3 &ndc) const;
+  glm::ivec2 origin;
+  glm::ivec2 size;
+};
 
-        glm::ivec2 origin;
-        glm::ivec2 size;
-    };
-
-}
+} // namespace render
 
 #endif

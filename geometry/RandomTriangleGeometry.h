@@ -3,35 +3,33 @@
 
 #include "Geometry.h"
 
-namespace render
-{
-    struct Vertex;
+namespace render {
+struct Vertex;
 }
 
-namespace geometry
-{
+namespace geometry {
 
-    using render::Vertex;
+using render::Vertex;
 
-    class RandomTriangleGeometry : public Geometry
-    {
-    public:
-        RandomTriangleGeometry(const glm::vec3 &boundsMin, const glm::vec3 &boundsMax);
+class RandomTriangleGeometry : public Geometry {
+public:
+  RandomTriangleGeometry(const glm::vec3 &boundsMin,
+                         const glm::vec3 &boundsMax);
 
-        // Clears all contained triangles.
-        void clear();
+  // Clears all contained triangles.
+  void clear();
 
-        // Adds a double sided triangle.
-        void addTriangle();
+  // Adds a double sided triangle.
+  void addTriangle();
 
-    private:
-        glm::vec3 boundsMin, boundsMax;
+private:
+  glm::vec3 boundsMin, boundsMax;
 
-        render::Vertex &&createRandomVertex() const;
+  render::Vertex &&createRandomVertex() const;
 
-        void addTriangle(const Vertex &a, const Vertex &b, const Vertex &c);
-    };
+  void addTriangle(const Vertex &a, const Vertex &b, const Vertex &c);
+};
 
-}
+} // namespace geometry
 
 #endif

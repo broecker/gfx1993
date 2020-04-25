@@ -5,23 +5,21 @@
 
 #include <string>
 
-namespace geometry
-{
+namespace geometry {
 
-    class PlyGeometry : public Geometry
-    {
-    public:
-        PlyGeometry();
+class PlyGeometry : public Geometry {
+public:
+  PlyGeometry();
 
-        bool loadPly(const std::string &filename);
+  bool loadPly(const std::string &filename);
 
-        // Centers the geometry without changing the transform.
-        void center();
+  // Centers the geometry without changing the transform.
+  void center();
 
-    private:
-        float boundingSphereRadius;
-    };
+private:
+  float boundingSphereRadius;
+};
 
-}
+} // namespace geometry
 
 #endif

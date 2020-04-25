@@ -3,16 +3,14 @@
 
 #include "Geometry.h"
 
-namespace geometry
-{
+namespace geometry {
 
 // A 2D grid on the XZ plane.
-    class GridGeometry : public Geometry
-    {
-    public:
-        GridGeometry();
-    };
+class GridGeometry : public Geometry {
+public:
+  GridGeometry();
+};
 
-}
+} // namespace geometry
 
 #endif

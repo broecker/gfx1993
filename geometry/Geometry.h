@@ -3,33 +3,31 @@
 
 #include "../rendering/Pipeline.h"
 
-namespace geometry
-{
+namespace geometry {
 
-    using render::VertexList;
-    using render::IndexList;
+using render::IndexList;
+using render::VertexList;
 
-    class Geometry
-    {
-    public:
-        Geometry();
+class Geometry {
+public:
+  Geometry();
 
-        virtual ~Geometry() = default;
+  virtual ~Geometry() = default;
 
-        inline const VertexList &getVertices() const { return vertices; }
+  inline const VertexList &getVertices() const { return vertices; }
 
-        inline const IndexList &getIndices() const { return indices; }
+  inline const IndexList &getIndices() const { return indices; }
 
-        // Access to transform is public -- no reason to write getter+setter
-        // for the most-used member.
-        glm::mat4 transform;
+  // Access to transform is public -- no reason to write getter+setter
+  // for the most-used member.
+  glm::mat4 transform;
 
-    protected:
-        // Child classes should write to these two members.
-        VertexList vertices;
-        IndexList indices;
-    };
+protected:
+  // Child classes should write to these two members.
+  VertexList vertices;
+  IndexList indices;
+};
 
-}
+} // namespace geometry
 
 #endif
