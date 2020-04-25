@@ -15,6 +15,9 @@ namespace render
 
         virtual void clear();
 
+        inline unsigned int getWidth() const { return width; }
+        inline unsigned int getHeight() const { return height; }
+
         inline float getDepth(unsigned int x, unsigned int y) const
         {
             return data[x + width * y];
