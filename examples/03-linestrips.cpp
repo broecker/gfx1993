@@ -53,16 +53,13 @@ public:
 class Demo03 : public GlutDemoApp
 {
 public:
-    Demo03() : GlutDemoApp("Demo 03 - Line strips", 640, 480) {}
+    Demo03() : GlutDemoApp("Demo 03 - Line strips") {}
 
 protected:
     void init() override
     {
-        shaders.vertexShader = std::make_shared<render::DefaultVertexTransform>();
-        shaders.fragmentShader = std::make_shared<render::SingleColorShader>(glm::vec4(0, 0, 1, 1));;
-
-        rasterizer->setRenderOutput(renderTarget);
-        rasterizer->setShaders(shaders);
+        renderConfig.vertexShader = std::make_shared<render::DefaultVertexTransform>();
+        renderConfig.fragmentShader = std::make_shared<render::SingleColorShader>(glm::vec4(0, 0, 1, 1));;
 
         sphere = std::make_unique<WireSphere>(10.0f);
         camera = std::make_unique<OrbitCamera>(glm::vec3(0, 0, 0), glm::vec3(0, 1, 0), 10.0f);
@@ -74,28 +71,21 @@ protected:
     void renderFrame() override
     {
         // Clear the buffers
-        renderTarget.framebuffer->clear(glm::vec4(0.7f, 0.7f, 0.9f, 1));
-        renderTarget.depthbuffer->clear();
+        renderConfig.clearBuffers(glm::vec4(0.7f, 0.7f, 0.9f, 1));
 
         // reset the render matrices
-        render::DefaultVertexTransform *dvt = dynamic_cast<render::DefaultVertexTransform *>(shaders.vertexShader.get());
+        render::DefaultVertexTransform *dvt = dynamic_cast<render::DefaultVertexTransform *>(renderConfig.vertexShader.get());
 
         dvt->modelMatrix = glm::mat4(1.f);
         dvt->viewMatrix = camera->getViewMatrix();
         dvt->projectionMatrix = camera->getProjectionMatrix();
 
         try {
-            rasterizer->drawLineStrip(sphere->getVertices(), sphere->getIndices());
+            rasterizer->drawLineStrip(renderConfig, sphere->getVertices(), sphere->getIndices());
         }
         catch (const char *txt) {
             std::cerr << "Render error :\"" << txt << "\"\n";
         }
-    }
-
-    void handleKeyboard(unsigned char key, int x, int y)
-    {
-        if (key == 'b')
-            rasterizer->toggleBoundingBoxes();
     }
 
 private:

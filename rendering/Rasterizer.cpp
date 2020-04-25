@@ -18,26 +18,18 @@ using glm::vec4;
 
 using namespace render;
 
-bool Rasterizer::ShaderConfiguration::isValid() const
+unsigned int
+Rasterizer::drawPoints(const RenderConfig &renderConfig, const VertexList &vertices, const IndexList &indices) const
 {
-    return vertexShader && fragmentShader;
-}
-
-Rasterizer::Rasterizer() : clipper(), drawBoundingBoxes(false)
-{
-}
-
-unsigned int Rasterizer::drawPoints(const VertexList &vertices, const IndexList &indices) const
-{
-    if (!shaders.isValid()) {
-        std::cerr << "Invalid shader configuration!\n";
+    if (!renderConfig.isValid()) {
+        std::cerr << "Invalid render configuration!\n";
         return 0;
     }
 
     unsigned int pointsDrawn = 0;
 
     // Vertex transform.
-    VertexOutList transformedVertices = transformVertices(vertices, shaders.vertexShader);
+    VertexOutList transformedVertices = transformVertices(vertices, renderConfig.vertexShader);
 
     // Primitive assembly
     PointPrimitiveList points;
@@ -58,10 +50,10 @@ unsigned int Rasterizer::drawPoints(const VertexList &vertices, const IndexList 
 
     // Rasterization
     for (const auto &p : clipped) {
-        const vec3 pos_win = output.viewport->calculateWindowCoordinates(p.p.clipPosition);
+        const vec3 pos_win = renderConfig.viewport->calculateWindowCoordinates(p.p.clipPosition);
 
         // If there is a depth buffer but the depth test fails -> discard fragment (early)
-        if (output.depthbuffer && !output.depthbuffer->conditionalPlot(pos_win))
+        if (renderConfig.depthbuffer && !renderConfig.depthbuffer->conditionalPlot(pos_win))
             continue;
 
         // calculate shading geometry
@@ -70,8 +62,8 @@ unsigned int Rasterizer::drawPoints(const VertexList &vertices, const IndexList 
         sgeo.depth = pos_win.z;
 
         // shade fragment and plot
-        Fragment frag = shaders.fragmentShader->shadeSingle(sgeo);
-        output.framebuffer->plot(sgeo.windowCoord, frag.color);
+        Fragment frag = renderConfig.fragmentShader->shadeSingle(sgeo);
+        renderConfig.framebuffer->plot(sgeo.windowCoord, frag.color);
 
         ++pointsDrawn;
     }
@@ -100,17 +92,17 @@ static inline bool insideClipSpace(const VertexOut &v)
            v.clipPosition.z >= -1 && v.clipPosition.z <= 1;
 }
 
-unsigned int Rasterizer::drawLines(const VertexList &vertices, const IndexList &indices) const
+unsigned int Rasterizer::drawLines(const RenderConfig &renderConfig, const VertexList &vertices, const IndexList &indices) const
 {
-    if (!shaders.isValid()) {
-        std::cerr << "Invalid shader configuration!\n";
+    if (!renderConfig.isValid()) {
+        std::cerr << "Invalid render configuration!\n";
         return 0;
     }
 
     unsigned int linesDrawn = 0;
 
     // Vertex transformation
-    VertexOutList transformedVertices = transformVertices(vertices, shaders.vertexShader);
+    VertexOutList transformedVertices = transformVertices(vertices, renderConfig.vertexShader);
 
     for (const auto &v : transformedVertices) {
         if (!insideClipSpace(v)) {
@@ -142,14 +134,14 @@ unsigned int Rasterizer::drawLines(const VertexList &vertices, const IndexList &
 
     // Rasterization
     for (const auto &line : clipped) {
-        drawLine(line);
+        drawLine(renderConfig, line);
         ++linesDrawn;
     }
 
     return linesDrawn;
 }
 
-unsigned int Rasterizer::drawLineStrip(const render::VertexList &vertices, const render::IndexList &indices) const
+unsigned int Rasterizer::drawLineStrip(const RenderConfig &renderConfig, const render::VertexList &vertices, const render::IndexList &indices) const
 {
     // We can reuse the existing code by expanding the current indices. We expand the indices by doubling the internal
     // vertices; i.e. [0,2,4,6] -> [0,2,2,4,4,6]
@@ -160,20 +152,20 @@ unsigned int Rasterizer::drawLineStrip(const render::VertexList &vertices, const
         expandedIndices.push_back(indices[i + 1]);
     }
 
-    return drawLines(vertices, expandedIndices);
+    return drawLines(renderConfig, vertices, expandedIndices);
 }
 
-unsigned int Rasterizer::drawTriangles(const VertexList &vertices, const IndexList &indices) const
+unsigned int Rasterizer::drawTriangles(const RenderConfig &renderConfig, const VertexList &vertices, const IndexList &indices) const
 {
-    if (!shaders.isValid()) {
-        std::cerr << "Invalid shader configuration!\n";
+    if (!renderConfig.isValid()) {
+        std::cerr << "Invalid render configuration!\n";
         return 0;
     }
 
     unsigned int trianglesDrawn = 0;
 
     // transform vertices
-    VertexOutList transformedVertices = transformVertices(vertices, shaders.vertexShader);
+    VertexOutList transformedVertices = transformVertices(vertices, renderConfig.vertexShader);
 
     // Primitive assembly.
     TrianglePrimitiveList triangles;
@@ -199,7 +191,7 @@ unsigned int Rasterizer::drawTriangles(const VertexList &vertices, const IndexLi
     TrianglePrimitiveList clipped = clipper.clipTrianglesToNdc(triangles);
 
     for (const TrianglePrimitive &triangle : clipped) {
-        drawTriangle(triangle);
+        drawTriangle(renderConfig, triangle);
         ++trianglesDrawn;
     }
 
@@ -207,14 +199,14 @@ unsigned int Rasterizer::drawTriangles(const VertexList &vertices, const IndexLi
 }
 
 // Bresenham line drawing
-void Rasterizer::drawLine(const LinePrimitive &line) const
+void Rasterizer::drawLine(const RenderConfig &renderConfig, const LinePrimitive &line) const
 {
-    assert(shaders.fragmentShader);
+    assert(renderConfig.fragmentShader);
 
     using namespace glm;
 
-    const vec3 posA_win = output.viewport->calculateWindowCoordinates(line.a.clipPosition);
-    const vec3 posB_win = output.viewport->calculateWindowCoordinates(line.b.clipPosition);
+    const vec3 posA_win = renderConfig.viewport->calculateWindowCoordinates(line.a.clipPosition);
+    const vec3 posB_win = renderConfig.viewport->calculateWindowCoordinates(line.b.clipPosition);
 
     ivec2 a = ivec2(posA_win);
     ivec2 b = ivec2(posB_win);
@@ -231,15 +223,15 @@ void Rasterizer::drawLine(const LinePrimitive &line) const
         float delta = std::min(1.f, positionCounter / lineLength);
         float depth = mix(posA_win.z, posB_win.z, delta);
 
-        if (output.viewport->isInside(a) &&
-            (!output.depthbuffer || (output.depthbuffer && output.depthbuffer->conditionalPlot(a.x, a.y, depth)))) {
+        if (renderConfig.viewport->isInside(a) &&
+            (!renderConfig.depthbuffer || (renderConfig.depthbuffer && renderConfig.depthbuffer->conditionalPlot(a.x, a.y, depth)))) {
             ShadingGeometry sgeo = line.rasterize(positionCounter / lineLength);
             sgeo.windowCoord = a;
             sgeo.depth = depth;
 
-            if (output.framebuffer) {
-                Fragment frag = shaders.fragmentShader->shadeSingle(sgeo);
-                output.framebuffer->plot(a, frag.color);
+            if (renderConfig.framebuffer) {
+                Fragment frag = renderConfig.fragmentShader->shadeSingle(sgeo);
+                renderConfig.framebuffer->plot(a, frag.color);
             }
         }
 
@@ -269,15 +261,15 @@ static inline int pointInHalfspace(const glm::ivec2 &a, const glm::ivec2 &b, con
 // Parameter-based rasterization of triangles. It calculates the screen-space bounding box of the triangle, then
 // checks every contained pixel whether it's in the triangle or not. If the fragment is inside, it proceeds to the
 // depth test and shading stage.
-void Rasterizer::drawTriangle(const TrianglePrimitive &t) const
+void Rasterizer::drawTriangle(const RenderConfig &renderConfig, const TrianglePrimitive &t) const
 {
-    assert(shaders.fragmentShader);
+    assert(renderConfig.fragmentShader);
 
     using namespace glm;
 
-    const vec3 posA_win = output.viewport->calculateWindowCoordinates(t.a.clipPosition);
-    const vec3 posB_win = output.viewport->calculateWindowCoordinates(t.b.clipPosition);
-    const vec3 posC_win = output.viewport->calculateWindowCoordinates(t.c.clipPosition);
+    const vec3 posA_win = renderConfig.viewport->calculateWindowCoordinates(t.a.clipPosition);
+    const vec3 posB_win = renderConfig.viewport->calculateWindowCoordinates(t.b.clipPosition);
+    const vec3 posC_win = renderConfig.viewport->calculateWindowCoordinates(t.c.clipPosition);
 
     // three window/screen coordinates
     ivec2 a = ivec2(posA_win);
@@ -292,24 +284,24 @@ void Rasterizer::drawTriangle(const TrianglePrimitive &t) const
     max.y = glm::max(a.y, glm::max(b.y, c.y));
 
     // clip against screen coords
-    min = glm::max(output.viewport->origin, min);
-    max = glm::min(output.viewport->origin + output.viewport->size - 1, max);
+    min = glm::max(renderConfig.viewport->origin, min);
+    max = glm::min(renderConfig.viewport->origin + renderConfig.viewport->size - 1, max);
 
-    if (drawBoundingBoxes && output.framebuffer) {
+    if (renderConfig.drawTriangleBounds && renderConfig.framebuffer) {
         // draw bounding box
         vec4 bboxColour(1, 0, 0, 1);
         for (int x = min.x; x <= max.x; ++x) {
             ivec2 p(x, min.y);
-            output.framebuffer->plot(p, bboxColour);
+            renderConfig.framebuffer->plot(p, bboxColour);
             p = ivec2(x, max.y);
-            output.framebuffer->plot(p, bboxColour);
+            renderConfig.framebuffer->plot(p, bboxColour);
         }
 
         for (int y = min.y; y <= max.y; ++y) {
             ivec2 p(min.x, y);
-            output.framebuffer->plot(p, bboxColour);
+            renderConfig.framebuffer->plot(p, bboxColour);
             p = ivec2(max.x, y);
-            output.framebuffer->plot(p, bboxColour);
+            renderConfig.framebuffer->plot(p, bboxColour);
         }
     }
 
@@ -338,14 +330,14 @@ void Rasterizer::drawTriangle(const TrianglePrimitive &t) const
 
                 // depth test
                 // TODO: This needs to be improved. Depth buffer must be made optional.
-                if (output.depthbuffer && (output.depthbuffer->conditionalPlot(x, y, z))) {
+                if (renderConfig.depthbuffer && (renderConfig.depthbuffer->conditionalPlot(x, y, z))) {
                     ShadingGeometry sgeo = t.rasterize(lambda);
                     sgeo.windowCoord = p;
                     sgeo.depth = z;
 
-                    if (output.framebuffer) {
-                        Fragment frag = shaders.fragmentShader->shadeSingle(sgeo);
-                        output.framebuffer->plot(p, frag.color);
+                    if (renderConfig.framebuffer) {
+                        Fragment frag = renderConfig.fragmentShader->shadeSingle(sgeo);
+                        renderConfig.framebuffer->plot(p, frag.color);
                     }
                 }
 
@@ -354,10 +346,4 @@ void Rasterizer::drawTriangle(const TrianglePrimitive &t) const
         }
     }
 
-}
-
-void Rasterizer::toggleBoundingBoxes()
-{
-    drawBoundingBoxes = !drawBoundingBoxes;
-    std::clog << (drawBoundingBoxes ? "D" : "Not d") << "rawing bounding boxes." << std::endl;
 }

@@ -145,16 +145,13 @@ public:
 class Demo05 : public GlutDemoApp
 {
 public:
-    Demo05() : GlutDemoApp("Demo 05 - Clipping", 640, 480) {}
+    Demo05() : GlutDemoApp("Demo 05 - Clipping") {}
 
 protected:
     void init() override
     {
-        shaders.vertexShader = std::make_shared<render::DefaultVertexTransform>();
-        shaders.fragmentShader = std::make_shared<render::InputColorShader>();
-
-        rasterizer->setRenderOutput(renderTarget);
-        rasterizer->setShaders(shaders);
+        renderConfig.vertexShader = std::make_shared<render::DefaultVertexTransform>();
+        renderConfig.fragmentShader = std::make_shared<render::InputColorShader>();
 
         lines = std::make_unique<RandomLinesGeometry>(glm::vec3(-10), glm::vec3(10));
         points = std::make_unique<RandomPointsGeometry>(glm::vec3(-10), glm::vec3(10));
@@ -176,11 +173,10 @@ protected:
     void renderFrame() override
     {
         // Clear the buffers
-        renderTarget.framebuffer->clear(glm::vec4(0.7f, 0.7f, 0.9f, 1));
-        renderTarget.depthbuffer->clear();
+        renderConfig.clearBuffers(glm::vec4(0.7f, 0.7f, 0.9f, 1));
 
         // reset the render matrices
-        render::DefaultVertexTransform *dvt = dynamic_cast<render::DefaultVertexTransform *>(shaders.vertexShader.get());
+        render::DefaultVertexTransform *dvt = dynamic_cast<render::DefaultVertexTransform *>(renderConfig.vertexShader.get());
 
         dvt->modelMatrix = glm::mat4(1.f);
         dvt->viewMatrix = camera->getViewMatrix();
@@ -197,14 +193,14 @@ protected:
         }
 
         try {
-            rasterizer->drawLines(lines->getVertices(), lines->getIndices());
-            rasterizer->drawPoints(points->getVertices(), points->getIndices());
-            rasterizer->drawTriangles(triangles->getVertices(), triangles->getIndices());
+            rasterizer->drawLines(renderConfig, lines->getVertices(), lines->getIndices());
+            rasterizer->drawPoints(renderConfig, points->getVertices(), points->getIndices());
+            rasterizer->drawTriangles(renderConfig, triangles->getVertices(), triangles->getIndices());
 
             if (drawGrid) {
-                rasterizer->drawLines(grid->getVertices(), grid->getIndices());
+                rasterizer->drawLines(renderConfig, grid->getVertices(), grid->getIndices());
             }
-            rasterizer->drawLines(lineVertices, lineIndices);
+            rasterizer->drawLines(renderConfig, lineVertices, lineIndices);
         }
         catch (const std::string &error) {
             std::cerr << "Render error :\"" << error << "\"\n";
@@ -240,7 +236,7 @@ protected:
         }
 
         if (key == 'b') {
-            rasterizer->toggleBoundingBoxes();
+            renderConfig.drawTriangleBounds = !renderConfig.drawTriangleBounds;
         }
 
         if (key == 'o') {

@@ -28,16 +28,14 @@ unsigned int width = 640, height = 480;
 class Demo04 : public GlutDemoApp
 {
 public:
-    Demo04() : GlutDemoApp("Demo 04 - Transparency", 640, 480), sortByDepth(false) {}
+    Demo04() : GlutDemoApp("Demo 04 - Transparency"), sortByDepth(false) {}
 
 protected:
     void init() override
     {
-        shaders.vertexShader = std::make_shared<render::DefaultVertexTransform>();
-        shaders.fragmentShader = std::make_shared<render::InputColorShader>();
+        renderConfig.vertexShader = std::make_shared<render::DefaultVertexTransform>();
+        renderConfig.fragmentShader = std::make_shared<render::InputColorShader>();
 
-        rasterizer->setRenderOutput(renderTarget);
-        rasterizer->setShaders(shaders);
 
         // Create 3 slightly offset quads. The render order becomes fairly important as the center quad (z=0) is added last.
         auto q = std::make_unique<geometry::Quad>(glm::vec4(0.8f, 0.2f, 0.f, 0.4f));
@@ -72,11 +70,10 @@ protected:
     void renderFrame() override
     {
         // Clear the buffers
-        renderTarget.framebuffer->clear(glm::vec4(0.7f, 0.7f, 0.9f, 1));
-        renderTarget.depthbuffer->clear();
+        renderConfig.clearBuffers(glm::vec4(0.7f, 0.7f, 0.9f, 1));
 
         // reset the render matrices
-        render::DefaultVertexTransform *dvt = dynamic_cast<render::DefaultVertexTransform *>(shaders.vertexShader.get());
+        render::DefaultVertexTransform *dvt = dynamic_cast<render::DefaultVertexTransform *>(renderConfig.vertexShader.get());
 
         dvt->modelMatrix = glm::mat4(1.f);
         dvt->viewMatrix = camera->getViewMatrix();
@@ -85,7 +82,7 @@ protected:
         try {
             for (auto quad = quads.begin(); quad != quads.end(); ++quad) {
                 dvt->modelMatrix = quad->get()->transform;
-                rasterizer->drawTriangles(quad->get()->getVertices(), quad->get()->getIndices());
+                rasterizer->drawTriangles(renderConfig, quad->get()->getVertices(), quad->get()->getIndices());
             }
         }
         catch (const char *txt) {
@@ -101,7 +98,7 @@ protected:
         }
 
         if (key == 'b') {
-            rasterizer->toggleBoundingBoxes();
+            renderConfig.drawTriangleBounds = !renderConfig.drawTriangleBounds;
         }
     }
 

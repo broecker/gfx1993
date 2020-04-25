@@ -9,17 +9,19 @@
 static const int GLUT_MOUSEWHEEL_DOWN = 3;
 static const int GLUT_MOUSEWHEEL_UP = 4;
 
+static const int WIDTH_VGA = 640;
+static const int HEIGHT_VGA=  480;
+
 GlutDemoApp *GlutDemoApp::appInstance = nullptr;
 
-GlutDemoApp::GlutDemoApp(const std::string &name, int width, int height) : name(name), width(width), height(height),
-                                                                           texture(0), logFrameTime(true),
-                                                                           shaders{nullptr, nullptr}, renderTarget{
-                nullptr, nullptr}
+GlutDemoApp::GlutDemoApp(const std::string &name) : name(name), width(WIDTH_VGA), height(HEIGHT_VGA),
+                                                                           texture(0), logFrameTime(true)
 {
     rasterizer = std::make_unique<render::Rasterizer>();
-    renderTarget.viewport = std::make_shared<render::Viewport>(0, 0, width, height);
-    renderTarget.framebuffer = std::make_shared<render::Framebuffer>(width, height);
-    renderTarget.depthbuffer = std::make_shared<render::Depthbuffer>(width, height);
+
+    renderConfig.viewport = std::make_shared<render::Viewport>(0, 0, width, height);
+    renderConfig.framebuffer = std::make_shared<render::Framebuffer>(width, height);
+    renderConfig.depthbuffer = std::make_shared<render::Depthbuffer>(width, height);
 
     camera = std::make_unique<OrbitCamera>(glm::vec3(0, 0, 0), glm::vec3(0, 1, 0), 30.0f);
 
@@ -101,7 +103,7 @@ void GlutDemoApp::glutDisplay()
     {
         glBindTexture(GL_TEXTURE_2D, appInstance->texture);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, appInstance->width, appInstance->height, 0, GL_RGBA, GL_FLOAT,
-                     appInstance->renderTarget.framebuffer->getPixels());
+                     appInstance->renderConfig.framebuffer->getPixels());
 
         glEnable(GL_TEXTURE_2D);
         glEnableClientState(GL_VERTEX_ARRAY);

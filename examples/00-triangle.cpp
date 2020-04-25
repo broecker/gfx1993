@@ -11,7 +11,7 @@
 class Demo00 : public GlutDemoApp
 {
 public:
-    Demo00() : GlutDemoApp("Demo 00 - Hello Triangle", 640, 480), rotationAngle(0) {}
+    Demo00() : GlutDemoApp("Demo 00 - Hello Triangle"), rotationAngle(0) {}
 
 protected:
     void init() override {
@@ -19,11 +19,8 @@ protected:
 
         // Keep a separate reference to the vertex shader so we can change the transform easily.
         vertexShader = std::make_shared<render::DefaultVertexTransform>();
-        shaders.vertexShader = vertexShader;
-        shaders.fragmentShader = std::make_shared<render::InputColorShader>();
-
-        rasterizer->setRenderOutput(renderTarget);
-        rasterizer->setShaders(shaders);
+        renderConfig.vertexShader = vertexShader;
+        renderConfig.fragmentShader = std::make_shared<render::InputColorShader>();
 
         // Create the triangle geometry
         vertices.push_back(Vertex(glm::vec4(-5, 0, 0, 1), glm::vec3(1, 0, 0), glm::vec4(0, 0, 1, 1), glm::vec2(0, 0)));
@@ -46,8 +43,7 @@ protected:
     void renderFrame() override
     {
         // clear the buffers
-        renderTarget.framebuffer->clear(glm::vec4(0, 0, 0.2f, 1));
-        renderTarget.depthbuffer->clear();
+        renderConfig.clearBuffers(glm::vec4(0, 0, 0.2f, 1));
 
         // reset the render matrices
         vertexShader->modelMatrix = glm::rotate(rotationAngle, glm::vec3(0, 1, 0));
@@ -55,7 +51,7 @@ protected:
         vertexShader->projectionMatrix = glm::perspective(glm::radians(60.f), (float) width / height, 0.2f, 100.f);
 
         try {
-            rasterizer->drawTriangles(vertices, indices);
+            rasterizer->drawTriangles(renderConfig, vertices, indices);
         }
         catch (const char *txt) {
             std::cerr << "Render error :\"" << txt << "\"\n";

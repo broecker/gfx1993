@@ -48,7 +48,7 @@ public:
 class Demo06 : public GlutDemoApp
 {
 public:
-    Demo06() : GlutDemoApp("Demo 06 - Textures", 640, 480) {}
+    Demo06() : GlutDemoApp("Demo 06 - Textures") {}
 
 protected:
     void init() override
@@ -56,11 +56,8 @@ protected:
         textureShader = std::make_shared<TextureShader>();
         texCoordShader = std::make_shared<TexCoordShader>();
 
-        shaders.vertexShader = std::make_shared<render::DefaultVertexTransform>();
-        shaders.fragmentShader = texCoordShader;
-
-        rasterizer->setRenderOutput(renderTarget);
-        rasterizer->setShaders(shaders);
+        renderConfig.vertexShader = std::make_shared<render::DefaultVertexTransform>();
+        renderConfig.fragmentShader = texCoordShader;
 
         quad = std::make_unique<geometry::Quad>(glm::vec4(1));
 
@@ -77,11 +74,10 @@ protected:
     void renderFrame() override
     {
         // Clear the buffers
-        renderTarget.framebuffer->clear(glm::vec4(0.7f, 0.7f, 0.9f, 1));
-        renderTarget.depthbuffer->clear();
+        renderConfig.clearBuffers(glm::vec4(0.7f, 0.7f, 0.9f, 1));
 
         // reset the render matrices
-        render::DefaultVertexTransform *dvt = dynamic_cast<render::DefaultVertexTransform *>(shaders.vertexShader.get());
+        render::DefaultVertexTransform *dvt = dynamic_cast<render::DefaultVertexTransform *>(renderConfig.vertexShader.get());
 
         dvt->modelMatrix = glm::mat4(1.f);
         dvt->viewMatrix = camera->getViewMatrix();
@@ -89,7 +85,7 @@ protected:
 
         try {
             dvt->modelMatrix = quad->transform;
-            rasterizer->drawTriangles(quad->getVertices(), quad->getIndices());
+            rasterizer->drawTriangles(renderConfig, quad->getVertices(), quad->getIndices());
         }
         catch (const char *txt) {
             std::cerr << "Render error :\"" << txt << "\"\n";
@@ -101,26 +97,22 @@ protected:
         if (key == 'c') {
             textureShader->setTexture(render::Texture::makeCheckerboard(64, 64, 8, glm::vec4(1.f, 0.f, 0.f, 1.f),
                                                                         glm::vec4(1.f, 1.f, 0.f, 1.f)));
-            shaders.fragmentShader = textureShader;
-            rasterizer->setShaders(shaders);
+            renderConfig.fragmentShader = textureShader;
         }
 
         if (key == 'f') {
             textureShader->setTexture(render::Texture::loadPPM("./colors.ppm"));
-            shaders.fragmentShader = textureShader;
-            rasterizer->setShaders(shaders);
+            renderConfig.fragmentShader = textureShader;
         }
 
         if (key == 'l') {
             textureShader->setTexture(render::Texture::loadPPM("./lenna.ppm"));
-            shaders.fragmentShader = textureShader;
-            rasterizer->setShaders(shaders);
+            renderConfig.fragmentShader = textureShader;
         }
 
         // Set texture coord debugging shader.
         if (key == 't') {
-            shaders.fragmentShader = texCoordShader;
-            rasterizer->setShaders(shaders);
+            renderConfig.fragmentShader = texCoordShader;
         }
     }
 

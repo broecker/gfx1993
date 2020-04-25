@@ -9,12 +9,13 @@
 #include "rendering/Pipeline.h"
 #include "rendering/Shader.h"
 #include "rendering/Rasterizer.h"
+#include "rendering/RenderConfig.h"
 #include "rendering/Viewport.h"
 
 class GlutDemoApp
 {
 public:
-    GlutDemoApp(const std::string& name, int width, int height);
+    GlutDemoApp(const std::string& name);
     virtual ~GlutDemoApp();
 
     void run(int argc, char** argv);
@@ -26,8 +27,7 @@ protected:
 
     bool logFrameTime;
 
-    render::Rasterizer::ShaderConfiguration shaders;
-    render::Rasterizer::RenderOutput renderTarget;
+    render::RenderConfig renderConfig;
     std::unique_ptr<render::Rasterizer> rasterizer;
 
     std::unique_ptr<Camera> camera;
