@@ -111,6 +111,7 @@ namespace render
     struct Fragment
     {
         glm::vec4 color;
+        bool      discard = false;
     };
 
 

@@ -328,18 +328,42 @@ void Rasterizer::drawTriangle(const RenderConfig &renderConfig, const TrianglePr
 
             if (w0 >= 0 && w1 >= 0 && w2 >= 0) {
 
-                // depth test
-                // TODO: This needs to be improved. Depth buffer must be made optional.
-                if (renderConfig.depthbuffer && (renderConfig.depthbuffer->conditionalPlot(x, y, z))) {
-                    ShadingGeometry sgeo = t.rasterize(lambda);
-                    sgeo.windowCoord = p;
-                    sgeo.depth = z;
+              // No need for shading, write to depth buffer and that's it.
+              if (!renderConfig.framebuffer) {
+                renderConfig.depthbuffer->conditionalPlot(x, y, z);
+              } else {
+                if (!renderConfig.depthbuffer ||
+                    (renderConfig.depthbuffer &&
+                     renderConfig.depthbuffer->isVisible(x, y, z))) {
+                  ShadingGeometry sgeo = t.rasterize(lambda);
+                  sgeo.windowCoord = p;
+                  sgeo.depth = z;
 
-                    if (renderConfig.framebuffer) {
-                        Fragment frag = renderConfig.fragmentShader->shadeSingle(sgeo);
-                        renderConfig.framebuffer->plot(p, frag.color);
-                    }
+                  Fragment frag =
+                      renderConfig.fragmentShader->shadeSingle(sgeo);
+
+                  // Fragment was discarded by the frag shader -- ignore and
+                  // keep rasterizing.
+                  if (frag.discard) {
+                    continue;
+                  } else {
+                    // Fragment is valid -- write depth now.
+                    if (renderConfig.depthbuffer)
+                      renderConfig.depthbuffer->plot(x, y, z);
+                  }
+
+                  // If we have enabled alpha blending and have a transparent
+                  // fragment.
+                  if (renderConfig.alphaBlending && frag.color.a < 1) {
+                    glm::vec4 color = renderConfig.framebuffer->getPixel(p) *
+                                          (1.f - frag.color.a) +
+                                      frag.color * frag.color.a;
+                    renderConfig.framebuffer->plot(p, color);
+                  } else {
+                    renderConfig.framebuffer->plot(p, frag.color);
+                  }
                 }
+              }
 
             }
 

@@ -27,6 +27,10 @@ namespace render
 
         inline unsigned int getHeight() const { return height; }
 
+        inline const glm::vec4& getPixel(const glm::ivec2& p) const { return getPixel(p.x, p.y); }
+
+        inline const glm::vec4& getPixel(unsigned int x, unsigned int y) const { return data[x + y*width]; }
+
         inline const glm::vec4 *getPixels() const { return data; }
 
 

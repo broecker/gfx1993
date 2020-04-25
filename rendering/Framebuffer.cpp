@@ -24,12 +24,7 @@ namespace render
     {
         if (x >= 0 && x < width && y >= 0 && y < height) {
             const int index = x + y * width;
-            if (c.a == 1) {
-                data[index] = c;
-            } else {
-                // GL_ALPHA, GL_ONE_MINUS_ALPHA blend function.
-                data[index] = data[index] * (1.f - c.a) + c * c.a;
-            }
+            data[index] = c;
         }
     }
 

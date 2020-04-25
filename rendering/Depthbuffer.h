@@ -32,6 +32,12 @@ namespace render
 
         bool conditionalPlot(int x, int y, float z);
 
+        inline bool isVisible(int x, int y, float z) const
+        {
+            return z < data[x + width*y];
+        }
+
+
 
     protected:
         unsigned int width, height;

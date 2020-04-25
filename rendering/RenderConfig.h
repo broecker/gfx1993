@@ -32,6 +32,13 @@ namespace render
         std::shared_ptr<VertexShader>   vertexShader;
         std::shared_ptr<FragmentShader> fragmentShader;
 
+        // Rasterizer behavior
+        // Enable/disable alpha blending. When enabled, writes to the fragment buffer will be mixed with already written
+        // values. This can be expensive, so it is optional. The blend functions is:
+        // (existing color * 1-alpha) + (new color * alpha)
+        // which corresponds to the GL_ALPHA, GL_ONE_MINUS_ALPHA blend function.
+        bool alphaBlending = false;
+
         // Debug flags follow.
 
         // If set to true, bounding areas will be drawn around rasterized triangles.
@@ -53,9 +60,6 @@ namespace render
         {
             return hasValidRenderOutput() && hasValidShaderConfiguration();
         }
-
-
-
     };
 
 }
