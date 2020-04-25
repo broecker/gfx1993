@@ -53,6 +53,12 @@ private:
   transformVertices(const VertexList &verticesIn,
                     std::shared_ptr<VertexShader> vertexShader) const;
 
+  // Rasterizes a single fragment to the buffer after performing depth test and
+  // alpha blending. This is called from both the drawTriangle and drawLine
+  // methods.
+  void drawFragment(const RenderConfig &renderConfig,
+                    const ShadingGeometry &geometry) const;
+
   Clipper clipper;
 };
 

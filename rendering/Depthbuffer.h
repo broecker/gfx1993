@@ -20,6 +20,10 @@ public:
     return data[x + width * y];
   }
 
+  inline void plot(const glm::ivec2& coords, float depth) {
+    plot(coords.x, coords.y, depth);
+  }
+
   inline void plot(unsigned int x, unsigned int y, float z) {
     data[x + width * y] = z;
   }
@@ -27,6 +31,10 @@ public:
   bool conditionalPlot(const glm::vec3 &pos);
 
   bool conditionalPlot(int x, int y, float z);
+
+  inline bool isVisible(const glm::ivec2& coord, float depth) {
+    return isVisible(coord.x, coord.y, depth);
+  }
 
   inline bool isVisible(int x, int y, float z) const {
     return z < data[x + width * y];

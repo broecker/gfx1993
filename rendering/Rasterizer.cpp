@@ -66,8 +66,7 @@ unsigned int Rasterizer::drawPoints(const RenderConfig &renderConfig,
     sgeo.depth = pos_win.z;
 
     // shade fragment and plot
-    Fragment frag = renderConfig.fragmentShader->shadeSingle(sgeo);
-    renderConfig.framebuffer->plot(sgeo.windowCoord, frag.color);
+    drawFragment(renderConfig, sgeo);
 
     ++pointsDrawn;
   }
@@ -235,19 +234,11 @@ void Rasterizer::drawLine(const RenderConfig &renderConfig,
     float delta = std::min(1.f, positionCounter / lineLength);
     float depth = mix(posA_win.z, posB_win.z, delta);
 
-    if (renderConfig.viewport->isInside(a) &&
-        (!renderConfig.depthbuffer ||
-         (renderConfig.depthbuffer &&
-          renderConfig.depthbuffer->conditionalPlot(a.x, a.y, depth)))) {
-      ShadingGeometry sgeo = line.rasterize(positionCounter / lineLength);
-      sgeo.windowCoord = a;
-      sgeo.depth = depth;
+    ShadingGeometry sgeo = line.rasterize(positionCounter / lineLength);
+    sgeo.windowCoord = a;
+    sgeo.depth = depth;
 
-      if (renderConfig.framebuffer) {
-        Fragment frag = renderConfig.fragmentShader->shadeSingle(sgeo);
-        renderConfig.framebuffer->plot(a, frag.color);
-      }
-    }
+    drawFragment(renderConfig, sgeo);
 
     // 'Core' Bresenham algorithm.
     if (a.x == b.x && a.y == b.y)
@@ -348,42 +339,49 @@ void Rasterizer::drawTriangle(const RenderConfig &renderConfig,
           lambda.x * posA_win.z + lambda.y * posB_win.z + lambda.z * posC_win.z;
 
       if (w0 >= 0 && w1 >= 0 && w2 >= 0) {
+        ShadingGeometry sgeo = t.rasterize(lambda);
+        sgeo.windowCoord = p;
+        sgeo.depth = z;
 
-        // No need for shading, write to depth buffer and that's it.
-        if (!renderConfig.framebuffer) {
-          renderConfig.depthbuffer->conditionalPlot(x, y, z);
-        } else {
-          if (!renderConfig.depthbuffer ||
-              (renderConfig.depthbuffer &&
-               renderConfig.depthbuffer->isVisible(x, y, z))) {
-            ShadingGeometry sgeo = t.rasterize(lambda);
-            sgeo.windowCoord = p;
-            sgeo.depth = z;
+        drawFragment(renderConfig, sgeo);
+      }
+    }
+  }
+}
+void Rasterizer::drawFragment(const render::RenderConfig &renderConfig,
+                              const ShadingGeometry &geometry) const {
+  // No need for shading, write to depth buffer and that's it.
+  if (!renderConfig.framebuffer) {
+    renderConfig.depthbuffer->conditionalPlot(
+        geometry.windowCoord.x, geometry.windowCoord.y, geometry.depth);
+  } else {
+    if (!renderConfig.depthbuffer ||
+        (renderConfig.depthbuffer &&
+         renderConfig.depthbuffer->isVisible(geometry.windowCoord,
+                                             geometry.depth))) {
 
-            Fragment frag = renderConfig.fragmentShader->shadeSingle(sgeo);
+      Fragment frag = renderConfig.fragmentShader->shadeSingle(geometry);
 
-            // Fragment was discarded by the frag shader -- ignore and
-            // keep rasterizing.
-            if (frag.discard) {
-              continue;
-            } else {
-              // Fragment is valid -- write depth now.
-              if (renderConfig.depthbuffer)
-                renderConfig.depthbuffer->plot(x, y, z);
-            }
+      // Fragment was discarded by the frag shader -- ignore and
+      // keep rasterizing.
+      if (frag.discard) {
+        return;
+      } else {
+        // Fragment is valid -- write depth now.
+        if (renderConfig.depthbuffer)
+          renderConfig.depthbuffer->plot(geometry.windowCoord, geometry.depth);
+      }
 
-            // If we have enabled alpha blending and have a transparent
-            // fragment.
-            if (renderConfig.alphaBlending && frag.color.a < 1) {
-              glm::vec4 color =
-                  renderConfig.framebuffer->getPixel(p) * (1.f - frag.color.a) +
-                  frag.color * frag.color.a;
-              renderConfig.framebuffer->plot(p, color);
-            } else {
-              renderConfig.framebuffer->plot(p, frag.color);
-            }
-          }
-        }
+      // If we have enabled alpha blending and have a transparent
+      // fragment.
+      if (renderConfig.alphaBlending && frag.color.a < 1) {
+        glm::vec4 color =
+            renderConfig.framebuffer->getPixel(geometry.windowCoord) *
+                (1.f - frag.color.a) +
+            frag.color * frag.color.a;
+        renderConfig.framebuffer->plot(geometry.windowCoord, color);
+      } else {
+        renderConfig.framebuffer->plot(geometry.windowCoord, frag.color);
       }
     }
   }

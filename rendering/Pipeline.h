@@ -115,6 +115,11 @@ struct Fragment {
   bool discard = false;
 };
 
+struct ViewportCoords {
+  glm::ivec2 coords;
+  float depth;
+};
+
 // Lists of stuffs.
 typedef std::vector<Vertex> VertexList;
 typedef std::vector<unsigned int> IndexList;
