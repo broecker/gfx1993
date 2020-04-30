@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.6)
 enable_testing()
 
 # Main renderer library
-add_library(gfx93-rendering STATIC Rasterizer.cpp Framebuffer.cpp Depthbuffer.cpp Viewport.cpp Shader.cpp Pipeline.cpp Clipper.cpp Clipper.h Texture.h Texture.cpp RenderConfig.h RenderConfig.cpp)
+add_library(gfx93-rendering STATIC Rasterizer.cpp Framebuffer.cpp Depthbuffer.cpp Viewport.cpp Shader.cpp Pipeline.cpp Clipper.cpp Clipper.h Texture.h Texture.cpp RenderConfig.h RenderConfig.cpp RenderDebugInfo.h)
 
 set_property(TARGET gfx93-rendering PROPERTY CXX_STANDARD 17)
 

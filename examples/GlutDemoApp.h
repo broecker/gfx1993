@@ -35,7 +35,7 @@ protected:
 
   virtual void init() = 0;
 
-  virtual void updateFrame(float dt) = 0;
+  virtual void updateFrame(float dt);
 
   virtual void renderFrame() = 0;
 

@@ -83,6 +83,8 @@ protected:
   }
 
   void updateFrame(float dt) override {
+    GlutDemoApp::updateFrame(dt);
+
     if (sortByDepth) {
       const glm::mat4 &viewMatrix = camera->getViewMatrix();
       std::sort(quads.begin(), quads.end(),

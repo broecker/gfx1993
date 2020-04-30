@@ -6,6 +6,7 @@
 #include "Clipper.h"
 #include "Pipeline.h"
 #include "RenderConfig.h"
+#include "RenderDebugInfo.h"
 
 namespace render {
 // Main class that does the heavy lifting in putting fragments into the
@@ -15,13 +16,13 @@ public:
   virtual ~Rasterizer() = default;
 
   // Draws the vertices as points. Only the indexed vertices are drawn.
-  unsigned int drawPoints(const RenderConfig &renderConfig,
+  void drawPoints(const RenderConfig &renderConfig,
                           const VertexList &vertices,
                           const IndexList &indices) const;
 
   // Draws the vertices as lines. Every two indices define the endpoints of a
   // line.
-  unsigned int drawLines(const RenderConfig &renderConfig,
+  void drawLines(const RenderConfig &renderConfig,
                          const VertexList &vertices,
                          const IndexList &indices) const;
 
@@ -29,15 +30,17 @@ public:
   // the midpoint between two lines, or the endpoint in case of the first and
   // last index. To draw a closed loop, make sure that the first and last index
   // are the same; i.e. [0, 1, 2, 3, 0]
-  unsigned int drawLineStrip(const RenderConfig &renderConfig,
+  void drawLineStrip(const RenderConfig &renderConfig,
                              const VertexList &vertices,
                              const IndexList &indices) const;
 
   // Draws the vertices as lines. Every three indices are treated as the three
   // corners of a triangle. Triangles are defined counter-clockwise.
-  unsigned int drawTriangles(const RenderConfig &renderConfig,
+  void drawTriangles(const RenderConfig &renderConfig,
                              const VertexList &vertices,
                              const IndexList &indices) const;
+
+  inline void resetDebugInfo() { debugInfo.reset(); }
 
 private:
   // Draws a line after it was clipped to the Viewport.
@@ -59,7 +62,8 @@ private:
   void drawFragment(const RenderConfig &renderConfig,
                     const ShadingGeometry &geometry) const;
 
-  Clipper clipper;
+  Clipper             clipper;
+  mutable DebugInfo   debugInfo;
 };
 
 } // namespace render

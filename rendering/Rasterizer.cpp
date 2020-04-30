@@ -18,15 +18,12 @@ using glm::vec4;
 
 using namespace render;
 
-unsigned int Rasterizer::drawPoints(const RenderConfig &renderConfig,
+void Rasterizer::drawPoints(const RenderConfig &renderConfig,
                                     const VertexList &vertices,
                                     const IndexList &indices) const {
   if (!renderConfig.isValid()) {
     std::cerr << "Invalid render configuration!\n";
-    return 0;
   }
-
-  unsigned int pointsDrawn = 0;
 
   // Vertex transform.
   VertexOutList transformedVertices =
@@ -68,10 +65,8 @@ unsigned int Rasterizer::drawPoints(const RenderConfig &renderConfig,
     // shade fragment and plot
     drawFragment(renderConfig, sgeo);
 
-    ++pointsDrawn;
+    ++debugInfo.pointsDrawn;
   }
-
-  return pointsDrawn;
 }
 
 VertexOutList Rasterizer::transformVertices(
@@ -92,25 +87,17 @@ static inline bool insideClipSpace(const VertexOut &v) {
          v.clipPosition.z >= -1 && v.clipPosition.z <= 1;
 }
 
-unsigned int Rasterizer::drawLines(const RenderConfig &renderConfig,
+void Rasterizer::drawLines(const RenderConfig &renderConfig,
                                    const VertexList &vertices,
                                    const IndexList &indices) const {
   if (!renderConfig.isValid()) {
     std::cerr << "Invalid render configuration!\n";
-    return 0;
+    return;
   }
-
-  unsigned int linesDrawn = 0;
 
   // Vertex transformation
   VertexOutList transformedVertices =
       transformVertices(vertices, renderConfig.vertexShader);
-
-  for (const auto &v : transformedVertices) {
-    if (!insideClipSpace(v)) {
-      // std::clog << "Outside: " << v.clipPosition << std::endl;
-    }
-  }
 
   // Primitive assembly
   LinePrimitiveList lines;
@@ -125,7 +112,6 @@ unsigned int Rasterizer::drawLines(const RenderConfig &renderConfig,
 
   // Perspective divide
   for (auto &line : clipped) {
-
     if (line.a.clipPosition.w < 0 || line.b.clipPosition.w < 0) {
       std::cout << "a: " << line.a.clipPosition << " b: " << line.b.clipPosition
                 << std::endl;
@@ -138,13 +124,11 @@ unsigned int Rasterizer::drawLines(const RenderConfig &renderConfig,
   // Rasterization
   for (const auto &line : clipped) {
     drawLine(renderConfig, line);
-    ++linesDrawn;
+    ++debugInfo.linesDrawn;
   }
-
-  return linesDrawn;
 }
 
-unsigned int Rasterizer::drawLineStrip(const RenderConfig &renderConfig,
+void Rasterizer::drawLineStrip(const RenderConfig &renderConfig,
                                        const render::VertexList &vertices,
                                        const render::IndexList &indices) const {
   // We can reuse the existing code by expanding the current indices. We expand
@@ -157,18 +141,16 @@ unsigned int Rasterizer::drawLineStrip(const RenderConfig &renderConfig,
     expandedIndices.push_back(indices[i + 1]);
   }
 
-  return drawLines(renderConfig, vertices, expandedIndices);
+  drawLines(renderConfig, vertices, expandedIndices);
 }
 
-unsigned int Rasterizer::drawTriangles(const RenderConfig &renderConfig,
+void Rasterizer::drawTriangles(const RenderConfig &renderConfig,
                                        const VertexList &vertices,
                                        const IndexList &indices) const {
   if (!renderConfig.isValid()) {
     std::cerr << "Invalid render configuration!\n";
-    return 0;
+    return;
   }
-
-  unsigned int trianglesDrawn = 0;
 
   // transform vertices
   VertexOutList transformedVertices =
@@ -200,10 +182,8 @@ unsigned int Rasterizer::drawTriangles(const RenderConfig &renderConfig,
 
   for (const TrianglePrimitive &triangle : clipped) {
     drawTriangle(renderConfig, triangle);
-    ++trianglesDrawn;
+    ++debugInfo.trianglesDrawn;
   }
-
-  return trianglesDrawn;
 }
 
 // Bresenham line drawing

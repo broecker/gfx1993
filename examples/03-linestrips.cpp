@@ -67,8 +67,6 @@ protected:
                                            glm::vec3(0, 1, 0), 10.0f);
   }
 
-  void updateFrame(float dt) override {}
-
   void renderFrame() override {
     // Clear the buffers
     renderConfig.clearBuffers(glm::vec4(0.7f, 0.7f, 0.9f, 1));

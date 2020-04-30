@@ -38,7 +38,10 @@ protected:
     indices.push_back(1);
   }
 
-  void updateFrame(float dt) override { rotationAngle += dt * 3.f; }
+  void updateFrame(float dt) override {
+    GlutDemoApp::updateFrame(dt);
+    rotationAngle += dt * 3.f;
+  }
 
   void renderFrame() override {
     // clear the buffers

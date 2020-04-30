@@ -24,8 +24,6 @@ protected:
     grid = std::make_unique<geometry::GridGeometry>();
   }
 
-  void updateFrame(float dt) override {}
-
   void renderFrame() override {
     // reset the render matrices
     render::DefaultVertexTransform *dvt =

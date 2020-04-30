@@ -6,23 +6,15 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/io.hpp>
 
-#include <GL/glut.h>
 #include <geometry/Geometry.h>
 #include <geometry/GridGeometry.h>
 #include <rendering/Pipeline.h>
 
 #include "GlutDemoApp.h"
 #include "common/Camera.h"
-#include "rendering/Depthbuffer.h"
-#include "rendering/Framebuffer.h"
-#include "rendering/Rasterizer.h"
 #include "rendering/Shader.h"
-#include "rendering/Viewport.h"
 
-// OpenGL texture Id
-unsigned int texture;
-unsigned int width = 640, height = 480;
-
+// Creates random geometry within a bounding volume.
 class BoundedGeometry : public geometry::Geometry {
 public:
   BoundedGeometry(const glm::vec3 &min, const glm::vec3 &max)
@@ -139,6 +131,24 @@ public:
   }
 };
 
+class ClippingPlane {
+public:
+  ClippingPlane(const glm::vec3& normal, float d) : normal(normal), distance(d), enabled(false) {}
+
+
+  void moveAlongNormal(float delta) {
+    distance += delta;
+  }
+
+
+  bool enabled;
+
+private:
+  glm::vec3     normal;
+  float         distance;
+};
+
+
 class Demo05 : public GlutDemoApp {
 public:
   Demo05() : GlutDemoApp("Demo 05 - Clipping") {}
@@ -163,11 +173,13 @@ protected:
     makeLine(glm::vec3(0.f), glm::vec3(0, 20.f, 0), glm::vec4(0, 1, 0, 1));
     makeLine(glm::vec3(0.f), glm::vec3(0, 0, 20.f), glm::vec4(0, 0, 1, 1));
 
+    /*
     triangles->add(glm::vec3(0, 0, 20), glm::vec3(20, 0, -20),
                    glm::vec3(-20, 0, -20), false);
-  }
+    */
 
-  void updateFrame(float dt) override {}
+    clippingPlane = std::make_unique<ClippingPlane>(glm::vec3(0,0,1), 1);
+  }
 
   void renderFrame() override {
     // Clear the buffers
@@ -248,6 +260,18 @@ protected:
         projectionMode = PERSPECTIVE;
       }
     }
+
+    if (key == 'p') {
+      clippingPlane->enabled = !clippingPlane->enabled;
+    }
+
+    if (key == 'z') {
+      clippingPlane->moveAlongNormal(0.1f);
+    }
+    if (key == 'Z') {
+      clippingPlane->moveAlongNormal(-0.1f);
+    }
+
   }
 
 protected:
@@ -256,6 +280,8 @@ private:
   std::unique_ptr<RandomPointsGeometry> points;
   std::unique_ptr<RandomTriangleGeometry> triangles;
   std::unique_ptr<geometry::GridGeometry> grid;
+
+  std::unique_ptr<ClippingPlane> clippingPlane;
 
   render::VertexList lineVertices;
   render::IndexList lineIndices;

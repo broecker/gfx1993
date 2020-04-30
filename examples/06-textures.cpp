@@ -62,8 +62,6 @@ protected:
     quad->transform *= glm::scale(glm::vec3(5));
   }
 
-  void updateFrame(float dt) override {}
-
   void renderFrame() override {
     // Clear the buffers
     renderConfig.clearBuffers(glm::vec4(0.7f, 0.7f, 0.9f, 1));

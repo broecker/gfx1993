@@ -155,3 +155,8 @@ void GlutDemoApp::handleMotion(int x, int y) {
 
   camera->handleMouseMove(delta);
 }
+
+void GlutDemoApp::updateFrame(float dt)
+{
+  rasterizer->resetDebugInfo();
+}
