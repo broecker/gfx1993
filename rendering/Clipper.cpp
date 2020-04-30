@@ -3,6 +3,7 @@
 #include <iostream>
 #include <map>
 
+#include <deque>
 #include <glm/gtx/io.hpp>
 
 namespace render {
@@ -56,7 +57,8 @@ PointPrimitiveList Clipper::clipPoints(const PointPrimitiveList &points) const {
 inline static bool insideNDC(const glm::vec4 &clipCoords) {
   return clipCoords.x >= -clipCoords.w && clipCoords.x <= clipCoords.w &&
          clipCoords.y >= -clipCoords.w && clipCoords.y <= clipCoords.w &&
-         clipCoords.z >= -clipCoords.w && clipCoords.z <= clipCoords.w;
+         clipCoords.z >= -clipCoords.w && clipCoords.z <= clipCoords.w &&
+         clipCoords.w > 0;
 }
 
 PointPrimitiveList
@@ -136,7 +138,7 @@ Clipper::clipTriangles(render::TrianglePrimitiveList triangles) const {
 
   const static size_t MAX_TRI_COUNT = 1000;
 
-  bool colorClips = false;
+  bool colorClips = true;
 
   for (size_t i = 0; i < triangles.size() && i < MAX_TRI_COUNT; ++i) {
     // Triangles might change during iteration, as new triangles are created by
@@ -148,16 +150,13 @@ Clipper::clipTriangles(render::TrianglePrimitiveList triangles) const {
     clipPositions.push_back(triangle.b.clipPosition);
     clipPositions.push_back(triangle.c.clipPosition);
 
+    /*
     if (std::all_of(clipPositions.begin(), clipPositions.end(),
                     [](const glm::vec4 &v) { return v.w <= 0.f; })) {
       // All behind the w=0 axis -- discard;
       continue;
     }
-
-    if (!std::all_of(clipPositions.begin(), clipPositions.end(),
-                     [](const glm::vec4 &v) { return v.w > 0.f; })) {
-      std::clog << "Some w coordinates negative!" << std::endl;
-    }
+    */
 
     bool keep = true;
     for (const Plane &plane : planes) {
@@ -251,28 +250,84 @@ Clipper::clipTriangles(render::TrianglePrimitiveList triangles) const {
   return clipped;
 }
 
-TrianglePrimitiveList
-Clipper::clipTrianglesToNdc(TrianglePrimitiveList clipspaceTriangles) const {
-  using glm::dot;
-  using glm::vec4;
+// Selects the endpoint for a given triangle edge.
+static const VertexOut &getTriangleEdgePoint(const TrianglePrimitive &triangle,
+                                             int i) {
+  switch (i) {
+  case 0:
+    return triangle.a;
+  case 1:
+    return triangle.b;
+  case 2:
+    return triangle.c;
+  case 3:
+    // This allows connecting the last edge to the beginning.
+    return triangle.a;
 
-  TrianglePrimitiveList clipped;
+  default:
+    // This is bad.
+    std::cerr << "Bad triangle edge selection." << std::endl;
+    return VertexOut();
+  }
+}
 
-  // Clip space is left-handed:
-  // https://www.ntu.edu.sg/home/ehchua/programming/opengl/CG_BasicsTheory.html
-  // so that positive z points towards the far distance.
+// Sutherland-Hodgeman triangle clipping.
+// Based on:
+// https://www.flipcode.com/archives/Real-time_3D_Clipping_Sutherland-Hodgeman.shtml
+static TrianglePrimitiveList clipTriangle(const TrianglePrimitive &triangle,
+                                          const Clipper::Plane &plane) {
+  // Contains clipped coordinates.
+  std::vector<VertexOut> clipped;
+  for (int i = 0; i < 3; ++i) {
+    const VertexOut &v1 = getTriangleEdgePoint(triangle, i);
+    const VertexOut &v2 = getTriangleEdgePoint(triangle, i + 1);
 
-  // This currently culls, rather than clips the triangles ...
-  for (const auto &triangle : clipspaceTriangles) {
-    if (insideNDC(triangle.a.clipPosition) &&
-        insideNDC(triangle.b.clipPosition) &&
-        insideNDC(triangle.c.clipPosition)) {
-      clipped.push_back(triangle);
+    float d1 = plane.distance(v1.clipPosition);
+    float d2 = plane.distance(v2.clipPosition);
+
+    // v1 inside, v2 outside
+    if (d1 >= 0 && d2 < 0)
+      clipped.push_back(clipEdge(v1, v2, plane));
+
+    // v1 outside, v1 inside
+    if (d1 < 0 && d2 >= 0) {
+      clipped.push_back(clipEdge(v1, v2, plane));
+      clipped.push_back(v2);
     }
+
+    // v1 and v2 inside
+    if (d1 >= 0 && d2 >= 0)
+      clipped.push_back(v2);
+
+    // v1 and v2 outside -- don't do anything
   }
 
-  // std::clog << "Clipped to " << clipped.size() << " visible tris.\n";
+  // Reconstruct the triangle(s) from the clipped edges. The output can be
+  // either zero, one or two triangles.
+  TrianglePrimitiveList output;
+  if (clipped.size() >= 3) {
+    output.push_back(TrianglePrimitive(clipped[0], clipped[1], clipped[2]));
+  }
+  if (clipped.size() == 4) {
+    auto t = TrianglePrimitive(clipped[2], clipped[3], clipped[0]);
+    setColor(t, glm::vec4(1, 1, 0, 1));
+    output.push_back(t);
+  }
+  return output;
+}
 
+TrianglePrimitiveList Clipper::clipTrianglesToNdc(
+    const TrianglePrimitiveList &clipspaceTriangles) const {
+  TrianglePrimitiveList clipped = clipspaceTriangles;
+  for (const auto &plane : planes) {
+    TrianglePrimitiveList temp;
+
+    for (const auto &t : clipped) {
+      auto result = clipTriangle(t, plane);
+      temp.insert(temp.end(), result.begin(), result.end());
+    }
+    clipped = temp;
+  }
   return clipped;
 }
 

@@ -10,6 +10,8 @@ namespace render {
 class Clipper {
 public:
   struct Plane {
+    // Stores the plane as normal and *negative* distance so we cause a dot
+    // product to calculate signed distance.
     glm::vec4 plane;
 
     // Creates a plane given by a normal and a distance to the origin along that
@@ -48,7 +50,7 @@ public:
   TrianglePrimitiveList clipTriangles(TrianglePrimitiveList triangles) const;
 
   TrianglePrimitiveList
-  clipTrianglesToNdc(TrianglePrimitiveList triangles) const;
+  clipTrianglesToNdc(const TrianglePrimitiveList &triangles) const;
 
 private:
   std::vector<Plane> planes;

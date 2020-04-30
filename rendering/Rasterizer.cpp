@@ -19,8 +19,8 @@ using glm::vec4;
 using namespace render;
 
 void Rasterizer::drawPoints(const RenderConfig &renderConfig,
-                                    const VertexList &vertices,
-                                    const IndexList &indices) const {
+                            const VertexList &vertices,
+                            const IndexList &indices) const {
   if (!renderConfig.isValid()) {
     std::cerr << "Invalid render configuration!\n";
   }
@@ -88,8 +88,8 @@ static inline bool insideClipSpace(const VertexOut &v) {
 }
 
 void Rasterizer::drawLines(const RenderConfig &renderConfig,
-                                   const VertexList &vertices,
-                                   const IndexList &indices) const {
+                           const VertexList &vertices,
+                           const IndexList &indices) const {
   if (!renderConfig.isValid()) {
     std::cerr << "Invalid render configuration!\n";
     return;
@@ -129,8 +129,8 @@ void Rasterizer::drawLines(const RenderConfig &renderConfig,
 }
 
 void Rasterizer::drawLineStrip(const RenderConfig &renderConfig,
-                                       const render::VertexList &vertices,
-                                       const render::IndexList &indices) const {
+                               const render::VertexList &vertices,
+                               const render::IndexList &indices) const {
   // We can reuse the existing code by expanding the current indices. We expand
   // the indices by doubling the internal vertices; i.e. [0,2,4,6] ->
   // [0,2,2,4,4,6]
@@ -145,8 +145,8 @@ void Rasterizer::drawLineStrip(const RenderConfig &renderConfig,
 }
 
 void Rasterizer::drawTriangles(const RenderConfig &renderConfig,
-                                       const VertexList &vertices,
-                                       const IndexList &indices) const {
+                               const VertexList &vertices,
+                               const IndexList &indices) const {
   if (!renderConfig.isValid()) {
     std::cerr << "Invalid render configuration!\n";
     return;
@@ -167,18 +167,18 @@ void Rasterizer::drawTriangles(const RenderConfig &renderConfig,
     triangles.push_back(TrianglePrimitive(a, b, c));
   }
 
+  // At this point all triangles are in clip space [-1 .. 1] and can be clipped
+  // to NDC.
+  TrianglePrimitiveList clipped = clipper.clipTrianglesToNdc(triangles);
+
   // Perspective divide
-  for (auto &triangle : triangles) {
+  for (auto &triangle : clipped) {
     triangle.a.clipPosition /= triangle.a.clipPosition.w;
     triangle.b.clipPosition /= triangle.b.clipPosition.w;
     triangle.c.clipPosition /= triangle.c.clipPosition.w;
 
     // Add backface culling here
   }
-
-  // At this point all triangles are in clip space [-1 .. 1] and can be clipped
-  // to NDC.
-  TrianglePrimitiveList clipped = clipper.clipTrianglesToNdc(triangles);
 
   for (const TrianglePrimitive &triangle : clipped) {
     drawTriangle(renderConfig, triangle);
