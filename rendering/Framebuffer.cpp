@@ -2,11 +2,7 @@
 
 namespace render {
 
-Framebuffer::Framebuffer(unsigned int w, unsigned int h) : width(w), height(h) {
-  data = new glm::vec4[width * height];
-}
-
-Framebuffer::~Framebuffer() { delete[] data; }
+Framebuffer::Framebuffer(unsigned int w, unsigned int h) : width(w), height(h), data(w*h) {}
 
 void Framebuffer::clear(const glm::vec4 &c) {
   for (unsigned int i = 0; i < width * height; ++i) {
@@ -14,7 +10,7 @@ void Framebuffer::clear(const glm::vec4 &c) {
   }
 }
 
-void Framebuffer::plot(int x, int y, const glm::vec4 &c) {
+void Framebuffer::plot(unsigned int x, unsigned int y, const glm::vec4 &c) {
   if (x >= 0 && x < width && y >= 0 && y < height) {
     const int index = x + y * width;
     data[index] = c;
@@ -31,6 +27,12 @@ void Framebuffer::fillUint8RgbaBuffer(uint8_t* buffer) const {
     buffer[idx+3] = static_cast<uint8_t>(c.a * 255);
     idx += 4;
   }
+}
+
+std::vector<uint8_t> Framebuffer::getUint8RgbaBuffer() const {
+  std::vector<uint8_t> result(width*height*4);
+  fillUint8RgbaBuffer(&result[0]);
+  return result;
 }
 
 }

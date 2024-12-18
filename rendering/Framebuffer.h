@@ -3,16 +3,16 @@
 
 #include <glm/glm.hpp>
 #include <memory>
+#include <vector>
 
 namespace render {
 
 class Framebuffer {
 public:
   Framebuffer(unsigned int w, unsigned int h);
-
   Framebuffer(const Framebuffer &cp);
 
-  virtual ~Framebuffer();
+  virtual ~Framebuffer() = default;
 
   virtual void clear(const glm::vec4 &c);
 
@@ -20,7 +20,7 @@ public:
     this->plot(p.x, p.y, c);
   }
 
-  void plot(int x, int y, const glm::vec4 &c);
+  void plot(unsigned int x, unsigned int y, const glm::vec4 &c);
 
   inline unsigned int getWidth() const { return width; }
 
@@ -34,14 +34,15 @@ public:
     return data[x + y * width];
   }
 
-  inline const glm::vec4 *getPixels() const { return data; }
+  inline const glm::vec4 *getPixels() const { return &data[0]; }
 
   void fillUint8RgbaBuffer(uint8_t* buffer) const;
+  std::vector<uint8_t> getUint8RgbaBuffer() const;
 
 
 protected:
   unsigned int width, height;
-  glm::vec4 *data;
+  std::vector<glm::vec4> data;
 };
 
 } // namespace render

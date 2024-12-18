@@ -20,14 +20,13 @@ public:
     fragment.color = glm::vec4(1,0,1,1);
 
     if (texture) {
-      std::cout << "[TexShader] accessing texture " << texture->getId() << "\n";
       fragment.color = texture->getTexel(in.texcoord);
     }
     return fragment;
   }
 
   inline void setTexture(std::shared_ptr<render::Texture> texture) {
-    std::cout << "[TexShader] Updating texture; " << texture.use_count() << " \n";
+    std::cout << "[TexShader] Updating texture to " << texture->getId() << " \n";
     this->texture = texture;
   }
 

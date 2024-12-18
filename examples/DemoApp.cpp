@@ -90,7 +90,24 @@ void DemoApp::blitSurface() {
 
   SDL_LockSurface(surface);
 
-  renderConfig.framebuffer->fillUint8RgbaBuffer(reinterpret_cast<uint8_t*>(surface->pixels));
+  // This is messy -- ideally we should already write as uint8 in the last step in the rasterizer.
+  std::vector<uint8_t> pixels = renderConfig.framebuffer->getUint8RgbaBuffer();
+
+  // Switch to BGRA
+  for (size_t i = 0; i < pixels.size(); i += 4) {
+    std::swap(pixels[i+0], pixels[i+2]);
+  }
+  memcpy(surface->pixels, &pixels[0], pixels.size());
+
+  // Does not work.
+  // SDL_ConvertPixels(renderConfig.framebuffer->getWidth(),
+  //                   renderConfig.framebuffer->getHeight(),
+  //                   SDL_PIXELFORMAT_RGBA32,
+  //                   &pixels[0],
+  //                   renderConfig.framebuffer->getWidth(),
+  //                   surface->format->format,
+  //                   surface->pixels,
+  //                   surface->pitch);
 
   SDL_UnlockSurface(surface);
 }
