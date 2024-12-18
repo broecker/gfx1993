@@ -1,22 +1,26 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.5.0)
 
 # Compile + link setup
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLM_ENABLE_EXPERIMENTAL")
 
 cmake_policy(SET CMP0015 NEW)
 
-include_directories(/usr/local/include)
+# Local dependencies.
 include_directories(..)
-
-link_directories(/usr/local/lib)
 link_directories(../common)
 link_directories(../geometry)
 link_directories(../rendering)
 
+find_package(SDL2 REQUIRED)
+include_directories(${SDL2_INCLUDE_DIRS})
+find_package(glm REQUIRED)
+
 # Library and demo app harness
-add_library(gfx93-demo-app STATIC GlutDemoApp.cpp)
+add_library(gfx93-demo-app STATIC DemoApp.cpp)
 target_link_libraries(gfx93-demo-app gfx93-common gfx93-geometry gfx93-rendering)
-target_link_libraries(gfx93-demo-app GL GLU glut)
+target_link_libraries(gfx93-demo-app ${SDL2_LIBRARIES} )
+target_link_libraries(gfx93-demo-app glm::glm)
+
 
 # A simple rotating triangle
 add_executable(00-triangle 00-triangle.cpp)

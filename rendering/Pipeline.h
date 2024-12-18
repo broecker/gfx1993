@@ -57,14 +57,14 @@ struct VertexOut {
 };
 
 // Linearly interpolates between two vertexouts.
-VertexOut &&lerp(const VertexOut &a, const VertexOut &b, float d);
+VertexOut lerp(const VertexOut &a, const VertexOut &b, float d);
 
 struct PointPrimitive {
   VertexOut p;
 
   inline explicit PointPrimitive(const VertexOut &o) : p(o) {}
 
-  ShadingGeometry &&rasterize() const;
+  ShadingGeometry rasterize() const;
 };
 
 struct LinePrimitive {
@@ -73,7 +73,7 @@ struct LinePrimitive {
   inline LinePrimitive(const VertexOut &a_, const VertexOut &b_)
       : a(a_), b(b_){};
 
-  ShadingGeometry &&rasterize(float d) const;
+  ShadingGeometry rasterize(float d) const;
 };
 
 struct TrianglePrimitive {
@@ -83,7 +83,7 @@ struct TrianglePrimitive {
                            const VertexOut &c_)
       : a(a_), b(b_), c(c_) {}
 
-  ShadingGeometry &&rasterize(const glm::vec3 &bary) const;
+  ShadingGeometry rasterize(const glm::vec3 &bary) const;
 
   inline void setColor(const glm::vec4 &color) {
     a.color = color;
@@ -106,8 +106,8 @@ struct ShadingGeometry {
 };
 
 // Linearly interpolates between two ShadingGeometries.
-ShadingGeometry &&interpolate(const ShadingGeometry &a,
-                              const ShadingGeometry &b, float d);
+ShadingGeometry interpolate(const ShadingGeometry &a,
+                            const ShadingGeometry &b, float d);
 
 // Final fragment shader output that will be written into a framebuffer.
 struct Fragment {

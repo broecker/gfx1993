@@ -5,15 +5,15 @@
 #include <glm/ext.hpp>
 #include <glm/glm.hpp>
 
-#include "GlutDemoApp.h"
+#include "DemoApp.h"
 #include "geometry/GridGeometry.h"
 #include "geometry/PlyGeometry.h"
 #include "rendering/Pipeline.h"
 #include "rendering/Shader.h"
 
-class Demo02 : public GlutDemoApp {
+class Demo02 : public DemoApp {
 public:
-  Demo02() : GlutDemoApp("Demo 02 - Hello Geometry") {}
+  Demo02() : DemoApp("Demo 02 - Hello Geometry") {}
 
 protected:
   void init() override {
@@ -53,7 +53,7 @@ protected:
     }
   }
 
-  void handleKeyboard(unsigned char key, int x, int y) override {
+  void handleKeyboard(unsigned char key, const glm::ivec2& mousePosition) override {
     if (key == 'b') {
       renderConfig.drawTriangleBounds = !renderConfig.drawTriangleBounds;
     }

@@ -36,6 +36,9 @@ public:
 
   inline const glm::vec4 *getPixels() const { return data; }
 
+  void fillUint8RgbaBuffer(uint8_t* buffer) const;
+
+
 protected:
   unsigned int width, height;
   glm::vec4 *data;

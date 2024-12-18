@@ -5,7 +5,7 @@
 #include <glm/ext.hpp>
 #include <glm/glm.hpp>
 
-#include "GlutDemoApp.h"
+#include "DemoApp.h"
 #include "geometry/Quad.h"
 #include "rendering/Pipeline.h"
 #include "rendering/Shader.h"
@@ -15,13 +15,13 @@ class TextureShader : public render::FragmentShader {
 public:
   TextureShader() : texture(nullptr) {}
 
-  render::Fragment &&shadeSingle(const render::ShadingGeometry &in) override {
+  render::Fragment shadeSingle(const render::ShadingGeometry &in) override {
     render::Fragment fragment;
 
     if (texture) {
       fragment.color = texture->getTexel(in.texcoord);
     }
-    return std::move(fragment);
+    return fragment;
   }
 
   inline void setTexture(std::shared_ptr<render::Texture> texture) {
@@ -34,16 +34,16 @@ private:
 
 class TexCoordShader : public render::FragmentShader {
 public:
-  render::Fragment &&shadeSingle(const render::ShadingGeometry &in) override {
+  render::Fragment shadeSingle(const render::ShadingGeometry &in) override {
     render::Fragment fragment;
     fragment.color = glm::vec4(in.texcoord, 0.f, 1.f);
-    return std::move(fragment);
+    return fragment;
   }
 };
 
-class Demo06 : public GlutDemoApp {
+class Demo06 : public DemoApp {
 public:
-  Demo06() : GlutDemoApp("Demo 06 - Textures") {}
+  Demo06() : DemoApp("Demo 06 - Textures") {}
 
 protected:
   void init() override {

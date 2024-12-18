@@ -4,7 +4,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/polar_coordinates.hpp>
 
-#include "GlutDemoApp.h"
+#include "DemoApp.h"
 #include "common/Camera.h"
 #include "geometry/GridGeometry.h"
 #include "rendering/Pipeline.h"
@@ -50,9 +50,9 @@ public:
   }
 };
 
-class Demo03 : public GlutDemoApp {
+class Demo03 : public DemoApp {
 public:
-  Demo03() : GlutDemoApp("Demo 03 - Line strips") {}
+  Demo03() : DemoApp("Demo 03 - Line strips") {}
 
 protected:
   void init() override {

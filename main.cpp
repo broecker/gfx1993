@@ -4,7 +4,7 @@
 
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
-#include <GL/glut.h>
+#include <SDL.h>
 
 #include "rendering/Framebuffer.h"
 #include "rendering/Depthbuffer.h"
@@ -17,9 +17,7 @@
 #include "geometry/GridGeometry.h"
 #include "geometry/PlyGeometry.h"
 
-unsigned int texture;
-
-unsigned int width = 640, height = 480;
+constexpr unsigned int width = 640, height = 480;
 
 std::unique_ptr<geometry::CubeGeometry> cube = nullptr;
 std::unique_ptr<geometry::RandomTriangleGeometry> triangles = nullptr;
@@ -42,45 +40,22 @@ glm::ivec2 mousePosition;
 static const int GLUT_MOUSEWHEEL_DOWN = 3;
 static const int GLUT_MOUSEWHEEL_UP = 4;
 
-static void display()
+static void render(SDL_Surface* surface)
 {
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, renderTarget.framebuffer->getPixels());
+    // Surface is BGRA and this is a dark blue.
+    surface->clear(Color{50,0,0});
 
-    glEnable(GL_TEXTURE_2D);
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    SDL_LockSurface(surface);
+    
+    // Copy data here ... from float to BGRA uint8.
+    // glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, renderTarget.framebuffer->getPixels());
 
-    const int vertices[] = {0, 0, 1, 0, 1, 1, 0, 1};
-    glVertexPointer(2, GL_INT, 0, vertices);
-    glTexCoordPointer(2, GL_INT, 0, vertices);
-
-    glDrawArrays(GL_QUADS, 0, 4);
-
-    glutSwapBuffers();
+    SDL_UnlockSurface(surface);
+    
 }
 
-static void idle()
+static void update(float dt)
 {
-
-    // update time
-    static unsigned int oldTime = 0;
-
-    unsigned int elapsedTime = glutGet(GLUT_ELAPSED_TIME);
-    float dt = (float) (elapsedTime - oldTime) / 1000.f;
-    oldTime = elapsedTime;
-
-    static float timer = 0.f;
-    static unsigned int frames = 0;
-    timer += dt;
-    ++frames;
-    if (timer >= 2.f) {
-        std::clog << "dt: " << dt << " " << frames / 2 << " fps" << std::endl;
-
-        timer = 0.f;
-        frames = 0;
-    }
-
     // clear the buffers
     renderTarget.framebuffer->clear(glm::vec4(0, 0, 0.2f, 0));
     renderTarget.depthbuffer->clear();
@@ -119,8 +94,6 @@ static void idle()
     catch (const char *txt) {
         std::cerr << "Render error :\"" << txt << "\"\n";
     }
-
-    glutPostRedisplay();
 }
 
 static void keyboard(unsigned char key, int x, int y)
@@ -192,19 +165,70 @@ static void mouse(int button, int state, int x, int y)
     }
 }
 
+static int loop(SDL_Window* window) {
+	bool running = true;
+	int frames = 0;
+	int total_frames = 0;
+
+	const int64_t start_ticks = SDL_GetTicks64();
+	int64_t last_second = start_ticks;
+
+	boomer::Game game(SCREEN_WIDTH, SCREEN_HEIGHT);
+
+	while (running) {
+		SDL_Event event;
+		while (SDL_PollEvent(&event)) {
+			if (event.type == SDL_QUIT) {
+				running = false;
+			}
+
+            if (event.type == SDL)
+
+			if (event.type == SDL_KEYDOWN) {
+				switch (event.key.keysym.sym){
+				case SDLK_q:
+				case SDLK_ESCAPE:
+					running = false;
+					break;
+				default:
+					break;
+				}
+			}
+		}
+
+		// Performance measurements.
+		frames++;
+		total_frames++;
+		const int64_t now_ticks = SDL_GetTicks64();
+		const float dt = static_cast<float>(now_ticks / last_second) / 1000.0;
+
+		update(dt);
+		render(SDL_GetWindowSurface(window));
+		SDL_UpdateWindowSurface(window);
+
+		if ((now_ticks - last_second) > 1000) {
+			std::cout << "FPS: " << frames <<  " [avg: " << static_cast<float>(total_frames) / (now_ticks - start_ticks) * 1000  << "   total: " << total_frames << ", time: " << static_cast<float>(now_ticks - start_ticks) << "s] dt: " << dt << std::endl;
+			frames = 0;
+			last_second = now_ticks;
+		}
+
+	}
+
+    return 0;
+}
+
 int main(int argc, char **argv)
 {
-    glutInit(&argc, argv);
+	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
+		std::cerr << "Unable to initialize SDL: " << SDL_GetError() << std::endl;
+		return -1;
+	}
 
-    glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
-    glutInitWindowSize(800, 600);
-    glutCreateWindow("srender");
-
-    glutIdleFunc(idle);
-    glutDisplayFunc(display);
-    glutKeyboardFunc(keyboard);
-    glutMotionFunc(motion);
-    glutMouseFunc(mouse);
+	SDL_Window* window = SDL_CreateWindow("Hello Boomer!", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, SDL_WINDOW_SHOWN);
+	if (window == nullptr) {
+		std::cerr << "Error creating SDL window: " << SDL_GetError() << std::endl;
+		return -2;
+	}
 
     srand(time(0));
 
@@ -222,22 +246,7 @@ int main(int argc, char **argv)
     rasterizer->setShaders(shaders);
 
     grid = std::make_unique<geometry::GridGeometry>();
-
     camera = new OrbitCamera(glm::vec3(0, 0, 0), glm::vec3(0, 1, 0), 10.0f);
 
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, 0);
-
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(0, 1, 0, 1, 0, 1);
-
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-
-    glutMainLoop();
-    return 0;
+    return loop();
 }

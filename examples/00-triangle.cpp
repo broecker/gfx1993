@@ -4,13 +4,13 @@
 #include <glm/ext.hpp>
 #include <glm/glm.hpp>
 
-#include "GlutDemoApp.h"
+#include "DemoApp.h"
 #include "rendering/Pipeline.h"
 #include "rendering/Shader.h"
 
-class Demo00 : public GlutDemoApp {
+class Demo00 : public DemoApp {
 public:
-  Demo00() : GlutDemoApp("Demo 00 - Hello Triangle"), rotationAngle(0) {}
+  Demo00() : DemoApp("Demo 00 - Hello Triangle"), rotationAngle(0) {}
 
 protected:
   void init() override {
@@ -39,7 +39,7 @@ protected:
   }
 
   void updateFrame(float dt) override {
-    GlutDemoApp::updateFrame(dt);
+    DemoApp::updateFrame(dt);
     rotationAngle += dt * 3.f;
   }
 

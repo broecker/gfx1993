@@ -12,11 +12,11 @@
 #include "rendering/Shader.h"
 #include <rendering/Pipeline.h>
 
-#include "GlutDemoApp.h"
+#include "DemoApp.h"
 
 class StippleShader : public render::FragmentShader {
 public:
-  render::Fragment &&shadeSingle(const render::ShadingGeometry &in) override {
+  render::Fragment shadeSingle(const render::ShadingGeometry &in) override {
 
     // Only stipple transparent fragments.
     if (in.color.a < 1 - FLT_EPSILON) {
@@ -33,21 +33,21 @@ public:
       glm::vec4 outColor(in.color);
       outColor.a = 1.f;
 
-      return std::move(render::Fragment{outColor});
+      return render::Fragment{outColor};
     } else {
-      return std::move(render::Fragment{in.color});
+      return render::Fragment{in.color};
     }
   }
 
 private:
-  inline static render::Fragment &&discard() {
-    return std::move(render::Fragment{glm::vec4(), true});
+  inline static render::Fragment discard() {
+    return render::Fragment{glm::vec4(), true};
   }
 };
 
-class Demo04 : public GlutDemoApp {
+class Demo04 : public DemoApp {
 public:
-  Demo04() : GlutDemoApp("Demo 04 - Transparency"), sortByDepth(false) {}
+  Demo04() : DemoApp("Demo 04 - Transparency"), sortByDepth(false) {}
 
 protected:
   void init() override {
@@ -83,7 +83,7 @@ protected:
   }
 
   void updateFrame(float dt) override {
-    GlutDemoApp::updateFrame(dt);
+    DemoApp::updateFrame(dt);
 
     if (sortByDepth) {
       const glm::mat4 &viewMatrix = camera->getViewMatrix();
@@ -126,7 +126,7 @@ protected:
     }
   }
 
-  void handleKeyboard(unsigned char key, int x, int y) override {
+  void handleKeyboard(unsigned char key, const glm::ivec2& mousePosition) override {
     if (key == 'd') {
       sortByDepth = !sortByDepth;
       std::cout << (sortByDepth ? "S" : "Not s") << "orting by depth."

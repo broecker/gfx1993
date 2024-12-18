@@ -10,7 +10,7 @@
 #include <geometry/GridGeometry.h>
 #include <rendering/Pipeline.h>
 
-#include "GlutDemoApp.h"
+#include "DemoApp.h"
 #include "common/Camera.h"
 #include "rendering/Shader.h"
 
@@ -149,9 +149,9 @@ private:
 };
 
 
-class Demo05 : public GlutDemoApp {
+class Demo05 : public DemoApp {
 public:
-  Demo05() : GlutDemoApp("Demo 05 - Clipping") {}
+  Demo05() : DemoApp("Demo 05 - Clipping") {}
 
 protected:
   void init() override {
@@ -222,7 +222,7 @@ protected:
     }
   }
 
-  void handleKeyboard(unsigned char key, int x, int y) override {
+  void handleKeyboard(unsigned char key, const glm::ivec2& mousePosition) override {
     if (key == 'l') {
       for (int i = 0; i < 10; ++i) {
         lines->add();

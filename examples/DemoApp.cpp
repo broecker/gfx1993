@@ -1,0 +1,157 @@
+#include "DemoApp.h"
+
+#include <cstdlib>
+#include <iostream>
+#include <iomanip>
+
+namespace {
+
+static const int GLUT_MOUSEWHEEL_DOWN = 3;
+static const int GLUT_MOUSEWHEEL_UP = 4;
+
+static const int WIDTH_VGA = 640;
+static const int HEIGHT_VGA = 480;
+
+}  // namespace
+
+DemoApp *DemoApp::appInstance = nullptr;
+DemoApp::DemoApp(const std::string &name)
+    : name(name), width(WIDTH_VGA), height(HEIGHT_VGA),
+      logFrameTime(true) {
+  rasterizer = std::make_unique<render::Rasterizer>();
+
+  renderConfig.viewport =
+      std::make_shared<render::Viewport>(0, 0, width, height);
+  renderConfig.framebuffer =
+      std::make_shared<render::Framebuffer>(width, height);
+  renderConfig.depthbuffer =
+      std::make_shared<render::Depthbuffer>(width, height);
+
+  camera = std::make_unique<OrbitCamera>(glm::vec3(0, 0, 0), glm::vec3(0, 1, 0),
+                                         30.0f);
+
+  srand(time(0));
+}
+
+void DemoApp::run(int argc, char **argv) {
+	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
+		std::cerr << "Unable to initialize SDL: " << SDL_GetError() << std::endl;
+		return;
+	}
+
+	window = SDL_CreateWindow(name.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, SDL_WINDOW_SHOWN );
+	if (window == nullptr) {
+		std::cerr << "Error creating SDL window: " << SDL_GetError() << std::endl;
+		return;
+	}
+
+  // Ugly hack :-/
+  appInstance = this;
+
+  this->init();
+
+  running = true;
+
+  const int64_t startTicks = SDL_GetTicks64();
+	int64_t lastSecond = startTicks;
+
+  while (running) {
+    // Performance measurements.
+		frames++;
+		totalFrames++;
+		const int64_t nowTicks = SDL_GetTicks64();
+		const float dt = static_cast<float>(nowTicks) / lastSecond / 1000.0;
+
+    appInstance->updateFrame(dt);
+    appInstance->renderFrame();
+
+    handleEvents();
+
+    blitSurface();
+    SDL_UpdateWindowSurface(window);
+
+		if ((nowTicks - lastSecond) > 1000) {
+      if (appInstance->logFrameTime) {
+			  std::cout << "FPS: " << std::setw(3) << frames << " [avg: " << std::setprecision(4) << static_cast<float>(totalFrames) / (nowTicks - startTicks) * 1000  << "\ttotal frames: " << std::setw(5) << totalFrames << ", time: " << std::setprecision(5) <<  static_cast<float>(nowTicks - startTicks) / 1000 << "s]\tdt: " << std::setprecision(5) << dt << std::endl;
+      }
+			frames = 0;
+			lastSecond = nowTicks;
+		}
+  }  
+
+  SDL_DestroyWindow(window);
+	SDL_Quit();
+}
+
+void DemoApp::blitSurface() {
+  SDL_Surface* surface = SDL_GetWindowSurface(window);
+
+  SDL_LockSurface(surface);
+
+  renderConfig.framebuffer->fillUint8RgbaBuffer(reinterpret_cast<uint8_t*>(surface->pixels));
+
+  SDL_UnlockSurface(surface);
+}
+
+void DemoApp::handleEvents() {
+  SDL_Event event;
+  while (SDL_PollEvent(&event)) {
+    if (event.type == SDL_QUIT) {
+      running = false;
+    }
+
+    if (event.type == SDL_KEYDOWN) {
+      switch (event.key.keysym.sym) {
+      case SDLK_q:
+      case SDLK_ESCAPE:
+        running = false;
+        break;
+      default:
+        break;
+      }
+
+      // appInstance->handleKeyboard(event.key.keysym.sym, mousePosition);
+    }
+
+    if (event.type == SDL_MOUSEMOTION) {
+      mousePosition.x = event.motion.x;
+      mousePosition.y = event.motion.y;
+      
+      // appInstance->handleMotion(mousePosition);
+    }
+
+    if (event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP) {
+      mousePosition.x = event.button.x;
+      mousePosition.y = event.button.y;
+
+      // appInstance->handleMouse(event.button.button, event.button.state, mousePosition);
+    }
+  }
+}
+
+void DemoApp::handleKeyboard(unsigned char key, const glm::ivec2& mousePosition) {}
+
+void DemoApp::handleMouse(int button, int state, const glm::ivec2& mousePosition) {
+  this->mousePosition = mousePosition;
+
+  if (button == GLUT_MOUSEWHEEL_DOWN && state == 1) {
+    camera->handleKeyPress('a');
+  }
+
+  if (button == GLUT_MOUSEWHEEL_UP && state == 0) {
+    camera->handleKeyPress('z');
+  }
+}
+
+void DemoApp::handleMotion(const glm::ivec2& newMousePosition) {
+  glm::ivec2 current = newMousePosition;
+  glm::ivec2 delta = current - mousePosition;
+  mousePosition = current;
+
+  camera->handleMouseMove(delta);
+}
+
+void DemoApp::updateFrame(float dt)
+{
+  rasterizer->resetDebugInfo();
+}

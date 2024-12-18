@@ -2,6 +2,9 @@
 #define GFX1993_GLUTDEMOAPP_H
 
 #include <memory>
+#include <string>
+
+#include <SDL2/SDL.h>
 
 #include "common/Camera.h"
 #include "rendering/Depthbuffer.h"
@@ -12,24 +15,29 @@
 #include "rendering/Shader.h"
 #include "rendering/Viewport.h"
 
-class GlutDemoApp {
+class DemoApp {
 public:
-  GlutDemoApp(const std::string &name);
-  virtual ~GlutDemoApp();
+  DemoApp(const std::string &name);
+  virtual ~DemoApp() = default;
 
-  void run(int argc, char **argv);
+  virtual void run(int argc, char **argv);
 
 protected:
   std::string name;
   int width, height;
-  unsigned int texture;
 
+  bool running;
   bool logFrameTime;
+  
+  int frames = 0;
+	int totalFrames = 0;
 
   render::RenderConfig renderConfig;
   std::unique_ptr<render::Rasterizer> rasterizer;
 
   std::unique_ptr<Camera> camera;
+
+  SDL_Window* window = nullptr;
 
   glm::ivec2 mousePosition;
 
@@ -39,20 +47,18 @@ protected:
 
   virtual void renderFrame() = 0;
 
-  virtual void handleKeyboard(unsigned char key, int x, int y);
+  virtual void handleKeyboard(unsigned char key, const glm::ivec2& mousePosition);
 
-  virtual void handleMouse(int button, int state, int x, int y);
+  virtual void handleMouse(int button, int state, const glm::ivec2& mousePosition);
 
-  virtual void handleMotion(int x, int y);
+  virtual void handleMotion(const glm::ivec2& mousePosition);
+
+  void blitSurface();
 
 private:
-  static GlutDemoApp *appInstance;
+  static DemoApp *appInstance;
 
-  static void glutDisplay();
-  static void glutIdle();
-  static void glutKeyboard(unsigned char key, int x, int y);
-  static void glutMotion(int x, int y);
-  static void glutMouse(int button, int state, int x, int y);
+  void handleEvents();
 };
 
 #endif // GFX1993_GLUTDEMOAPP_H

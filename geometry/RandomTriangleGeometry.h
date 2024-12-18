@@ -25,7 +25,7 @@ public:
 private:
   glm::vec3 boundsMin, boundsMax;
 
-  render::Vertex &&createRandomVertex() const;
+  render::Vertex createRandomVertex() const;
 
   void addTriangle(const Vertex &a, const Vertex &b, const Vertex &c);
 };

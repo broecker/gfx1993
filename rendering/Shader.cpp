@@ -7,7 +7,7 @@ using glm::vec4;
 
 namespace render {
 
-VertexOut &&DefaultVertexTransform::transformSingle(const Vertex &in) {
+VertexOut DefaultVertexTransform::transformSingle(const Vertex &in) {
   mat4 modelViewProjectionMatrix = projectionMatrix * viewMatrix * modelMatrix;
   // mat3 normalMatrix =
   // glm::inverse(glm::transpose(glm::mat3(modelViewMatrix)));
@@ -21,19 +21,19 @@ VertexOut &&DefaultVertexTransform::transformSingle(const Vertex &in) {
   result.color = in.color;
   result.texcoord = in.texcoord;
 
-  return std::move(result);
+  return result;
 }
 
-Fragment &&InputColorShader::shadeSingle(const ShadingGeometry &in) {
+Fragment InputColorShader::shadeSingle(const ShadingGeometry &in) {
   return std::move(Fragment{in.color});
 }
 
-Fragment &&NormalColorShader::shadeSingle(const ShadingGeometry &in) {
+Fragment NormalColorShader::shadeSingle(const ShadingGeometry &in) {
   vec3 c = abs(normalize(in.normal));
   return std::move(Fragment{vec4(c, 1.f)});
 }
 
-Fragment &&SingleColorShader::shadeSingle(const ShadingGeometry &in) {
+Fragment SingleColorShader::shadeSingle(const ShadingGeometry &in) {
   return std::move(Fragment{color});
 }
 

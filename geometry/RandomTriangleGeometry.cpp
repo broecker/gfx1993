@@ -47,7 +47,7 @@ void RandomTriangleGeometry::clear() {
   vertices.clear();
 }
 
-Vertex &&RandomTriangleGeometry::createRandomVertex() const {
+Vertex RandomTriangleGeometry::createRandomVertex() const {
   vec3 pos = glm::linearRand(boundsMin, boundsMax);
   vec3 normal = glm::ballRand(1.f);
 
