@@ -11,8 +11,8 @@ namespace {
 static const int GLUT_MOUSEWHEEL_DOWN = 3;
 static const int GLUT_MOUSEWHEEL_UP = 4;
 
-static const int WIDTH_VGA = 640;
-static const int HEIGHT_VGA = 480;
+static const int WIDTH_VGA = 320;
+static const int HEIGHT_VGA = 240;
 
 }  // namespace
 
@@ -33,6 +33,7 @@ DemoApp::DemoApp(const std::string &name)
                                          30.0f);
 
   srand(time(0));
+  handleResize(width, height);
 }
 
 void DemoApp::run(int argc, char **argv) {
@@ -41,7 +42,7 @@ void DemoApp::run(int argc, char **argv) {
 		return;
 	}
 
-	window = SDL_CreateWindow(name.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, SDL_WINDOW_SHOWN );
+	window = SDL_CreateWindow(name.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE );
 	if (window == nullptr) {
 		std::cerr << "Error creating SDL window: " << SDL_GetError() << std::endl;
 		return;
@@ -90,13 +91,25 @@ void DemoApp::blitSurface() {
 
   SDL_LockSurface(surface);
 
-  // This is messy -- ideally we should already write as uint8 in the last step in the rasterizer.
-  std::vector<uint8_t> pixels = renderConfig.framebuffer->getUint8RgbaBuffer();
+  // Resample buffer and switch to BGRA format.
+  for (unsigned int w = 0; w < width; ++w) {
+    for (unsigned int h = 0; h < height; ++h) {
+      glm::vec2 coord(static_cast<float>(w) / width,
+                      static_cast<float>(h) / height);
 
-  // Switch to BGRA
-  for (size_t i = 0; i < pixels.size(); i += 4) {
-    std::swap(pixels[i+0], pixels[i+2]);
+      const glm::vec4& pixel = renderConfig.framebuffer->getPixel(coord);
+      SDL_Color& c = pixels[w + h*width];
+
+      // Also switch to BGRA.
+      c.r = static_cast<Uint8>(pixel.b * 255);
+      c.g = static_cast<Uint8>(pixel.g * 255);
+      c.b = static_cast<Uint8>(pixel.r * 255);
+      c.a = static_cast<Uint8>(pixel.a * 255);
+    }
   }
+
+  //std::cout << "Src: " << renderConfig.framebuffer->getWidth() << "x" << renderConfig.framebuffer->getHeight() << "; dest: " << surface->w << "x" << surface->h << std::endl;
+  
   memcpy(surface->pixels, &pixels[0], pixels.size());
 
   // Does not work.
@@ -139,6 +152,13 @@ void DemoApp::handleEvents() {
     if (event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP) {
       appInstance->handleMouse(event.button.button, event.button.state, glm::ivec2(event.button.x, event.button.y));
     }
+
+    if (event.type == SDL_WINDOWEVENT) {
+      if (event.window.event ==  SDL_WINDOWEVENT_RESIZED) {
+        handleResize(event.window.data1, event.window.data2);
+        std::cout << "Resized window to " << event.window.data1 << "x" << event.window.data2 << std::endl;
+      }
+    }
   }
 }
 
@@ -165,4 +185,10 @@ void DemoApp::handleMotion(const glm::ivec2& newMousePosition) {
 void DemoApp::updateFrame(float dt)
 {
   rasterizer->resetDebugInfo();
+}
+
+void DemoApp::handleResize(unsigned int w, unsigned int h) {
+  pixels.resize(w*h*4);
+  width = w;
+  height = h;
 }

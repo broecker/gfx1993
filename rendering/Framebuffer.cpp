@@ -17,6 +17,17 @@ void Framebuffer::plot(unsigned int x, unsigned int y, const glm::vec4 &c) {
   }
 }
 
+const glm::vec4& Framebuffer::getPixel(const glm::vec2& p) const {
+  // clamp u and v
+  float u = glm::clamp(p.x, 0.f, 1.f);
+  float v = glm::clamp(p.y, 0.f, 1.f);
+
+  int x = std::floor(u * (width-1));
+  int y = std::floor(v * (height-1));
+
+  return getPixel(x, y);
+}
+
 void Framebuffer::fillUint8RgbaBuffer(uint8_t* buffer) const {
   size_t idx = 0;
   for (unsigned int i = 0; i < width*height; ++i) {

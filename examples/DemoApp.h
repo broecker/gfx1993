@@ -23,7 +23,6 @@ public:
   virtual void run(int argc, char **argv);
 
 protected:
-  std::string name;
   int width, height;
 
   bool running;
@@ -36,8 +35,6 @@ protected:
   std::unique_ptr<render::Rasterizer> rasterizer;
 
   std::unique_ptr<Camera> camera;
-
-  SDL_Window* window = nullptr;
 
   glm::ivec2 mousePosition;
 
@@ -53,12 +50,21 @@ protected:
 
   virtual void handleMotion(const glm::ivec2& mousePosition);
 
-  void blitSurface();
-
 private:
   static DemoApp *appInstance;
 
+  std::string name;
+
+  SDL_Window* window = nullptr;
+  // This is the raw pixel buffer we will display. It has been converted
+  // from the interal float rgba format.
+  std::vector<SDL_Color> pixels;
+
+  void blitSurface();
+
   void handleEvents();
+
+  void handleResize(unsigned int width, unsigned int height);
 };
 
 #endif // GFX1993_GLUTDEMOAPP_H

@@ -34,6 +34,9 @@ public:
     return data[x + y * width];
   }
 
+  // Nearest-lookup, based on relative coordinates.
+  const glm::vec4& getPixel(const glm::vec2& p) const;
+
   inline const glm::vec4 *getPixels() const { return &data[0]; }
 
   void fillUint8RgbaBuffer(uint8_t* buffer) const;
