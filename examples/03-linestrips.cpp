@@ -60,7 +60,6 @@ protected:
         std::make_shared<render::DefaultVertexTransform>();
     renderConfig.fragmentShader =
         std::make_shared<render::SingleColorShader>(glm::vec4(0, 0, 1, 1));
-    ;
 
     sphere = std::make_unique<WireSphere>(10.0f);
     camera = std::make_unique<OrbitCamera>(glm::vec3(0, 0, 0),

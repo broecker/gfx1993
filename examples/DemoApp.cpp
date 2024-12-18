@@ -19,7 +19,7 @@ static const int HEIGHT_VGA = 480;
 DemoApp *DemoApp::appInstance = nullptr;
 DemoApp::DemoApp(const std::string &name)
     : name(name), width(WIDTH_VGA), height(HEIGHT_VGA),
-      logFrameTime(true) {
+      logFrameTime(true), mousePosition(0,0) {
   rasterizer = std::make_unique<render::Rasterizer>();
 
   renderConfig.viewport =
@@ -128,8 +128,6 @@ void DemoApp::handleEvents() {
 void DemoApp::handleKeyboard(unsigned char key, const glm::ivec2& mousePosition) {}
 
 void DemoApp::handleMouse(int button, int state, const glm::ivec2& mousePosition) {
-  std::cout << "[DemoApp] Mouse: [" << mousePosition.x << "," << mousePosition.y << "] " << button << ": " << state << std::endl;
-
   this->mousePosition = mousePosition;
 
   if (button == GLUT_MOUSEWHEEL_DOWN && state == 1) {
@@ -142,12 +140,8 @@ void DemoApp::handleMouse(int button, int state, const glm::ivec2& mousePosition
 }
 
 void DemoApp::handleMotion(const glm::ivec2& newMousePosition) {
-  std::cout << "[DemoApp] Motion: [" << mousePosition.x << "," << mousePosition.y << " <- " << newMousePosition.x << "," << newMousePosition.y << "]\n";
-  
   const glm::ivec2 delta = newMousePosition - mousePosition;
   this->mousePosition = newMousePosition;
-
-  std::cout << "[DemoApp] Motion: [" << mousePosition.x << "," << mousePosition.y << " / " << delta.x << "," << delta.y << "]\n";
   camera->handleMouseMove(delta);
 }
 
