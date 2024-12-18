@@ -4,6 +4,8 @@
 #include <iostream>
 #include <iomanip>
 
+#include <glm/ext.hpp>
+
 namespace {
 
 static const int GLUT_MOUSEWHEEL_DOWN = 3;
@@ -110,21 +112,15 @@ void DemoApp::handleEvents() {
         break;
       }
 
-      // appInstance->handleKeyboard(event.key.keysym.sym, mousePosition);
+      appInstance->handleKeyboard(event.key.keysym.sym, mousePosition);
     }
 
     if (event.type == SDL_MOUSEMOTION) {
-      mousePosition.x = event.motion.x;
-      mousePosition.y = event.motion.y;
-      
-      // appInstance->handleMotion(mousePosition);
+      appInstance->handleMotion(glm::ivec2(event.motion.x, event.motion.y));
     }
 
     if (event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP) {
-      mousePosition.x = event.button.x;
-      mousePosition.y = event.button.y;
-
-      // appInstance->handleMouse(event.button.button, event.button.state, mousePosition);
+      appInstance->handleMouse(event.button.button, event.button.state, glm::ivec2(event.button.x, event.button.y));
     }
   }
 }
@@ -132,6 +128,8 @@ void DemoApp::handleEvents() {
 void DemoApp::handleKeyboard(unsigned char key, const glm::ivec2& mousePosition) {}
 
 void DemoApp::handleMouse(int button, int state, const glm::ivec2& mousePosition) {
+  std::cout << "[DemoApp] Mouse: [" << mousePosition.x << "," << mousePosition.y << "] " << button << ": " << state << std::endl;
+
   this->mousePosition = mousePosition;
 
   if (button == GLUT_MOUSEWHEEL_DOWN && state == 1) {
@@ -144,10 +142,12 @@ void DemoApp::handleMouse(int button, int state, const glm::ivec2& mousePosition
 }
 
 void DemoApp::handleMotion(const glm::ivec2& newMousePosition) {
-  glm::ivec2 current = newMousePosition;
-  glm::ivec2 delta = current - mousePosition;
-  mousePosition = current;
+  std::cout << "[DemoApp] Motion: [" << mousePosition.x << "," << mousePosition.y << " <- " << newMousePosition.x << "," << newMousePosition.y << "]\n";
+  
+  const glm::ivec2 delta = newMousePosition - mousePosition;
+  this->mousePosition = newMousePosition;
 
+  std::cout << "[DemoApp] Motion: [" << mousePosition.x << "," << mousePosition.y << " / " << delta.x << "," << delta.y << "]\n";
   camera->handleMouseMove(delta);
 }
 

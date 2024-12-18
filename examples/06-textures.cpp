@@ -17,14 +17,17 @@ public:
 
   render::Fragment shadeSingle(const render::ShadingGeometry &in) override {
     render::Fragment fragment;
+    fragment.color = glm::vec4(1,0,1,1);
 
     if (texture) {
+      std::cout << "[TexShader] accessing texture " << texture->getId() << "\n";
       fragment.color = texture->getTexel(in.texcoord);
     }
     return fragment;
   }
 
   inline void setTexture(std::shared_ptr<render::Texture> texture) {
+    std::cout << "[TexShader] Updating texture; " << texture.use_count() << " \n";
     this->texture = texture;
   }
 
@@ -49,6 +52,7 @@ protected:
   void init() override {
     textureShader = std::make_shared<TextureShader>();
     texCoordShader = std::make_shared<TexCoordShader>();
+    missingTextureShader = std::make_shared<render::SingleColorShader>(glm::vec4(1.0, 0.0, 1.0, 1.0));
 
     renderConfig.vertexShader =
         std::make_shared<render::DefaultVertexTransform>();
@@ -84,27 +88,23 @@ protected:
     }
   }
 
-  void handleKeyboard(unsigned char key, int x, int y) {
+  void handleKeyboard(unsigned char key, const glm::ivec2& mouse) override {
     if (key == 'c') {
-      textureShader->setTexture(render::Texture::makeCheckerboard(
+      texture = render::Texture::makeCheckerboard(
           64, 64, 8, glm::vec4(1.f, 0.f, 0.f, 1.f),
-          glm::vec4(1.f, 1.f, 0.f, 1.f)));
-      renderConfig.fragmentShader = textureShader;
-    }
-
-    if (key == 'f') {
-      textureShader->setTexture(render::Texture::loadPPM("./colors.ppm"));
-      renderConfig.fragmentShader = textureShader;
+          glm::vec4(1.f, 1.f, 0.f, 1.f));
+      updateTexture();
     }
 
     if (key == 'l') {
-      textureShader->setTexture(render::Texture::loadPPM("./lenna.ppm"));
-      renderConfig.fragmentShader = textureShader;
+      texture = render::Texture::loadPPM("./lenna.ppm");
+      updateTexture();
     }
 
     // Set texture coord debugging shader.
     if (key == 't') {
       renderConfig.fragmentShader = texCoordShader;
+      texture = nullptr;
     }
   }
 
@@ -112,6 +112,19 @@ private:
   std::unique_ptr<geometry::Quad> quad;
   std::shared_ptr<TextureShader> textureShader;
   std::shared_ptr<TexCoordShader> texCoordShader;
+  std::shared_ptr<render::SingleColorShader> missingTextureShader;
+
+  std::shared_ptr<render::Texture> texture = nullptr;
+
+
+  void updateTexture() {
+    if (texture) {
+        textureShader->setTexture(texture);
+        renderConfig.fragmentShader = textureShader;
+      } else {
+        renderConfig.fragmentShader = missingTextureShader;
+      }
+  }
 };
 
 int main(int argc, char **argv) {

@@ -5,14 +5,16 @@
 #include "Texture.h"
 
 #include <cmath>
+#include <iostream>
 #include <fstream>
 #include <memory>
 
 namespace render {
 
-Texture::Texture(int width, int height) : width(width), height(height) {
+Texture::Texture(unsigned int width, unsigned int height,
+                 const std::string& id) : width(width), height(height), id(id) {
   data = new glm::vec4[width * height];
-  for (int i = 0; i < width * height; ++i) {
+  for (unsigned int i = 0; i < width * height; ++i) {
     data[i] = glm::vec4(0, 0, 0, 1);
   }
 }
@@ -24,34 +26,35 @@ const glm::vec4 &Texture::getTexel(const glm::vec2 &texCoords) const {
   float u = glm::clamp(texCoords.x, 0.f, 1.f);
   float v = glm::clamp(texCoords.y, 0.f, 1.f);
 
-  int x = std::floor(u * width);
-  int y = std::floor(v * height);
+  int x = std::floor(u * (width-1));
+  int y = std::floor(v * (height-1));
 
   return getTexel(x, y);
 }
 
-std::unique_ptr<Texture> Texture::makeFlat(int width, int height,
+std::unique_ptr<Texture> Texture::makeFlat(unsigned int width, unsigned int height,
                                            const glm::vec4 &fillColor) {
   // Constructor is private so we cannot call make_unique...
-  std::unique_ptr<Texture> texture(new Texture(width, height));
+  std::unique_ptr<Texture> texture(new Texture(width, height, "Flat"));
 
-  for (int i = 0; i < width * height; ++i) {
+  for (unsigned int i = 0; i < width * height; ++i) {
     texture->data[i] = fillColor;
   }
 
   return texture;
 }
 
-std::unique_ptr<Texture> Texture::makeCheckerboard(int width, int height,
-                                                   int checkerSize,
+std::unique_ptr<Texture> Texture::makeCheckerboard(unsigned int width, 
+                                                   unsigned int height,
+                                                   unsigned int checkerSize,
                                                    const glm::vec4 &a,
                                                    const glm::vec4 &b) {
   // Constructor is private so we cannot call make_unique...
-  std::unique_ptr<Texture> texture(new Texture(width, height));
+  std::unique_ptr<Texture> texture(new Texture(width, height, "Checkerboard"));
 
   int color = 0;
-  for (int y = 0; y < height; ++y) {
-    for (int x = 0; x < width; ++x) {
+  for (unsigned int y = 0; y < height; ++y) {
+    for (unsigned int x = 0; x < width; ++x) {
 
       // Switch colors
       if (x % checkerSize == 0) {
@@ -74,9 +77,11 @@ std::unique_ptr<Texture> Texture::makeCheckerboard(int width, int height,
 }
 
 std::unique_ptr<Texture> Texture::loadPPM(const std::string &filename) {
-  std::ifstream file(filename);
+  std::cout << "[Texture] Loading file " << filename << " ... \n";
 
+  std::ifstream file(filename);
   if (!file.is_open()) {
+    std::cerr << "[Texture] Unable to open file.\n";
     return nullptr;
   }
 
@@ -84,6 +89,7 @@ std::unique_ptr<Texture> Texture::loadPPM(const std::string &filename) {
   file >> header;
 
   if (header != "P3") {
+    std::cerr << "[Texture] Invalid PPM header.\n";
     return nullptr;
   }
 
@@ -91,14 +97,16 @@ std::unique_ptr<Texture> Texture::loadPPM(const std::string &filename) {
   file >> width >> height >> maxVal;
 
   // Constructor is private so we cannot call make_unique...
-  std::unique_ptr<Texture> texture(new Texture(width, height));
+  std::unique_ptr<Texture> texture(new Texture(width, height, filename));
 
+  std::cout << "[Texture] " << width << "x" << height << "; setting data.\n";
   for (int i = 0; i < width * height; ++i) {
     int r, g, b;
     file >> r >> g >> b;
     texture->data[i] = glm::vec4(glm::vec3(r, g, b) / (float)maxVal, 1);
   }
 
+  std::cout << "[Texture] Loaded successfully.\n";
   return texture;
 }
 

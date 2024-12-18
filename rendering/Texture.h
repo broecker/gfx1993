@@ -5,6 +5,7 @@
 #define GFX1993_TEXTURE_H
 
 #include <memory>
+#include <string>
 
 #include <glm/glm.hpp>
 
@@ -16,27 +17,34 @@ public:
 
   const glm::vec4 &getTexel(const glm::vec2 &texCoords) const;
 
-  static std::unique_ptr<Texture> makeFlat(int width, int height,
+  const std::string& getId() const { return id; }
+
+  static std::unique_ptr<Texture> makeFlat(unsigned int width, unsigned int height,
                                            const glm::vec4 &fillColor);
 
-  static std::unique_ptr<Texture> makeCheckerboard(int width, int height,
-                                                   int checkerSize,
+  static std::unique_ptr<Texture> makeCheckerboard(unsigned int width,
+                                                   unsigned int height,
+                                                   unsigned int checkerSize,
                                                    const glm::vec4 &a,
                                                    const glm::vec4 &b);
 
   static std::unique_ptr<Texture> loadPPM(const std::string &filename);
 
 private:
-  int width, height;
+  unsigned int width, height;
   glm::vec4 *data;
 
-  explicit Texture(int width, int height);
+  std::string id;
+
+  explicit Texture(unsigned int width, unsigned int height, const std::string& id);
 
   inline const glm::vec4 &getTexel(int x, int y) const {
-    return data[x + y * width];
+    const size_t idx = x+y * width;
+    assert(idx < width*height);
+    return data[idx];
   }
 
-  inline void setTexel(int x, int y, const glm::vec4 &c) {
+  inline void setTexel(unsigned int x, unsigned int y, const glm::vec4 &c) {
     data[x + y * width] = c;
   }
 };
