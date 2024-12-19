@@ -17,8 +17,8 @@ The project's build file can be created using cmake. Tested on Ubuntu without pr
 
 Dependencies: 
 - libglm
-- glut/freeglut
-- GLU and and OpenGL
+- SDL2
+- libabsl
 
 ## TODOs
 This is an unsorted list of outstanding tasks.
