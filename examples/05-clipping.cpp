@@ -265,6 +265,10 @@ protected:
       clippingPlane->enabled = !clippingPlane->enabled;
     }
 
+    if (key == 'd') {
+      rasterizer->getClipper().toggleDebug();
+    }
+
     if (key == 'z') {
       clippingPlane->moveAlongNormal(0.1f);
     }

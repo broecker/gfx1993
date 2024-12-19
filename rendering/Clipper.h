@@ -50,11 +50,13 @@ public:
   TrianglePrimitiveList
   clipTrianglesToNdc(const TrianglePrimitiveList &triangles) const;
 
+  void toggleDebug() const { debugColorClips = !debugColorClips; }
+
 private:
   std::vector<Plane> planes;
 
   // If set, colors created triangles in yellow;
-  bool debugColorClips = false;
+  mutable bool debugColorClips = false;
   glm::vec4 debugClipColor = glm::vec4(1,0,1,1);
 };
 

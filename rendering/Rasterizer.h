@@ -46,6 +46,8 @@ public:
   inline RenderProfile& getProfile() { return profileInfo; }
   inline DebugInfo& getDebugInfo() { return debugInfo; }
 
+  const Clipper& getClipper() const { return clipper; }
+
 private:
   // Draws a line after it was clipped to the Viewport.
   void drawLine(const RenderConfig &renderConfig,
