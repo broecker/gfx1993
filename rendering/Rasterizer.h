@@ -43,7 +43,7 @@ public:
 
   inline void resetDebugInfo() { debugInfo.reset(); profileInfo.reset(); }
 
-  inline void printProfile() const { profileInfo.print(); }
+  inline RenderProfile& getProfile() { return profileInfo; }
 
 private:
   // Draws a line after it was clipped to the Viewport.

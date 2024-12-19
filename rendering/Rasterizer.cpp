@@ -27,13 +27,13 @@ void Rasterizer::drawPoints(const RenderConfig &renderConfig,
 
 
   // Vertex transform.
-  auto vertexTransformProf = profileInfo.startTiming("vertexTransform.points");
+  auto vertexTransformProf = profileInfo.startTiming("rasterize.points.transform");
   VertexOutList transformedVertices =
       transformVertices(vertices, renderConfig.vertexShader);
   profileInfo.endTiming(vertexTransformProf);
 
   // Primitive assembly
-  auto primitiveAssemblyProf = profileInfo.startTiming("primitiveAssembly.points");
+  auto primitiveAssemblyProf = profileInfo.startTiming("rasterize.points.assembly");
   PointPrimitiveList points;
   for (size_t i = 0; i < indices.size(); ++i) {
     points.push_back(PointPrimitive(transformedVertices[indices[i]]));
@@ -41,7 +41,7 @@ void Rasterizer::drawPoints(const RenderConfig &renderConfig,
   profileInfo.endTiming(primitiveAssemblyProf);
 
   // Clipping
-  auto clipPerspectiveProf = profileInfo.startTiming("clip.point");
+  auto clipPerspectiveProf = profileInfo.startTiming("rasterize.points.clips");
   PointPrimitiveList clipped = clipper.clipPointsToNdc(points);
 
   // Perspective divide
@@ -54,7 +54,7 @@ void Rasterizer::drawPoints(const RenderConfig &renderConfig,
   profileInfo.endTiming(clipPerspectiveProf);
 
   // Rasterization
-  auto rasterProf = profileInfo.startTiming("rasterize.points");
+  auto rasterProf = profileInfo.startTiming("rasterize.points.shade");
   for (const auto &p : clipped) {
     const vec3 pos_win =
         renderConfig.viewport->calculateWindowCoordinates(p.p.clipPosition);
@@ -103,15 +103,16 @@ void Rasterizer::drawLines(const RenderConfig &renderConfig,
     std::cerr << "Invalid render configuration!\n";
     return;
   }
+  auto rasterLinesProf = profileInfo.startTiming("rasterize.lines");
 
   // Vertex transformation
-  auto vertexTransformProf = profileInfo.startTiming("vertexTransform.lines");
+  auto vertexTransformProf = profileInfo.startTiming("rasterize.lines.transform");
   VertexOutList transformedVertices =
       transformVertices(vertices, renderConfig.vertexShader);
   profileInfo.endTiming(vertexTransformProf);
 
   // Primitive assembly
-  auto lineAssemblyProf = profileInfo.startTiming("primitiveAssembly.lines");
+  auto lineAssemblyProf = profileInfo.startTiming("rasterize.lines.assembly");
   LinePrimitiveList lines;
   for (size_t i = 0; i < indices.size(); i += 2) {
     const VertexOut &a = transformedVertices[indices[i + 0]];
@@ -121,7 +122,7 @@ void Rasterizer::drawLines(const RenderConfig &renderConfig,
   profileInfo.endTiming(lineAssemblyProf);
 
   // Clipping
-  auto lineClipProf = profileInfo.startTiming("clip.lines");
+  auto lineClipProf = profileInfo.startTiming("rasterize.lines.clip");
   LinePrimitiveList clipped = clipper.clipLines(lines);
 
   // Perspective divide
@@ -138,12 +139,13 @@ void Rasterizer::drawLines(const RenderConfig &renderConfig,
 
 
   // Rasterization
-  auto rasterLineProf = profileInfo.startTiming("rasterize.lines");
+  auto rasterLineProf = profileInfo.startTiming("rasterize.lines.shade");
   for (const auto &line : clipped) {
     drawLine(renderConfig, line);
     ++debugInfo.linesDrawn;
   }
   profileInfo.endTiming(rasterLineProf);
+  profileInfo.endTiming(rasterLinesProf);
 }
 
 void Rasterizer::drawLineStrip(const RenderConfig &renderConfig,
@@ -169,15 +171,16 @@ void Rasterizer::drawTriangles(const RenderConfig &renderConfig,
     std::cerr << "Invalid render configuration!\n";
     return;
   }
+  auto rasterTriProf = profileInfo.startTiming("rasterize.tris");
 
   // transform vertices
-  auto triTransform = profileInfo.startTiming("vertexTransform.triangles");
+  auto triTransform = profileInfo.startTiming("rasterize.tris.transform");
   VertexOutList transformedVertices =
       transformVertices(vertices, renderConfig.vertexShader);
   profileInfo.endTiming(triTransform);
 
   // Primitive assembly.
-  auto triAssembly = profileInfo.startTiming("primitiveAssembly.triangles");
+  auto triAssembly = profileInfo.startTiming("rasterize.tris.assembly");
   TrianglePrimitiveList triangles;
   // https://www.gamasutra.com/view/news/168577/Indepth_Software_rasterizer_and_triangle_clipping.php
   // https://fgiesen.wordpress.com/2011/07/05/a-trip-through-the-graphics-pipeline-2011-part-5/
@@ -191,7 +194,7 @@ void Rasterizer::drawTriangles(const RenderConfig &renderConfig,
 
   // At this point all triangles are in clip space [-1 .. 1] and can be clipped
   // to NDC.
-  auto clipTris = profileInfo.startTiming("clip.triangles");
+  auto clipTris = profileInfo.startTiming("rasterize.tris.clip");
   TrianglePrimitiveList clipped = clipper.clipTrianglesToNdc(triangles);
 
   // Perspective divide
@@ -204,12 +207,13 @@ void Rasterizer::drawTriangles(const RenderConfig &renderConfig,
   }
   profileInfo.endTiming(clipTris);
 
-  auto rasterTris = profileInfo.startTiming("raster.triangles");
+  auto rasterTris = profileInfo.startTiming("rasterize.tris.shade");
   for (const TrianglePrimitive &triangle : clipped) {
     drawTriangle(renderConfig, triangle);
     ++debugInfo.trianglesDrawn;
   }
   profileInfo.endTiming(rasterTris);
+  profileInfo.endTiming(rasterTriProf);
 }
 
 // Bresenham line drawing

@@ -28,7 +28,17 @@ void RenderProfile::endTiming(const ProfileMarker& marker) {
 }
 
 void RenderProfile::print() const {
-  printf("[Profile] Rasterizer profile:\n");
+  printf("Rasterizer profile:\n");
+
+  // We have a key hierarchy; e.g. app.blit.copy
+  // which we want to display/expand as:
+  // app       ....
+  //   .blit   ....
+  //     .copy ....
+  // TODO: auto aggregate higher ups. 
+  // We should still be able to rely on the key sorting
+  // to get the initial hierarchy.
+
   for (const auto& stat : stats) {
     uint32_t min = std::numeric_limits<uint32_t>::max();
     uint32_t max = std::numeric_limits<uint32_t>::min();
@@ -41,6 +51,6 @@ void RenderProfile::print() const {
 
     float mean = static_cast<float>(sum) / stat.second.samples.size();
     
-    printf("%28s: %5.2fms\t[%5d-%5d]; %lu samples\n", stat.first.c_str(), mean, min, max, stat.second.samples.size());
+    printf("%-28s: %5.2fms\t[%5d-%5d]; %lu samples\n", stat.first.c_str(), mean, min, max, stat.second.samples.size());
   } 
 }

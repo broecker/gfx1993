@@ -73,7 +73,7 @@ void DemoApp::run(int argc, char **argv) {
 		if ((nowTicks - lastSecond) > 1000) {
       if (appInstance->logFrameTime) {
 			  std::cout << "FPS: " << std::setw(3) << frames << " [avg: " << std::setprecision(4) << static_cast<float>(totalFrames) / (nowTicks - startTicks) * 1000  << "\ttotal frames: " << std::setw(5) << totalFrames << ", time: " << std::setprecision(5) <<  static_cast<float>(nowTicks - startTicks) / 1000 << "s]\tdt: " << std::setprecision(5) << dt << std::endl;
-        rasterizer->printProfile();
+        rasterizer->getProfile().print();
         rasterizer->resetDebugInfo();
       }
 			frames = 0;
@@ -86,11 +86,13 @@ void DemoApp::run(int argc, char **argv) {
 }
 
 void DemoApp::blitSurface() {
-  SDL_Surface* surface = SDL_GetWindowSurface(window);
+  auto blitProf = rasterizer->getProfile().startTiming("app.blit");
 
+  SDL_Surface* surface = SDL_GetWindowSurface(window);
   SDL_LockSurface(surface);
 
   // Resample buffer and switch to BGRA format.
+  auto resampleProf = rasterizer->getProfile().startTiming("app.blit.resample");
   for (unsigned int w = 0; w < width; ++w) {
     for (unsigned int h = 0; h < height; ++h) {
       glm::vec2 coord(static_cast<float>(w) / width,
@@ -107,9 +109,10 @@ void DemoApp::blitSurface() {
       c.a = static_cast<Uint8>(pixel.a * 255);
     }
   }
+  rasterizer->getProfile().endTiming(resampleProf);
+  auto copyProf = rasterizer->getProfile().startTiming("app.blit.copy");
 
   //std::cout << "Src: " << renderConfig.framebuffer->getWidth() << "x" << renderConfig.framebuffer->getHeight() << "; dest: " << surface->w << "x" << surface->h << std::endl;
-  
   memcpy(surface->pixels, &pixels[0], pixels.size());
 
   // Does not work.
@@ -122,10 +125,15 @@ void DemoApp::blitSurface() {
   //                   surface->pixels,
   //                   surface->pitch);
 
+  rasterizer->getProfile().endTiming(copyProf);
+
   SDL_UnlockSurface(surface);
+  rasterizer->getProfile().endTiming(blitProf);
 }
 
 void DemoApp::handleEvents() {
+  auto eventProf = rasterizer->getProfile().startTiming("app.events");
+
   SDL_Event event;
   while (SDL_PollEvent(&event)) {
     if (event.type == SDL_QUIT) {
@@ -169,6 +177,8 @@ void DemoApp::handleEvents() {
       }
     }
   }
+
+  rasterizer->getProfile().endTiming(eventProf);
 }
 
 void DemoApp::handleKeyboard(unsigned char key, const glm::ivec2& mousePosition) {}
