@@ -14,9 +14,23 @@ struct Stat {
   void add(uint32_t duration) { samples.push_back(duration); }
 };
 
-struct ProfileMarker {
+class RenderProfile;
+
+// A RAII marker.
+class ProfileMarker {
+public:
+  ~ProfileMarker();
+
+private:
+  friend class RenderProfile;
+  ProfileMarker(const std::string& name, RenderProfile* owner);
+
   std::string name;
   uint32_t    startTime;
+
+  // The profile that created this marker. We'll register the
+  // time on destruction with this one.
+  RenderProfile* owner;
 };
 
 struct RenderProfile {
@@ -24,7 +38,9 @@ struct RenderProfile {
 
   void reset() { stats.clear(); }
 
-  ProfileMarker startTiming(const std::string& name) const;
+  inline ProfileMarker startTiming(const std::string& name) {
+    return ProfileMarker(name, this);
+  }
   void endTiming(const ProfileMarker& marker); 
 
   void print() const;

@@ -18,64 +18,72 @@ using glm::vec4;
 
 using namespace render;
 
+#define START_PROFILE(name) const auto profile_##name_start = profileInfo.startTiming(name)
+
 void Rasterizer::drawPoints(const RenderConfig &renderConfig,
                             const VertexList &vertices,
                             const IndexList &indices) const {
   if (!renderConfig.isValid()) {
     std::cerr << "Invalid render configuration!\n";
   }
-
+  START_PROFILE("rasterize.points");
 
   // Vertex transform.
-  auto vertexTransformProf = profileInfo.startTiming("rasterize.points.transform");
-  VertexOutList transformedVertices =
-      transformVertices(vertices, renderConfig.vertexShader);
-  profileInfo.endTiming(vertexTransformProf);
+  VertexOutList transformedVertices;
+  {
+    START_PROFILE("rasterize.points.transform");
+    transformedVertices = transformVertices(vertices, renderConfig.vertexShader);
+  }
 
   // Primitive assembly
-  auto primitiveAssemblyProf = profileInfo.startTiming("rasterize.points.assembly");
   PointPrimitiveList points;
-  for (size_t i = 0; i < indices.size(); ++i) {
-    points.push_back(PointPrimitive(transformedVertices[indices[i]]));
+  {
+    START_PROFILE("rasterize.points.assembly");
+    for (size_t i = 0; i < indices.size(); ++i) {
+      points.push_back(PointPrimitive(transformedVertices[indices[i]]));
+    }
   }
-  profileInfo.endTiming(primitiveAssemblyProf);
 
   // Clipping
-  auto clipPerspectiveProf = profileInfo.startTiming("rasterize.points.clips");
-  PointPrimitiveList clipped = clipper.clipPointsToNdc(points);
+  PointPrimitiveList clipped;
+  {
+    START_PROFILE("rasterize.points.clip");
+    clipped = clipper.clipPointsToNdc(points);
 
-  // Perspective divide
-  for (auto &p : clipped) {
-    if (p.p.clipPosition.w <= 0) {
-      std::cout << "p: " << p.p.clipPosition << std::endl;
+
+    // Perspective divide
+    for (auto &p : clipped) {
+      if (p.p.clipPosition.w <= 0) {
+        std::cout << "p: " << p.p.clipPosition << std::endl;
+      }
+      p.p.clipPosition /= p.p.clipPosition.w;
     }
-    p.p.clipPosition /= p.p.clipPosition.w;
   }
-  profileInfo.endTiming(clipPerspectiveProf);
 
   // Rasterization
-  auto rasterProf = profileInfo.startTiming("rasterize.points.shade");
-  for (const auto &p : clipped) {
-    const vec3 pos_win =
-        renderConfig.viewport->calculateWindowCoordinates(p.p.clipPosition);
+  {
+    START_PROFILE("rasterize.points.shade");
+    for (const auto &p : clipped) {
+      const vec3 pos_win =
+          renderConfig.viewport->calculateWindowCoordinates(p.p.clipPosition);
 
-    // If there is a depth buffer but the depth test fails -> discard fragment
-    // (early)
-    if (renderConfig.depthbuffer &&
-        !renderConfig.depthbuffer->conditionalPlot(pos_win))
-      continue;
+      // If there is a depth buffer but the depth test fails -> discard fragment
+      // (early)
+      if (renderConfig.depthbuffer &&
+          !renderConfig.depthbuffer->conditionalPlot(pos_win))
+        continue;
 
-    // calculate shading geometry
-    ShadingGeometry sgeo = p.rasterize();
-    sgeo.windowCoord = ivec2(pos_win);
-    sgeo.depth = pos_win.z;
+      // calculate shading geometry
+      ShadingGeometry sgeo = p.rasterize();
+      sgeo.windowCoord = ivec2(pos_win);
+      sgeo.depth = pos_win.z;
 
-    // shade fragment and plot
-    drawFragment(renderConfig, sgeo);
+      // shade fragment and plot
+      drawFragment(renderConfig, sgeo);
 
-    ++debugInfo.pointsDrawn;
+      ++debugInfo.pointsDrawn;
+    }
   }
-  profileInfo.endTiming(rasterProf);
 }
 
 VertexOutList Rasterizer::transformVertices(
@@ -103,49 +111,52 @@ void Rasterizer::drawLines(const RenderConfig &renderConfig,
     std::cerr << "Invalid render configuration!\n";
     return;
   }
-  auto rasterLinesProf = profileInfo.startTiming("rasterize.lines");
+  START_PROFILE("rasterize.lines");
 
   // Vertex transformation
-  auto vertexTransformProf = profileInfo.startTiming("rasterize.lines.transform");
-  VertexOutList transformedVertices =
-      transformVertices(vertices, renderConfig.vertexShader);
-  profileInfo.endTiming(vertexTransformProf);
+  VertexOutList transformedVertices;
+  transformedVertices.reserve(vertices.size());
+  {
+    START_PROFILE("rasterize.lines.transform");
+    transformedVertices = transformVertices(vertices, renderConfig.vertexShader);
+  }
 
   // Primitive assembly
-  auto lineAssemblyProf = profileInfo.startTiming("rasterize.lines.assembly");
   LinePrimitiveList lines;
-  for (size_t i = 0; i < indices.size(); i += 2) {
-    const VertexOut &a = transformedVertices[indices[i + 0]];
-    const VertexOut &b = transformedVertices[indices[i + 1]];
-    lines.push_back(LinePrimitive(a, b));
+  lines.reserve(indices.size()/2);
+  {
+    START_PROFILE("rasterize.lines.assembly");
+    for (size_t i = 0; i < indices.size(); i += 2) {
+      const VertexOut &a = transformedVertices[indices[i + 0]];
+      const VertexOut &b = transformedVertices[indices[i + 1]];
+      lines.push_back(LinePrimitive(a, b));
+    }
   }
-  profileInfo.endTiming(lineAssemblyProf);
 
   // Clipping
-  auto lineClipProf = profileInfo.startTiming("rasterize.lines.clip");
-  LinePrimitiveList clipped = clipper.clipLines(lines);
+  LinePrimitiveList clipped;
+  {
+    START_PROFILE("rasterize.lines.clip");
+    clipped = clipper.clipLines(lines);
 
-  // Perspective divide
-  for (auto &line : clipped) {
-    if (line.a.clipPosition.w < 0 || line.b.clipPosition.w < 0) {
-      std::cout << "a: " << line.a.clipPosition << " b: " << line.b.clipPosition
-                << std::endl;
+    // Perspective divide
+    for (auto &line : clipped) {
+      if (line.a.clipPosition.w < 0 || line.b.clipPosition.w < 0) {
+        std::cout << "a: " << line.a.clipPosition << " b: " << line.b.clipPosition
+                  << std::endl;
+      }
+
+      line.a.clipPosition /= line.a.clipPosition.w;
+      line.b.clipPosition /= line.b.clipPosition.w;
     }
-
-    line.a.clipPosition /= line.a.clipPosition.w;
-    line.b.clipPosition /= line.b.clipPosition.w;
   }
-  profileInfo.endTiming(lineClipProf);
-
 
   // Rasterization
-  auto rasterLineProf = profileInfo.startTiming("rasterize.lines.shade");
   for (const auto &line : clipped) {
+    START_PROFILE("rasterize.lines.shade");
     drawLine(renderConfig, line);
     ++debugInfo.linesDrawn;
   }
-  profileInfo.endTiming(rasterLineProf);
-  profileInfo.endTiming(rasterLinesProf);
 }
 
 void Rasterizer::drawLineStrip(const RenderConfig &renderConfig,
@@ -171,49 +182,54 @@ void Rasterizer::drawTriangles(const RenderConfig &renderConfig,
     std::cerr << "Invalid render configuration!\n";
     return;
   }
-  auto rasterTriProf = profileInfo.startTiming("rasterize.tris");
+  START_PROFILE("rasterize.tris");
 
   // transform vertices
-  auto triTransform = profileInfo.startTiming("rasterize.tris.transform");
-  VertexOutList transformedVertices =
-      transformVertices(vertices, renderConfig.vertexShader);
-  profileInfo.endTiming(triTransform);
+  VertexOutList transformedVertices;
+  {
+    START_PROFILE("rasterize.tris.transform");
+    transformedVertices =
+        transformVertices(vertices, renderConfig.vertexShader);
+  }
 
   // Primitive assembly.
-  auto triAssembly = profileInfo.startTiming("rasterize.tris.assembly");
   TrianglePrimitiveList triangles;
-  // https://www.gamasutra.com/view/news/168577/Indepth_Software_rasterizer_and_triangle_clipping.php
-  // https://fgiesen.wordpress.com/2011/07/05/a-trip-through-the-graphics-pipeline-2011-part-5/
-  for (size_t i = 0; i < indices.size(); i += 3) {
-    const VertexOut &a = transformedVertices[indices[i + 0]];
-    const VertexOut &b = transformedVertices[indices[i + 1]];
-    const VertexOut &c = transformedVertices[indices[i + 2]];
-    triangles.push_back(TrianglePrimitive(a, b, c));
+  {
+    START_PROFILE("rasterize.tris.assembly");
+    
+    // https://www.gamasutra.com/view/news/168577/Indepth_Software_rasterizer_and_triangle_clipping.php
+    // https://fgiesen.wordpress.com/2011/07/05/a-trip-through-the-graphics-pipeline-2011-part-5/
+    for (size_t i = 0; i < indices.size(); i += 3) {
+      const VertexOut &a = transformedVertices[indices[i + 0]];
+      const VertexOut &b = transformedVertices[indices[i + 1]];
+      const VertexOut &c = transformedVertices[indices[i + 2]];
+      triangles.push_back(TrianglePrimitive(a, b, c));
+    }
   }
-  profileInfo.endTiming(triAssembly);
 
   // At this point all triangles are in clip space [-1 .. 1] and can be clipped
   // to NDC.
-  auto clipTris = profileInfo.startTiming("rasterize.tris.clip");
-  TrianglePrimitiveList clipped = clipper.clipTrianglesToNdc(triangles);
+  TrianglePrimitiveList clipped;
+  {
+    START_PROFILE("rasterize.tris.clip");
+    clipped = clipper.clipTrianglesToNdc(triangles);
 
-  // Perspective divide
-  for (auto &triangle : clipped) {
-    triangle.a.clipPosition /= triangle.a.clipPosition.w;
-    triangle.b.clipPosition /= triangle.b.clipPosition.w;
-    triangle.c.clipPosition /= triangle.c.clipPosition.w;
+    // Perspective divide
+    for (auto &triangle : clipped) {
+      triangle.a.clipPosition /= triangle.a.clipPosition.w;
+      triangle.b.clipPosition /= triangle.b.clipPosition.w;
+      triangle.c.clipPosition /= triangle.c.clipPosition.w;
 
-    // TODO(mbroecker): Add backface culling here
+      // TODO(mbroecker): Add backface culling here
+    }
   }
-  profileInfo.endTiming(clipTris);
 
-  auto rasterTris = profileInfo.startTiming("rasterize.tris.shade");
+  // Rasteriszation.
   for (const TrianglePrimitive &triangle : clipped) {
+    START_PROFILE("rasterize.tris.shade");
     drawTriangle(renderConfig, triangle);
     ++debugInfo.trianglesDrawn;
   }
-  profileInfo.endTiming(rasterTris);
-  profileInfo.endTiming(rasterTriProf);
 }
 
 // Bresenham line drawing

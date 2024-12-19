@@ -9,11 +9,16 @@ using namespace render;
 
 static uint32_t getMilliseconds() {
   auto now = std::chrono::system_clock::now().time_since_epoch();
-  return std::chrono::duration_cast<std::chrono::milliseconds>(now).count();\
+  return std::chrono::duration_cast<std::chrono::milliseconds>(now).count();
 }
 
-ProfileMarker RenderProfile::startTiming(const std::string& name) const {
-  return ProfileMarker{.name=name, .startTime=getMilliseconds()};
+ProfileMarker::ProfileMarker(const std::string& name, RenderProfile* owner) : 
+  name(name), startTime(getMilliseconds()), owner(owner) {}
+
+ProfileMarker::~ProfileMarker() {
+  if (owner != nullptr) {
+    owner->endTiming(*this);
+  }
 }
 
 void RenderProfile::endTiming(const ProfileMarker& marker) {
