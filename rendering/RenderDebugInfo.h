@@ -5,28 +5,22 @@
 #ifndef GFX1993_RENDERDEBUGINFO_H
 #define GFX1993_RENDERDEBUGINFO_H
 
-namespace render
-{
+namespace render {
 
 // Contains rasterization debug information.
-struct DebugInfo
-{
+struct DebugInfo {
   // Rasterization information.
   int pointsDrawn = 0;
   int linesDrawn = 0;
   int trianglesDrawn = 0;
 
-
-
-  inline void reset()
-  {
+  inline void reset() {
     pointsDrawn = 0;
     linesDrawn = 0;
     trianglesDrawn = 0;
   }
-
 };
 
-}
+}  // namespace rendder
 
 #endif // GFX1993_RENDERDEBUGINFO_H

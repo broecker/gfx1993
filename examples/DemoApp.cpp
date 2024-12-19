@@ -73,6 +73,8 @@ void DemoApp::run(int argc, char **argv) {
 		if ((nowTicks - lastSecond) > 1000) {
       if (appInstance->logFrameTime) {
 			  std::cout << "FPS: " << std::setw(3) << frames << " [avg: " << std::setprecision(4) << static_cast<float>(totalFrames) / (nowTicks - startTicks) * 1000  << "\ttotal frames: " << std::setw(5) << totalFrames << ", time: " << std::setprecision(5) <<  static_cast<float>(nowTicks - startTicks) / 1000 << "s]\tdt: " << std::setprecision(5) << dt << std::endl;
+        rasterizer->printProfile();
+        rasterizer->resetDebugInfo();
       }
 			frames = 0;
 			lastSecond = nowTicks;
@@ -181,9 +183,7 @@ void DemoApp::handleMotion(const glm::ivec2& newMousePosition) {
   camera->handleMouseMove(delta);
 }
 
-void DemoApp::updateFrame(float dt)
-{
-  rasterizer->resetDebugInfo();
+void DemoApp::updateFrame(float dt) {
 }
 
 void DemoApp::handleResize(unsigned int w, unsigned int h) {
