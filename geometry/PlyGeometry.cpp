@@ -18,10 +18,10 @@ bool PlyGeometry::loadPly(const std::string &filename) {
 
   std::ifstream file(filename.c_str());
   if (!file.is_open()) {
-    std::cerr << "Unable to open file \"" << filename << "\"\n";
+    std::cerr << "[PlyGeometry] Unable to open file \"" << filename << "\"\n";
     return false;
   } else
-    std::clog << "Loading file " << filename << std::endl;
+    std::clog << "[PlyGeometry] Loading file " << filename << std::endl;
 
   std::string buffer;
 
@@ -74,17 +74,17 @@ bool PlyGeometry::loadPly(const std::string &filename) {
       indices.push_back(c);
 
       if (a >= vertices.size())
-        std::cerr << "Illegal index: " << a << "?\n";
+        std::cerr << "[PlyGeometry] Illegal index: " << a << "?\n";
 
       if (b >= vertices.size())
-        std::cerr << "Illegal index: " << b << "?\n";
+        std::cerr << "[PlyGeometry] Illegal index: " << b << "?\n";
 
       if (c >= vertices.size())
-        std::cerr << "Illegal index: " << c << "?\n";
+        std::cerr << "[PlyGeometry] Illegal index: " << c << "?\n";
     }
   }
 
-  std::clog << "Read " << vertices.size() << " vertices, " << indices.size()
+  std::clog << "[PlyGeometry] Read " << vertices.size() << " vertices, " << indices.size()
             << " indices" << std::endl;
 
   // calculate normals
@@ -105,7 +105,7 @@ bool PlyGeometry::loadPly(const std::string &filename) {
     c.normal += n;
   }
 
-  std::clog << "Renormalizing " << vertices.size() << " vertex normals."
+  std::clog << "[PlyGeometry] Renormalizing " << vertices.size() << " vertex normals."
             << std::endl;
   // scale normal to length 1;
   for (auto v : vertices) {

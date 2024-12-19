@@ -8,9 +8,6 @@
 
 namespace {
 
-static const int GLUT_MOUSEWHEEL_DOWN = 3;
-static const int GLUT_MOUSEWHEEL_UP = 4;
-
 static const int WIDTH_VGA = 320;
 static const int HEIGHT_VGA = 240;
 
@@ -98,7 +95,8 @@ void DemoApp::blitSurface() {
                       static_cast<float>(h) / height);
 
       const glm::vec4& pixel = renderConfig.framebuffer->getPixel(coord);
-      SDL_Color& c = pixels[w + h*width];
+      // Also flip the y-axis.
+      SDL_Color& c = pixels[w + (height-h)*width];
 
       // Also switch to BGRA.
       c.r = static_cast<Uint8>(pixel.b * 255);
@@ -153,6 +151,15 @@ void DemoApp::handleEvents() {
       appInstance->handleMouse(event.button.button, event.button.state, glm::ivec2(event.button.x, event.button.y));
     }
 
+    if (event.type == SDL_MOUSEWHEEL) {
+      if (event.wheel.y > 0) {
+        camera->handleKeyPress('a');
+      }
+      if (event.wheel.y < 0) {
+        camera->handleKeyPress('z');
+      }
+    }
+
     if (event.type == SDL_WINDOWEVENT) {
       if (event.window.event ==  SDL_WINDOWEVENT_RESIZED) {
         handleResize(event.window.data1, event.window.data2);
@@ -166,14 +173,6 @@ void DemoApp::handleKeyboard(unsigned char key, const glm::ivec2& mousePosition)
 
 void DemoApp::handleMouse(int button, int state, const glm::ivec2& mousePosition) {
   this->mousePosition = mousePosition;
-
-  if (button == GLUT_MOUSEWHEEL_DOWN && state == 1) {
-    camera->handleKeyPress('a');
-  }
-
-  if (button == GLUT_MOUSEWHEEL_UP && state == 0) {
-    camera->handleKeyPress('z');
-  }
 }
 
 void DemoApp::handleMotion(const glm::ivec2& newMousePosition) {

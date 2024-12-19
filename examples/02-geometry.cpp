@@ -69,8 +69,8 @@ protected:
 
       const glm::vec4 minBounds(-15, -4, -15, 1);
       const glm::vec4 maxBounds(15, 15, 15, 1);
-      const glm::vec3 minScale(15, 15, 15);
-      const glm::vec3 maxScale(30, 30, 30);
+      const glm::vec3 minScale(35, 35, 35);
+      const glm::vec3 maxScale(75, 75, 75);
 
       bunny->transform = glm::rotate(randomAngle, randomAxis);
       bunny->transform[3] = glm::linearRand(minBounds, maxBounds);
