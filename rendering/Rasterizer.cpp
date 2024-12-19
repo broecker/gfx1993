@@ -19,6 +19,7 @@ using glm::vec4;
 using namespace render;
 
 #define START_PROFILE(name) const auto profile_##name_start = profileInfo.startTiming(name)
+#define SAVE_COUNTER(rasterFunction, debugCounter) if (rasterFunction) {debugCounter.fragmentsDrawn++;} else {debugCounter.fragmentsDiscarded++;} 
 
 void Rasterizer::drawPoints(const RenderConfig &renderConfig,
                             const VertexList &vertices,
@@ -79,9 +80,9 @@ void Rasterizer::drawPoints(const RenderConfig &renderConfig,
       sgeo.depth = pos_win.z;
 
       // shade fragment and plot
-      drawFragment(renderConfig, sgeo);
+      SAVE_COUNTER(drawFragment(renderConfig, sgeo), debugInfo.points);
 
-      ++debugInfo.pointsDrawn;
+      debugInfo.lines.drawn++;
     }
   }
 }
@@ -153,9 +154,7 @@ void Rasterizer::drawLines(const RenderConfig &renderConfig,
 
   // Rasterization
   for (const auto &line : clipped) {
-    START_PROFILE("rasterize.lines.shade");
     drawLine(renderConfig, line);
-    ++debugInfo.linesDrawn;
   }
 }
 
@@ -224,11 +223,9 @@ void Rasterizer::drawTriangles(const RenderConfig &renderConfig,
     }
   }
 
-  // Rasteriszation.
+  // Rasterization.
   for (const TrianglePrimitive &triangle : clipped) {
-    START_PROFILE("rasterize.tris.shade");
     drawTriangle(renderConfig, triangle);
-    ++debugInfo.trianglesDrawn;
   }
 }
 
@@ -236,6 +233,7 @@ void Rasterizer::drawTriangles(const RenderConfig &renderConfig,
 void Rasterizer::drawLine(const RenderConfig &renderConfig,
                           const LinePrimitive &line) const {
   assert(renderConfig.fragmentShader);
+  START_PROFILE("rasterize.lines.shade");
 
   using namespace glm;
 
@@ -264,7 +262,7 @@ void Rasterizer::drawLine(const RenderConfig &renderConfig,
     sgeo.windowCoord = a;
     sgeo.depth = depth;
 
-    drawFragment(renderConfig, sgeo);
+    SAVE_COUNTER(drawFragment(renderConfig, sgeo), debugInfo.lines);
 
     // 'Core' Bresenham algorithm.
     if (a.x == b.x && a.y == b.y)
@@ -281,6 +279,7 @@ void Rasterizer::drawLine(const RenderConfig &renderConfig,
 
     ++positionCounter;
   }
+  debugInfo.lines.drawn++;
 }
 
 // Finds which part of the half-space of line a-b point c is in (positive or
@@ -297,6 +296,7 @@ static inline int pointInHalfspace(const glm::ivec2 &a, const glm::ivec2 &b,
 void Rasterizer::drawTriangle(const RenderConfig &renderConfig,
                               const TrianglePrimitive &t) const {
   assert(renderConfig.fragmentShader);
+  START_PROFILE("rasterize.tris.shade");
 
   using namespace glm;
 
@@ -325,6 +325,7 @@ void Rasterizer::drawTriangle(const RenderConfig &renderConfig,
       renderConfig.viewport->origin + renderConfig.viewport->size - 1, max);
 
   if (renderConfig.drawTriangleBounds && renderConfig.framebuffer) {
+    START_PROFILE("rasterize.tris.shade.bbox");
     // draw bounding box
     vec4 bboxColour(1, 0, 0, 1);
     for (int x = min.x; x <= max.x; ++x) {
@@ -343,72 +344,79 @@ void Rasterizer::drawTriangle(const RenderConfig &renderConfig,
   }
 
   // Rasterize -- loop over the screen-space bounding box.
-  for (int y = min.y; y <= max.y; ++y) {
-    for (int x = min.x; x <= max.x; ++x) {
-      // position
-      ivec2 p(x, y);
+  {
+    START_PROFILE("rasterize.tris.shade.fill");
+    for (int y = min.y; y <= max.y; ++y) {
+      for (int x = min.x; x <= max.x; ++x) {
+        // position
+        ivec2 p(x, y);
 
-      int w0 = pointInHalfspace(b, c, p);
-      int w1 = pointInHalfspace(c, a, p);
-      int w2 = pointInHalfspace(a, b, p);
+        int w0 = pointInHalfspace(b, c, p);
+        int w1 = pointInHalfspace(c, a, p);
+        int w2 = pointInHalfspace(a, b, p);
 
-      // determine barycentric coords
-      vec3 lambda;
-      float w = (float)(w0 + w1 + w2);
+        // determine barycentric coords
+        vec3 lambda;
+        float w = (float)(w0 + w1 + w2);
 
-      lambda.x = (float)w0 / w;
-      lambda.y = (float)w1 / w;
-      lambda.z = (float)w2 / w;
+        lambda.x = (float)w0 / w;
+        lambda.y = (float)w1 / w;
+        lambda.z = (float)w2 / w;
 
-      // calculate depth here
-      float z =
-          lambda.x * posA_win.z + lambda.y * posB_win.z + lambda.z * posC_win.z;
+        // calculate depth here
+        float z =
+            lambda.x * posA_win.z + lambda.y * posB_win.z + lambda.z * posC_win.z;
 
-      if (w0 >= 0 && w1 >= 0 && w2 >= 0) {
-        ShadingGeometry sgeo = t.rasterize(lambda);
-        sgeo.windowCoord = p;
-        sgeo.depth = z;
+        if (w0 >= 0 && w1 >= 0 && w2 >= 0) {
+          ShadingGeometry sgeo = t.rasterize(lambda);
+          sgeo.windowCoord = p;
+          sgeo.depth = z;
 
-        drawFragment(renderConfig, sgeo);
+          SAVE_COUNTER(drawFragment(renderConfig, sgeo), debugInfo.triangles);
+        }
       }
     }
+    debugInfo.triangles.drawn++;
   }
 }
-void Rasterizer::drawFragment(const render::RenderConfig &renderConfig,
+
+bool Rasterizer::drawFragment(const render::RenderConfig &renderConfig,
                               const ShadingGeometry &geometry) const {
   // No need for shading, write to depth buffer and that's it.
   if (!renderConfig.framebuffer) {
-    renderConfig.depthbuffer->conditionalPlot(
+    return renderConfig.depthbuffer->conditionalPlot(
         geometry.windowCoord.x, geometry.windowCoord.y, geometry.depth);
-  } else {
-    if (!renderConfig.depthbuffer ||
-        (renderConfig.depthbuffer &&
-         renderConfig.depthbuffer->isVisible(geometry.windowCoord,
-                                             geometry.depth))) {
+  } 
+  if (!renderConfig.depthbuffer ||
+      (renderConfig.depthbuffer &&
+        renderConfig.depthbuffer->isVisible(geometry.windowCoord,
+                                            geometry.depth))) {
 
-      Fragment frag = renderConfig.fragmentShader->shadeSingle(geometry);
+    Fragment frag = renderConfig.fragmentShader->shadeSingle(geometry);
 
-      // Fragment was discarded by the frag shader -- ignore and
-      // keep rasterizing.
-      if (frag.discard) {
-        return;
-      } else {
-        // Fragment is valid -- write depth now.
-        if (renderConfig.depthbuffer)
-          renderConfig.depthbuffer->plot(geometry.windowCoord, geometry.depth);
-      }
-
-      // If we have enabled alpha blending and have a transparent
-      // fragment.
-      if (renderConfig.alphaBlending && frag.color.a < 1) {
-        glm::vec4 color =
-            renderConfig.framebuffer->getPixel(geometry.windowCoord) *
-                (1.f - frag.color.a) +
-            frag.color * frag.color.a;
-        renderConfig.framebuffer->plot(geometry.windowCoord, color);
-      } else {
-        renderConfig.framebuffer->plot(geometry.windowCoord, frag.color);
-      }
+    // Fragment was discarded by the frag shader -- ignore and
+    // keep rasterizing.
+    if (frag.discard) {
+      return false;
+    } else {
+      // Fragment is valid -- write depth now.
+      if (renderConfig.depthbuffer)
+        renderConfig.depthbuffer->plot(geometry.windowCoord, geometry.depth);
     }
+
+    // If we have enabled alpha blending and have a transparent
+    // fragment.
+    if (renderConfig.alphaBlending && frag.color.a < 1) {
+      glm::vec4 color =
+          renderConfig.framebuffer->getPixel(geometry.windowCoord) *
+              (1.f - frag.color.a) +
+          frag.color * frag.color.a;
+      renderConfig.framebuffer->plot(geometry.windowCoord, color);
+    } else {
+      renderConfig.framebuffer->plot(geometry.windowCoord, frag.color);
+    }
+    return true;
+  } else {
+    return false;
   }
 }

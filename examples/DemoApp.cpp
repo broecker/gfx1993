@@ -74,6 +74,7 @@ void DemoApp::run(int argc, char **argv) {
       if (appInstance->logFrameTime) {
 			  std::cout << "FPS: " << std::setw(3) << frames << " [avg: " << std::setprecision(4) << static_cast<float>(totalFrames) / (nowTicks - startTicks) * 1000  << "\ttotal frames: " << std::setw(5) << totalFrames << ", time: " << std::setprecision(5) <<  static_cast<float>(nowTicks - startTicks) / 1000 << "s]\tdt: " << std::setprecision(5) << dt << std::endl;
         rasterizer->getProfile().print();
+        rasterizer->getDebugInfo().print();
         rasterizer->resetDebugInfo();
       }
 			frames = 0;
@@ -92,28 +93,32 @@ void DemoApp::blitSurface() {
   SDL_LockSurface(surface);
 
   // Resample buffer and switch to BGRA format.
-  auto resampleProf = rasterizer->getProfile().startTiming("app.blit.resample");
-  for (unsigned int w = 0; w < width; ++w) {
-    for (unsigned int h = 0; h < height; ++h) {
-      glm::vec2 coord(static_cast<float>(w) / width,
-                      static_cast<float>(h) / height);
+  {
+    const auto resampleProf = rasterizer->getProfile().startTiming("app.blit.resample");
+    #pragma omp parallel for
+    for (unsigned int w = 0; w < width; ++w) {
+      for (unsigned int h = 0; h < height; ++h) {
+        glm::vec2 coord(static_cast<float>(w) / width,
+                        static_cast<float>(h) / height);
 
-      const glm::vec4& pixel = renderConfig.framebuffer->getPixel(coord);
-      // Also flip the y-axis.
-      SDL_Color& c = pixels[w + (height-h)*width];
+        const glm::vec4& pixel = renderConfig.framebuffer->getPixel(coord);
+        // Also flip the y-axis.
+        SDL_Color& c = pixels[w + (height-h)*width];
 
-      // Also switch to BGRA.
-      c.r = static_cast<Uint8>(pixel.b * 255);
-      c.g = static_cast<Uint8>(pixel.g * 255);
-      c.b = static_cast<Uint8>(pixel.r * 255);
-      c.a = static_cast<Uint8>(pixel.a * 255);
+        // Also switch to BGRA.
+        c.r = static_cast<Uint8>(pixel.b * 255);
+        c.g = static_cast<Uint8>(pixel.g * 255);
+        c.b = static_cast<Uint8>(pixel.r * 255);
+        c.a = static_cast<Uint8>(pixel.a * 255);
+      }
     }
   }
-  rasterizer->getProfile().endTiming(resampleProf);
-  auto copyProf = rasterizer->getProfile().startTiming("app.blit.copy");
 
-  //std::cout << "Src: " << renderConfig.framebuffer->getWidth() << "x" << renderConfig.framebuffer->getHeight() << "; dest: " << surface->w << "x" << surface->h << std::endl;
-  memcpy(surface->pixels, &pixels[0], pixels.size());
+  {
+    auto copyProf = rasterizer->getProfile().startTiming("app.blit.copy");
+    //std::cout << "Src: " << renderConfig.framebuffer->getWidth() << "x" << renderConfig.framebuffer->getHeight() << "; dest: " << surface->w << "x" << surface->h << std::endl;
+    memcpy(surface->pixels, &pixels[0], pixels.size());
+  }
 
   // Does not work.
   // SDL_ConvertPixels(renderConfig.framebuffer->getWidth(),
@@ -125,10 +130,7 @@ void DemoApp::blitSurface() {
   //                   surface->pixels,
   //                   surface->pitch);
 
-  rasterizer->getProfile().endTiming(copyProf);
-
   SDL_UnlockSurface(surface);
-  rasterizer->getProfile().endTiming(blitProf);
 }
 
 void DemoApp::handleEvents() {

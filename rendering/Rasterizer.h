@@ -44,6 +44,7 @@ public:
   inline void resetDebugInfo() { debugInfo.reset(); profileInfo.reset(); }
 
   inline RenderProfile& getProfile() { return profileInfo; }
+  inline DebugInfo& getDebugInfo() { return debugInfo; }
 
 private:
   // Draws a line after it was clipped to the Viewport.
@@ -61,8 +62,8 @@ private:
 
   // Rasterizes a single fragment to the buffer after performing depth test and
   // alpha blending. This is called from both the drawTriangle and drawLine
-  // methods.
-  void drawFragment(const RenderConfig &renderConfig,
+  // methods. Returns whether the pixel was actually drawn or not.
+  bool drawFragment(const RenderConfig &renderConfig,
                     const ShadingGeometry &geometry) const;
 
   Clipper               clipper;
