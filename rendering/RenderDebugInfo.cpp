@@ -17,7 +17,7 @@ static void printPrimitiveDebugInfo(const std::string& name, const PrimitiveDebu
   if (total > 0) {
     effective = static_cast<float>(info.fragmentsDrawn) / (info.fragmentsDrawn + info.fragmentsDiscarded);
   }
-  printf("%15s:    %8u primitives; fragments: %10u total, %10u drawn %10u discarded; effective: %5.2f\n", name.c_str(), info.drawn, total, info.fragmentsDrawn, info.fragmentsDiscarded, effective);
+  printf("%10s:    %6u primitives; fragments: %10u total, %10u drawn %10u discarded; effective: %5.2f\n", name.c_str(), info.drawn, total, info.fragmentsDrawn, info.fragmentsDiscarded, effective);
 }
 
 void DebugInfo::print() const {
