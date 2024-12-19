@@ -36,9 +36,7 @@ public:
   };
 
   explicit Clipper(const Plane &plane);
-
   explicit Clipper(const std::vector<Plane> &planes);
-
   explicit Clipper();
 
   PointPrimitiveList clipPoints(const PointPrimitiveList &points) const;
@@ -54,6 +52,10 @@ public:
 
 private:
   std::vector<Plane> planes;
+
+  // If set, colors created triangles in yellow;
+  bool debugColorClips = false;
+  glm::vec4 debugClipColor = glm::vec4(1,0,1,1);
 };
 
 } // namespace render

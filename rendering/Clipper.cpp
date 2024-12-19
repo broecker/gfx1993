@@ -138,8 +138,6 @@ Clipper::clipTriangles(render::TrianglePrimitiveList triangles) const {
 
   const static size_t MAX_TRI_COUNT = 1000;
 
-  bool colorClips = true;
-
   for (size_t i = 0; i < triangles.size() && i < MAX_TRI_COUNT; ++i) {
     // Triangles might change during iteration, as new triangles are created by
     // clipping.
@@ -209,8 +207,8 @@ Clipper::clipTriangles(render::TrianglePrimitiveList triangles) const {
         triangle.c = p;
 
         TrianglePrimitive t(p, triangle.b, q);
-        if (colorClips) {
-          setColor(t, glm::vec4(1, 0, 1, 1));
+        if (debugColorClips) {
+          setColor(t, debugClipColor);
         }
         triangles.push_back(t);
         continue;
@@ -222,8 +220,8 @@ Clipper::clipTriangles(render::TrianglePrimitiveList triangles) const {
         triangle.b = p;
 
         TrianglePrimitive t(p, q, triangle.c);
-        if (colorClips) {
-          setColor(t, glm::vec4(1, 1, 0, 1));
+        if (debugColorClips) {
+          setColor(t, debugClipColor);
         }
         triangles.push_back(t);
         continue;
@@ -235,8 +233,8 @@ Clipper::clipTriangles(render::TrianglePrimitiveList triangles) const {
         triangle.a = p;
 
         TrianglePrimitive t(p, triangle.c, q);
-        if (colorClips) {
-          setColor(t, glm::vec4(0, 1, 1, 1));
+        if (debugColorClips) {
+          setColor(t, debugClipColor);
         }
         triangles.push_back(t);
         continue;
@@ -275,7 +273,9 @@ static const VertexOut &getTriangleEdgePoint(const TrianglePrimitive &triangle,
 // Based on:
 // https://www.flipcode.com/archives/Real-time_3D_Clipping_Sutherland-Hodgeman.shtml
 static TrianglePrimitiveList clipTriangle(const TrianglePrimitive &triangle,
-                                          const Clipper::Plane &plane) {
+                                          const Clipper::Plane &plane,
+                                          bool debugColorClips,
+                                          const glm::vec4& debugColor) {
   // Contains clipped coordinates.
   std::vector<VertexOut> clipped;
   for (int i = 0; i < 3; ++i) {
@@ -310,7 +310,9 @@ static TrianglePrimitiveList clipTriangle(const TrianglePrimitive &triangle,
   }
   if (clipped.size() == 4) {
     auto t = TrianglePrimitive(clipped[2], clipped[3], clipped[0]);
-    setColor(t, glm::vec4(1, 1, 0, 1));
+    if (debugColorClips) {
+      setColor(t, debugColor);
+    }
     output.push_back(t);
   }
   return output;
@@ -323,7 +325,7 @@ TrianglePrimitiveList Clipper::clipTrianglesToNdc(
     TrianglePrimitiveList temp;
 
     for (const auto &t : clipped) {
-      auto result = clipTriangle(t, plane);
+      auto result = clipTriangle(t, plane, debugColorClips, debugClipColor);
       temp.insert(temp.end(), result.begin(), result.end());
     }
     clipped = temp;
