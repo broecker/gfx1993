@@ -6,12 +6,12 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/io.hpp>
 
-#include <geometry/Geometry.h>
-#include <geometry/GridGeometry.h>
-#include <rendering/Pipeline.h>
 
 #include "DemoApp.h"
+#include "base/Pipeline.h"
 #include "util/Camera.h"
+#include "geometry/Geometry.h"
+#include "geometry/GridGeometry.h"
 #include "rendering/Shader.h"
 
 using namespace gfx1993;

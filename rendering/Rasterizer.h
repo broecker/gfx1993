@@ -4,7 +4,7 @@
 #include <memory>
 
 #include "Clipper.h"
-#include "Pipeline.h"
+#include "../base/Pipeline.h"
 #include "RenderConfig.h"
 #include "../util/RenderDebugInfo.h"
 #include "../util/RenderProfileInfo.h"

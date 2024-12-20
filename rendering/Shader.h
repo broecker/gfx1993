@@ -1,7 +1,7 @@
 #ifndef SHADER_INCLUDED
 #define SHADER_INCLUDED
 
-#include "Pipeline.h"
+#include "../base/Pipeline.h"
 
 namespace gfx1993 {
 namespace render {

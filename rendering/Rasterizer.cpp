@@ -2,8 +2,6 @@
 #include "Depthbuffer.h"
 #include "Framebuffer.h"
 #include "Viewport.h"
-
-#include "Pipeline.h"
 #include "Shader.h"
 
 #include <algorithm>

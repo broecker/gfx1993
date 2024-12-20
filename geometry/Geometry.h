@@ -1,7 +1,7 @@
 #ifndef GEOMETRY2_INCLUDED
 #define GEOMETRY2_INCLUDED
 
-#include "../rendering/Pipeline.h"
+#include "../base/Pipeline.h"
 
 namespace gfx1993 {
 namespace geometry {

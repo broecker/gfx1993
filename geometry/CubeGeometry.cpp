@@ -1,6 +1,6 @@
 #include "CubeGeometry.h"
 
-#include "../rendering/Pipeline.h"
+#include "../base/Pipeline.h"
 
 #include <random>
 

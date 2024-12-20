@@ -6,12 +6,12 @@
 
 #include <SDL2/SDL.h>
 
+#include "base/Pipeline.h"
 #include "util/Camera.h"
 #include "rendering/Depthbuffer.h"
 #include "rendering/Framebuffer.h"
-#include "rendering/Pipeline.h"
-#include "rendering/Rasterizer.h"
 #include "rendering/RenderConfig.h"
+#include "rendering/Rasterizer.h"
 #include "rendering/Shader.h"
 #include "rendering/Viewport.h"
 

@@ -1,7 +1,7 @@
 #ifndef GFX1993_CLIPPER_H
 #define GFX1993_CLIPPER_H
 
-#include "Pipeline.h"
+#include "../base/Pipeline.h"
 
 #include <glm/glm.hpp>
 #include <vector>

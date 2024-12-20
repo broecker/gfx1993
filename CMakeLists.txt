@@ -23,6 +23,7 @@ if (OPENMP_FOUND)
 endif()
 
 # The libraries
+add_subdirectory(base)
 add_subdirectory(geometry)
 add_subdirectory(rendering)
 add_subdirectory(util)

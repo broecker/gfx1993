@@ -1,5 +1,5 @@
 #include "PlyGeometry.h"
-#include "../rendering/Pipeline.h"
+#include "../base/Pipeline.h"
 
 #include <algorithm>
 #include <cassert>

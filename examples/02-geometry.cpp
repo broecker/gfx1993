@@ -8,7 +8,7 @@
 #include "DemoApp.h"
 #include "geometry/GridGeometry.h"
 #include "geometry/PlyGeometry.h"
-#include "rendering/Pipeline.h"
+#include "base/Pipeline.h"
 #include "rendering/Shader.h"
 
 using namespace gfx1993;

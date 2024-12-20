@@ -2,7 +2,7 @@
 
 #include <array>
 
-#include "../rendering/Pipeline.h"
+#include "../base/Pipeline.h"
 #include "../util/Camera.h"
 
 namespace gfx1993 {

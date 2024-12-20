@@ -7,7 +7,7 @@
 
 #include "DemoApp.h"
 #include "geometry/Quad.h"
-#include "rendering/Pipeline.h"
+#include "base/Pipeline.h"
 #include "rendering/Shader.h"
 #include "rendering/Texture.h"
 
