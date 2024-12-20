@@ -25,7 +25,6 @@ This is an unsorted list of outstanding tasks.
 
 - Clean up the rasterizer. There's a lot of old, untouched code in there. Rasterizer should become an abstract class so 
 that specialized rasterizers can be easily implemented.
-- Debug clipping. Both line and triangle clipping seem broken
 - Write tests! Especially for framebuffer and rasterizer.
 - Implement bounding geometries and view frustum culling
 - Add FPS camera
@@ -44,5 +43,4 @@ triangulation.
 - Add Voxel and Voxelspace-like rendering
 - Add example with textures and programmatic skybox rendering
 - Add example about depth sorting
-- Add profiler
 - Add portal-based rendering demo

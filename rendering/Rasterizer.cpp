@@ -223,7 +223,6 @@ void Rasterizer::drawTriangles(const RenderConfig &renderConfig,
       triangle.b.clipPosition /= triangle.b.clipPosition.w;
       triangle.c.clipPosition /= triangle.c.clipPosition.w;
 
-      // TODO(mbroecker): Add backface culling here
       if (renderConfig.cullBackFaces) {
         START_PROFILE("rasterize.tris.clip.cullface");
         vec3 clipNormal = glm::normalize(glm::cross(vec3(triangle.b.clipPosition) - vec3(triangle.a.clipPosition),
