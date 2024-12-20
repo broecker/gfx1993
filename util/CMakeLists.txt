@@ -4,4 +4,4 @@ cmake_minimum_required(VERSION 3.5.0)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLM_ENABLE_EXPERIMENTAL")
 
 # Geometry library
-add_library(gfx93-util STATIC Camera.cpp)
+add_library(gfx93-util STATIC Camera.cpp RenderDebugInfo.h RenderDebugInfo.cpp RenderProfileInfo.h RenderProfileInfo.cpp)

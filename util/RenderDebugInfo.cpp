@@ -4,7 +4,7 @@
 #include <string>
 
 namespace gfx1993 {
-namespace render {
+namespace util {
 
 void DebugInfo::reset() {
   points = PrimitiveDebugInfo();
@@ -28,5 +28,5 @@ void DebugInfo::print() const {
   printPrimitiveDebugInfo("Triangles", triangles);
 }
 
-}  // namespace render
+}  // namespace util
 }  // namespace gfx1993

@@ -6,8 +6,8 @@
 #include "Clipper.h"
 #include "Pipeline.h"
 #include "RenderConfig.h"
-#include "RenderDebugInfo.h"
-#include "RenderProfileInfo.h"
+#include "../util/RenderDebugInfo.h"
+#include "../util/RenderProfileInfo.h"
 
 namespace gfx1993 {
 namespace render {
@@ -45,8 +45,8 @@ public:
 
   inline void resetDebugInfo() { debugInfo.reset(); profileInfo.reset(); }
 
-  inline RenderProfile& getProfile() { return profileInfo; }
-  inline DebugInfo& getDebugInfo() { return debugInfo; }
+  inline util::RenderProfile& getProfile() { return profileInfo; }
+  inline util::DebugInfo& getDebugInfo() { return debugInfo; }
 
   const Clipper& getClipper() const { return clipper; }
 
@@ -71,8 +71,8 @@ private:
                     const ShadingGeometry &geometry) const;
 
   Clipper               clipper;
-  mutable DebugInfo     debugInfo;
-  mutable RenderProfile profileInfo;
+  mutable util::DebugInfo     debugInfo;
+  mutable util::RenderProfile profileInfo;
 };
 
 } // namespace render
