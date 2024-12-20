@@ -250,6 +250,12 @@ void Rasterizer::drawLine(const RenderConfig &renderConfig,
       sqrtf((b.x - a.x) * (b.x - a.x) + (b.y - a.y) * (b.y - a.y));
   unsigned int positionCounter = 0;
 
+  if (lineLength == 0) {
+    // Invalid line.
+    // TODO(mbroecker): Report error?
+    return;
+  }
+
   int dx = abs(a.x - b.x), sx = a.x < b.x ? 1 : -1;
   int dy = abs(a.y - b.y), sy = a.y < b.y ? 1 : -1;
   int err = (dx > dy ? dx : -dy) / 2, e2;
