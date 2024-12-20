@@ -26,16 +26,16 @@ VertexOut DefaultVertexTransform::transformSingle(const Vertex &in) {
 }
 
 Fragment InputColorShader::shadeSingle(const ShadingGeometry &in) {
-  return std::move(Fragment{in.color});
+  return Fragment{in.color};
 }
 
 Fragment NormalColorShader::shadeSingle(const ShadingGeometry &in) {
   vec3 c = abs(normalize(in.normal));
-  return std::move(Fragment{vec4(c, 1.f)});
+  return Fragment{vec4(c, 1.f)};
 }
 
 Fragment SingleColorShader::shadeSingle(const ShadingGeometry &in) {
-  return std::move(Fragment{color});
+  return Fragment{color};
 }
 
 }  // namespace render

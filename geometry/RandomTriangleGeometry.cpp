@@ -58,8 +58,7 @@ Vertex RandomTriangleGeometry::createRandomVertex() const {
   float g = (float)std::rand() / RAND_MAX;
   float b = 1.f - r - g;
 
-  return std::move(
-      Vertex(glm::vec4(pos, 1.f), normal, glm::vec4(r, g, b, 1.f), texcoord));
+  return Vertex(glm::vec4(pos, 1.f), normal, glm::vec4(r, g, b, 1.f), texcoord);
 }
 
 }  // namespace geometry

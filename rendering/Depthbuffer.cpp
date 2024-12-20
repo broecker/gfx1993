@@ -19,8 +19,8 @@ void Depthbuffer::clear() {
 }
 
 bool Depthbuffer::conditionalPlot(const glm::vec3 &pos) {
-  auto x = (int)pos.x;
-  auto y = (int)pos.y;
+  auto x = static_cast<int>(pos.x);
+  auto y = static_cast<int>(pos.y);
   float z = pos.z;
   return conditionalPlot(x, y, z);
 }
@@ -29,7 +29,8 @@ bool Depthbuffer::conditionalPlot(int x, int y, float z) {
   if (x < 0 || y < 0) {
     return false;
   }
-  if (x >= width || y >= height) {
+  if (static_cast<unsigned int>(x) >= width ||
+      static_cast<unsigned int>(y) >= height) {
     return false;
   }
 

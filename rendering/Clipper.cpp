@@ -249,6 +249,8 @@ Clipper::clipTriangles(render::TrianglePrimitiveList triangles) const {
   return clipped;
 }
 
+static VertexOut emptyVertex;
+
 // Selects the endpoint for a given triangle edge.
 static const VertexOut &getTriangleEdgePoint(const TrianglePrimitive &triangle,
                                              int i) {
@@ -266,7 +268,7 @@ static const VertexOut &getTriangleEdgePoint(const TrianglePrimitive &triangle,
   default:
     // This is bad.
     std::cerr << "Bad triangle edge selection." << std::endl;
-    return VertexOut();
+    return emptyVertex;
   }
 }
 
