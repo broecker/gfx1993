@@ -9,6 +9,7 @@
 
 #include <glm/glm.hpp>
 
+namespace gfx1993 {
 namespace render {
 
 class Texture {
@@ -50,5 +51,6 @@ private:
 };
 
 } // namespace render
+} // namespace gfx1993
 
 #endif // GFX1993_TEXTURE_H

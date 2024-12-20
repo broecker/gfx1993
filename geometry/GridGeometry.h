@@ -3,6 +3,7 @@
 
 #include "Geometry.h"
 
+namespace gfx1993 {
 namespace geometry {
 
 // A 2D grid on the XZ plane.
@@ -12,5 +13,6 @@ public:
 };
 
 } // namespace geometry
+} // namespace gfx1993
 
 #endif

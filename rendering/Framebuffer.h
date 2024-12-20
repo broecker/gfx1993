@@ -5,6 +5,7 @@
 #include <memory>
 #include <vector>
 
+namespace gfx1993 {
 namespace render {
 
 class Framebuffer {
@@ -49,5 +50,6 @@ protected:
 };
 
 } // namespace render
+} // namespace gfx1993
 
 #endif

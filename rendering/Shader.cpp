@@ -5,6 +5,7 @@ using glm::mat4;
 using glm::vec3;
 using glm::vec4;
 
+namespace gfx1993 {
 namespace render {
 
 VertexOut DefaultVertexTransform::transformSingle(const Vertex &in) {
@@ -37,4 +38,5 @@ Fragment SingleColorShader::shadeSingle(const ShadingGeometry &in) {
   return std::move(Fragment{color});
 }
 
-}
+}  // namespace render
+}  // namespace gfx1993

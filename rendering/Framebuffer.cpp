@@ -1,5 +1,6 @@
 #include "Framebuffer.h"
 
+namespace gfx1993 {
 namespace render {
 
 Framebuffer::Framebuffer(unsigned int w, unsigned int h) : width(w), height(h), data(w*h) {}
@@ -46,4 +47,5 @@ std::vector<uint8_t> Framebuffer::getUint8RgbaBuffer() const {
   return result;
 }
 
-}
+}  // namespace render
+}  // namespace gfx1993

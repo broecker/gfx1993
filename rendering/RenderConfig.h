@@ -8,6 +8,7 @@
 #include "Depthbuffer.h"
 #include "Framebuffer.h"
 
+namespace gfx1993 {
 namespace render {
 
 class VertexShader;
@@ -62,5 +63,6 @@ struct RenderConfig {
 };
 
 } // namespace render
+} // namespace gfx1993
 
 #endif // GFX1993_RENDERCONFIG_H

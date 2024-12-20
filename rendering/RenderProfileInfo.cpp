@@ -5,7 +5,8 @@
 #include <ctime>
 #include <limits>
 
-using namespace render;
+namespace gfx1993 {
+namespace render {
 
 static uint32_t getMilliseconds() {
   auto now = std::chrono::system_clock::now().time_since_epoch();
@@ -59,3 +60,6 @@ void RenderProfile::print() const {
     printf("%-28s: %5.2fms\t[%5d-%5d]; %lu samples\n", stat.first.c_str(), mean, min, max, stat.second.samples.size());
   } 
 }
+
+}  // namespace render
+}  // namespace gfx1993

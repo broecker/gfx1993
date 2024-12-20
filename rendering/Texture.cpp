@@ -9,6 +9,7 @@
 #include <fstream>
 #include <memory>
 
+namespace gfx1993 {
 namespace render {
 
 Texture::Texture(unsigned int width, unsigned int height,
@@ -111,3 +112,4 @@ std::unique_ptr<Texture> Texture::loadPPM(const std::string &filename) {
 }
 
 } // namespace render
+} // namespace gfx1993

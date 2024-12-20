@@ -6,6 +6,7 @@
 #include <deque>
 #include <glm/gtx/io.hpp>
 
+namespace gfx1993 {
 namespace render {
 
 Clipper::Plane::Plane(const glm::vec3 &a, const glm::vec3 &b,
@@ -334,3 +335,4 @@ TrianglePrimitiveList Clipper::clipTrianglesToNdc(
 }
 
 } // namespace render
+} // namespace gfx1993

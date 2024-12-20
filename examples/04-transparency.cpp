@@ -10,9 +10,10 @@
 #include "geometry/Quad.h"
 #include "rendering/Pipeline.h"
 #include "rendering/Shader.h"
-#include <rendering/Pipeline.h>
-
+#include "rendering/Pipeline.h"
 #include "DemoApp.h"
+
+using namespace gfx1993;
 
 class StippleShader : public render::FragmentShader {
 public:

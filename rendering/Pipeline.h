@@ -4,11 +4,13 @@
 #include <glm/glm.hpp>
 #include <vector>
 
+namespace gfx1993 {
+namespace render {
+
 // Defines the high-level overview of the render pipeline.
 // The full pipeline looks like this:
 // Vertex -> [Vertex Shader] -> VertexOut -> RenderPrimitive -> ShadingGeometry
 // -> [FragmentShader] -> Fragment
-namespace render {
 struct Vertex;
 struct VertexOut;
 struct PointPrimitive;
@@ -129,5 +131,5 @@ typedef std::vector<PointPrimitive> PointPrimitiveList;
 typedef std::vector<LinePrimitive> LinePrimitiveList;
 typedef std::vector<TrianglePrimitive> TrianglePrimitiveList;
 }; // namespace render
-
+} // namespace gfx1993
 #endif // SRENDER_PIPELINE_H

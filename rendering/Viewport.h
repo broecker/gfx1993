@@ -3,6 +3,7 @@
 
 #include <glm/glm.hpp>
 
+namespace gfx1993 {
 namespace render {
 
 class Viewport {
@@ -19,5 +20,6 @@ public:
 };
 
 } // namespace render
+} // namespace gfx1993
 
 #endif

@@ -3,6 +3,7 @@
 
 #include <cstdint>
 
+namespace gfx1993 {
 namespace render {
 
 struct PrimitiveDebugInfo {
@@ -23,5 +24,6 @@ struct DebugInfo {
 };
 
 }  // namespace rendder
+}  // namespace gfx1993
 
 #endif // GFX1993_RENDERDEBUGINFO_H

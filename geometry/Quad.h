@@ -5,6 +5,7 @@
 
 #include <glm/glm.hpp>
 
+namespace gfx1993 {
 namespace geometry {
 
 class Quad : public Geometry {
@@ -14,10 +15,11 @@ public:
   //   | \ |
   // b +---+ c
   // The size will be [-1..1] along the XY axis and 0 on the z axis. It can be
-  // used for screen-space rendering.
+  // used for screen-space gfx1993.
   explicit Quad(const glm::vec4 &color);
 };
 
 } // namespace geometry
+} // namespace gfx1993
 
 #endif // GFX1993_QUAD_H

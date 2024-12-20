@@ -4,6 +4,7 @@
 
 using glm::vec4;
 
+namespace gfx1993 {
 namespace render {
 VertexOut lerp(const VertexOut &a, const VertexOut &b, float d) {
   VertexOut result;
@@ -61,4 +62,5 @@ ShadingGeometry TrianglePrimitive::rasterize(const glm::vec3 &bary) const {
   return sgeo;
 }
 
-} // namespace render
+}  // namespace render
+}  // namespace gfx1993

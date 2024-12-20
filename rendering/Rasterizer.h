@@ -9,7 +9,9 @@
 #include "RenderDebugInfo.h"
 #include "RenderProfileInfo.h"
 
+namespace gfx1993 {
 namespace render {
+
 // Main class that does the heavy lifting in putting fragments into the
 // framebuffer.
 class Rasterizer {
@@ -74,5 +76,6 @@ private:
 };
 
 } // namespace render
+} // namespace gfx1993
 
 #endif

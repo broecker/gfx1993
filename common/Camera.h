@@ -3,6 +3,9 @@
 
 #include <glm/glm.hpp>
 
+namespace gfx1993 {
+namespace common {
+
 class Camera {
 public:
   virtual ~Camera() = default;
@@ -43,5 +46,8 @@ private:
 
   void updatePosition();
 };
+
+}  // namespace common
+}  // namespace gfx1993
 
 #endif

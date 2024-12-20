@@ -10,6 +10,9 @@ using glm::vec2;
 using glm::vec3;
 using glm::vec4;
 
+namespace gfx1993 {
+namespace common {
+
 OrbitCamera::OrbitCamera(const vec3 &t, const vec3 &u, float r)
     : projectionMatrix(glm::perspective(90.f, 1.3f, 1.f, 100.f)), target(t),
       up(u), position(t), radius(r), phi(0.f), theta(0.f), mode(ROTATE) {}
@@ -73,3 +76,6 @@ glm::mat4 OrbitCamera::getViewMatrix() {
 }
 
 glm::mat4 OrbitCamera::getProjectionMatrix() { return projectionMatrix; }
+
+}  // namespace common
+}  // namespace gfx1993

@@ -3,6 +3,7 @@
 
 #include "../rendering/Pipeline.h"
 
+namespace gfx1993 {
 namespace geometry {
 
 using render::IndexList;
@@ -29,5 +30,5 @@ protected:
 };
 
 } // namespace geometry
-
+} // namespace gfx1993
 #endif

@@ -6,7 +6,9 @@
 #include <glm/glm.hpp>
 #include <vector>
 
+namespace gfx1993 {
 namespace render {
+
 class Clipper {
 public:
   struct Plane {
@@ -61,5 +63,6 @@ private:
 };
 
 } // namespace render
+} // namespace gfx1993
 
 #endif // GFX1993_CLIPPER_H

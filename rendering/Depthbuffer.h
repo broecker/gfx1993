@@ -3,6 +3,7 @@
 
 #include <glm/glm.hpp>
 
+namespace gfx1993 {
 namespace render {
 
 class Depthbuffer {
@@ -46,5 +47,6 @@ protected:
 };
 
 } // namespace render
+} // namespace gfx1993
 
 #endif

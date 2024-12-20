@@ -11,6 +11,8 @@
 #include "rendering/Pipeline.h"
 #include "rendering/Shader.h"
 
+using namespace gfx1993;
+
 class Demo02 : public DemoApp {
 public:
   Demo02() : DemoApp("Demo 02 - Hello Geometry") {}

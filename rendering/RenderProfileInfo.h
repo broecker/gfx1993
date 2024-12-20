@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+namespace gfx1993 {
 namespace render {
 
 struct Stat {
@@ -47,5 +48,6 @@ struct RenderProfile {
 };
 
 }  // namespace render
+}  // namespace gfx1993
 
 #endif // GFX1993_RENDERPROFILE_INCLUDED

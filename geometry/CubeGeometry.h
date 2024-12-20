@@ -3,6 +3,7 @@
 
 #include "Geometry.h"
 
+namespace gfx1993 {
 namespace geometry {
 
 // A three-dimensional cube with solid faces.
@@ -11,6 +12,6 @@ public:
   explicit CubeGeometry(const glm::vec3 &sideLength);
 };
 
-} // namespace geometry
-
+}  // namespace geometry
+}  // namespace gfx1993
 #endif

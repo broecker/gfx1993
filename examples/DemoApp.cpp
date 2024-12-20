@@ -13,18 +13,22 @@ static const int HEIGHT_VGA = 240;
 
 }  // namespace
 
+using namespace gfx1993;
+using namespace render;
+using namespace common;
+
 DemoApp *DemoApp::appInstance = nullptr;
 DemoApp::DemoApp(const std::string &name)
     : name(name), width(WIDTH_VGA), height(HEIGHT_VGA),
       logFrameTime(true), mousePosition(0,0) {
-  rasterizer = std::make_unique<render::Rasterizer>();
+  rasterizer = std::make_unique<Rasterizer>();
 
   renderConfig.viewport =
-      std::make_shared<render::Viewport>(0, 0, width, height);
+      std::make_shared<Viewport>(0, 0, width, height);
   renderConfig.framebuffer =
-      std::make_shared<render::Framebuffer>(width, height);
+      std::make_shared<Framebuffer>(width, height);
   renderConfig.depthbuffer =
-      std::make_shared<render::Depthbuffer>(width, height);
+      std::make_shared<Depthbuffer>(width, height);
 
   camera = std::make_unique<OrbitCamera>(glm::vec3(0, 0, 0), glm::vec3(0, 1, 0),
                                          30.0f);

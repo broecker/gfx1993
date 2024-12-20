@@ -3,7 +3,8 @@
 #include <cstdio>
 #include <string>
 
-using namespace render;
+namespace gfx1993 {
+namespace render {
 
 void DebugInfo::reset() {
   points = PrimitiveDebugInfo();
@@ -26,3 +27,6 @@ void DebugInfo::print() const {
   printPrimitiveDebugInfo("Lines", lines);
   printPrimitiveDebugInfo("Triangles", triangles);
 }
+
+}  // namespace render
+}  // namespace gfx1993

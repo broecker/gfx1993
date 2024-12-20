@@ -5,8 +5,11 @@
 #include <glm/glm.hpp>
 
 #include "DemoApp.h"
-#include "rendering/Pipeline.h"
-#include "rendering/Shader.h"
+#include "../rendering/Pipeline.h"
+#include "../rendering/Shader.h"
+
+using namespace gfx1993;
+using namespace render;
 
 class Demo00 : public DemoApp {
 public:
@@ -14,13 +17,13 @@ public:
 
 protected:
   void init() override {
-    using render::Vertex;
+    using gfx1993::render::Vertex;
 
     // Keep a separate reference to the vertex shader so we can change the
     // transform easily.
-    vertexShader = std::make_shared<render::DefaultVertexTransform>();
+    vertexShader = std::make_shared<DefaultVertexTransform>();
     renderConfig.vertexShader = vertexShader;
-    renderConfig.fragmentShader = std::make_shared<render::InputColorShader>();
+    renderConfig.fragmentShader = std::make_shared<InputColorShader>();
 
     // Create the triangle geometry
     vertices.push_back(Vertex(glm::vec4(-5, 0, 0, 1), glm::vec3(1, 0, 0),
@@ -57,17 +60,17 @@ protected:
     try {
       rasterizer->drawTriangles(renderConfig, vertices, indices);
     } catch (const char *txt) {
-      std::cerr << "Render error :\"" << txt << "\"\n";
+      std::cerr << "gfx1993 error :\"" << txt << "\"\n";
     }
   }
 
 private:
   float rotationAngle;
 
-  render::VertexList vertices;
-  render::IndexList indices;
+  VertexList vertices;
+  IndexList indices;
 
-  std::shared_ptr<render::DefaultVertexTransform> vertexShader;
+  std::shared_ptr<DefaultVertexTransform> vertexShader;
 };
 
 int main(int argc, char **argv) {

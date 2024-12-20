@@ -1,5 +1,6 @@
 #include "RenderConfig.h"
 
+namespace gfx1993 {
 namespace render {
 void RenderConfig::clearBuffers(const glm::vec4 &clearColor) {
   if (framebuffer)
@@ -21,3 +22,4 @@ bool RenderConfig::hasValidRenderOutput() const {
   return viewport && (framebuffer || depthbuffer);
 }
 } // namespace render
+} // namespace gfx1993

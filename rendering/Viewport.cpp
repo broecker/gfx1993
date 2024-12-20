@@ -1,5 +1,6 @@
 #include "Viewport.h"
 
+namespace gfx1993 {
 namespace render {
 
 Viewport::Viewport(unsigned int x, unsigned int y, unsigned int w,
@@ -23,4 +24,5 @@ bool Viewport::isInside(const glm::ivec2 &p) const {
   return (t.x <= size.x && t.y <= size.y);
 }
 
-}
+}  // namespace render
+}  // namespace gfx1993

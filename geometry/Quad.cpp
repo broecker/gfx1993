@@ -1,5 +1,6 @@
 #include "Quad.h"
 
+namespace gfx1993 {
 namespace geometry {
 Quad::Quad(const glm::vec4 &color) {
   using glm::vec2;
@@ -33,4 +34,6 @@ Quad::Quad(const glm::vec4 &color) {
   indices.push_back(0);
   indices.push_back(3);
 }
-}
+
+}  // namespace geometry
+}  // namespace gfx1993

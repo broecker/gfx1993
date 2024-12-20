@@ -5,6 +5,7 @@
 
 #include <string>
 
+namespace gfx1993 {
 namespace geometry {
 
 class PlyGeometry : public Geometry {
@@ -21,5 +22,6 @@ private:
 };
 
 } // namespace geometry
+} // namespace gfx1993
 
 #endif

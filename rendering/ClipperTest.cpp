@@ -3,6 +3,7 @@
 
 #include "Clipper.h"
 
+using namespace gfx1993;
 using namespace render;
 using glm::vec2;
 using glm::vec3;

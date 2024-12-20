@@ -16,6 +16,8 @@
 unsigned int width = 640, height = 480;
 std::string binaryName;
 
+using namespace gfx1993;
+
 render::VertexList vertices;
 render::IndexList indices;
 

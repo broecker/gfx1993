@@ -3,6 +3,7 @@
 
 #include "Pipeline.h"
 
+namespace gfx1993 {
 namespace render {
 
 // Base class for vertex transformations. This is called on all given vertices
@@ -63,5 +64,5 @@ private:
 };
 
 } // namespace render
-
+} // namespace gfx1993
 #endif

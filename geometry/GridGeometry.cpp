@@ -3,6 +3,8 @@
 
 #include <glm/glm.hpp>
 
+namespace gfx1993 {
+
 using glm::vec3;
 using glm::vec4;
 using render::Vertex;
@@ -56,4 +58,5 @@ GridGeometry::GridGeometry() {
     v.color = vec4(1, 1, 1, 1);
   }
 }
-}
+} // namespace geometry
+} // namespace gfx1993

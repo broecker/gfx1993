@@ -10,6 +10,8 @@
 #include "rendering/Pipeline.h"
 #include "rendering/Shader.h"
 
+using namespace gfx1993;
+
 class WireSphere : public geometry::Geometry {
 public:
   WireSphere(float radius) {
@@ -62,8 +64,8 @@ protected:
         std::make_shared<render::SingleColorShader>(glm::vec4(0, 0, 1, 1));
 
     sphere = std::make_unique<WireSphere>(10.0f);
-    camera = std::make_unique<OrbitCamera>(glm::vec3(0, 0, 0),
-                                           glm::vec3(0, 1, 0), 10.0f);
+    camera = std::make_unique<common::OrbitCamera>(glm::vec3(0, 0, 0),
+                                                   glm::vec3(0, 1, 0), 10.0f);
   }
 
   void renderFrame() override {

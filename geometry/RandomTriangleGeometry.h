@@ -7,6 +7,7 @@ namespace render {
 struct Vertex;
 }
 
+namespace gfx1993 {
 namespace geometry {
 
 using render::Vertex;
@@ -31,5 +32,6 @@ private:
 };
 
 } // namespace geometry
+} // namespace gfx1993
 
 #endif

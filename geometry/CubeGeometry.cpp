@@ -4,10 +4,11 @@
 
 #include <random>
 
+namespace gfx1993 {
+namespace geometry {
+
 using glm::vec4;
 using render::Vertex;
-
-namespace geometry {
 
 CubeGeometry::CubeGeometry(const glm::vec3 &sidelength) {
   // create a cube
@@ -60,4 +61,6 @@ CubeGeometry::CubeGeometry(const glm::vec3 &sidelength) {
   indices.push_back(3);
   indices.push_back(7);
 }
-}
+
+}  // namespace geometry
+}  // namespace gfx1993

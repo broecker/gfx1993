@@ -11,6 +11,8 @@
 #include "rendering/Shader.h"
 #include "rendering/Texture.h"
 
+using namespace gfx1993;
+
 class TextureShader : public render::FragmentShader {
 public:
   TextureShader() : texture(nullptr) {}

@@ -16,7 +16,8 @@ using glm::ivec2;
 using glm::vec3;
 using glm::vec4;
 
-using namespace render;
+namespace gfx1993 {
+namespace render {
 
 #define START_PROFILE(name) const auto profile_##name_start = profileInfo.startTiming(name)
 #define SAVE_COUNTER(rasterFunction, debugCounter) if (rasterFunction) {debugCounter.fragmentsDrawn++;} else {debugCounter.fragmentsDiscarded++;} 
@@ -420,3 +421,6 @@ bool Rasterizer::drawFragment(const render::RenderConfig &renderConfig,
     return false;
   }
 }
+
+}  // namespace render
+}  // namespace gfx1993
