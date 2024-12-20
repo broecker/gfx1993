@@ -11,8 +11,6 @@ using render::VertexList;
 
 class Geometry {
 public:
-  Geometry();
-
   virtual ~Geometry() = default;
 
   inline const VertexList &getVertices() const { return vertices; }
