@@ -40,6 +40,9 @@ struct RenderConfig {
   // function.
   bool alphaBlending = false;
 
+  // If set to true, triangles facing away from our view will be discarded.
+  bool cullBackFaces = true;
+
   // Debug flags follow.
 
   // If set to true, bounding areas will be drawn around rasterized triangles.

@@ -58,6 +58,12 @@ protected:
   void handleKeyboard(unsigned char key, const glm::ivec2& mousePosition) override {
     if (key == 'b') {
       renderConfig.drawTriangleBounds = !renderConfig.drawTriangleBounds;
+      std::cout << "Drawing tri raster bounds: " << renderConfig.drawTriangleBounds << std::endl;
+    }
+
+    if (key == 'c') {
+      renderConfig.cullBackFaces = !renderConfig.cullBackFaces;
+      std::cout << "Culling backfaces: " << renderConfig.cullBackFaces << std::endl;
     }
 
     if (key == 'g') {

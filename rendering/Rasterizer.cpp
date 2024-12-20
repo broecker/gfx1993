@@ -27,6 +27,7 @@ void Rasterizer::drawPoints(const RenderConfig &renderConfig,
     std::cerr << "Invalid render configuration!\n";
   }
   START_PROFILE("rasterize.points");
+  debugInfo.points.processed++;
 
   // Vertex transform.
   VertexOutList transformedVertices;
@@ -112,6 +113,7 @@ void Rasterizer::drawLines(const RenderConfig &renderConfig,
     return;
   }
   START_PROFILE("rasterize.lines");
+  debugInfo.lines.processed++;
 
   // Vertex transformation
   VertexOutList transformedVertices;
@@ -181,6 +183,7 @@ void Rasterizer::drawTriangles(const RenderConfig &renderConfig,
     return;
   }
   START_PROFILE("rasterize.tris");
+  debugInfo.triangles.processed++;
 
   // transform vertices
   VertexOutList transformedVertices;
@@ -208,23 +211,38 @@ void Rasterizer::drawTriangles(const RenderConfig &renderConfig,
   // At this point all triangles are in clip space [-1 .. 1] and can be clipped
   // to NDC.
   TrianglePrimitiveList clipped;
+  IndexList trianglesToDraw;
   {
     START_PROFILE("rasterize.tris.clip");
     clipped = clipper.clipTrianglesToNdc(triangles);
 
     // Perspective divide
-    for (auto &triangle : clipped) {
+    for (size_t i = 0; i < clipped.size(); ++i) {
+      auto& triangle = clipped[i];
       triangle.a.clipPosition /= triangle.a.clipPosition.w;
       triangle.b.clipPosition /= triangle.b.clipPosition.w;
       triangle.c.clipPosition /= triangle.c.clipPosition.w;
 
       // TODO(mbroecker): Add backface culling here
+      if (renderConfig.cullBackFaces) {
+        START_PROFILE("rasterize.tris.clip.cullface");
+        vec3 clipNormal = glm::normalize(glm::cross(vec3(triangle.b.clipPosition) - vec3(triangle.a.clipPosition),
+                                                      vec3(triangle.c.clipPosition) - vec3(triangle.a.clipPosition)));
+        if (clipNormal.z <= 0) {
+          debugInfo.triangles.backfaceCulled++;
+        } else {
+          trianglesToDraw.push_back(i);  
+        }
+      } else {
+        trianglesToDraw.push_back(i);
+      }
+
     }
   }
 
   // Rasterization.
-  for (const TrianglePrimitive &triangle : clipped) {
-    drawTriangle(renderConfig, triangle);
+  for (size_t i = 0; i < trianglesToDraw.size(); ++i) {
+    drawTriangle(renderConfig, clipped[trianglesToDraw[i]]);
   }
 }
 

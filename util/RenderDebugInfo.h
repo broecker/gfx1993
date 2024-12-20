@@ -7,9 +7,12 @@ namespace gfx1993 {
 namespace util {
 
 struct PrimitiveDebugInfo {
-  uint32_t drawn;
-  uint32_t fragmentsDrawn;
-  uint32_t fragmentsDiscarded;
+  uint32_t processed = 0;
+  uint32_t drawn = 0;
+  uint32_t backfaceCulled = 0;
+
+  uint32_t fragmentsDrawn = 0;
+  uint32_t fragmentsDiscarded = 0;
 };
 
 // Contains rasterization debug information.
