@@ -135,7 +135,7 @@ public:
 
 class ClippingPlane {
 public:
-  ClippingPlane(const glm::vec3& normal, float d) : normal(normal), distance(d), enabled(false) {}
+  ClippingPlane(const glm::vec3& normal, float d) : enabled(false), normal(normal), distance(d) {}
 
 
   void moveAlongNormal(float delta) {

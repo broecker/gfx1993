@@ -23,7 +23,8 @@ public:
   virtual void run(int argc, char **argv);
 
 protected:
-  int width, height;
+  std::string name;
+  unsigned int width, height;
 
   bool running;
   bool logFrameTime;
@@ -52,8 +53,6 @@ protected:
 
 private:
   static DemoApp *appInstance;
-
-  std::string name;
 
   SDL_Window* window = nullptr;
   // This is the raw pixel buffer we will display. It has been converted
