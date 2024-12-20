@@ -6,7 +6,7 @@
 
 #include <SDL2/SDL.h>
 
-#include "common/Camera.h"
+#include "util/Camera.h"
 #include "rendering/Depthbuffer.h"
 #include "rendering/Framebuffer.h"
 #include "rendering/Pipeline.h"
@@ -35,7 +35,7 @@ protected:
   gfx1993::render::RenderConfig renderConfig;
   std::unique_ptr<gfx1993::render::Rasterizer> rasterizer;
 
-  std::unique_ptr<gfx1993::common::Camera> camera;
+  std::unique_ptr<gfx1993::util::Camera> camera;
 
   glm::ivec2 mousePosition;
 

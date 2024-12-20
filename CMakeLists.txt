@@ -23,9 +23,9 @@ if (OPENMP_FOUND)
 endif()
 
 # The libraries
-add_subdirectory(common)
 add_subdirectory(geometry)
 add_subdirectory(rendering)
+add_subdirectory(util)
 
 # The examples
 add_subdirectory(examples)

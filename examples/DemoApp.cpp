@@ -15,7 +15,7 @@ static const int HEIGHT_VGA = 240;
 
 using namespace gfx1993;
 using namespace render;
-using namespace common;
+using namespace util;
 
 DemoApp *DemoApp::appInstance = nullptr;
 DemoApp::DemoApp(const std::string &name)

@@ -17,7 +17,7 @@ find_package(glm REQUIRED)
 
 # Library and demo app harness
 add_library(gfx93-demo-app STATIC DemoApp.cpp)
-target_link_libraries(gfx93-demo-app gfx93-common gfx93-geometry gfx93-rendering)
+target_link_libraries(gfx93-demo-app gfx93-util gfx93-geometry gfx93-rendering)
 target_link_libraries(gfx93-demo-app ${SDL2_LIBRARIES} )
 target_link_libraries(gfx93-demo-app glm::glm)
 
@@ -28,7 +28,7 @@ target_link_libraries(00-triangle gfx93-demo-app)
 
 # A simple rotating triangle, this time without OpenGL
 add_executable(01-headless 01-headless.cpp)
-target_link_libraries(01-headless gfx93-common gfx93-geometry gfx93-rendering)
+target_link_libraries(01-headless gfx93-util gfx93-geometry gfx93-rendering)
 
 # Basic camera controls and geometry loading
 add_executable(02-geometry 02-geometry.cpp)

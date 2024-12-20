@@ -5,7 +5,7 @@
 #include <glm/gtx/polar_coordinates.hpp>
 
 #include "DemoApp.h"
-#include "common/Camera.h"
+#include "util/Camera.h"
 #include "geometry/GridGeometry.h"
 #include "rendering/Pipeline.h"
 #include "rendering/Shader.h"
@@ -64,8 +64,8 @@ protected:
         std::make_shared<render::SingleColorShader>(glm::vec4(0, 0, 1, 1));
 
     sphere = std::make_unique<WireSphere>(10.0f);
-    camera = std::make_unique<common::OrbitCamera>(glm::vec3(0, 0, 0),
-                                                   glm::vec3(0, 1, 0), 10.0f);
+    camera = std::make_unique<util::OrbitCamera>(glm::vec3(0, 0, 0),
+                                                 glm::vec3(0, 1, 0), 10.0f);
   }
 
   void renderFrame() override {
