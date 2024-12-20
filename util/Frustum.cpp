@@ -1,12 +1,12 @@
 #include "Frustum.h"
 
 #include <array>
+#include <vector>
 
-#include "../base/Pipeline.h"
-#include "../util/Camera.h"
+#include "Camera.h"
 
 namespace gfx1993 {
-namespace geometry {
+namespace util {
 
 using namespace glm;
 
@@ -24,9 +24,12 @@ const static std::array<vec4, 8> frustumVertices = {
   vec4(1,1,1,1),
 };
 
+const static std::vector<unsigned int> frustumIndices = {
+  0,1,1,2,2,3,3,0, 4,5,5,6,6,7,7,4, 0,4,1,5,2,6,3,7
+};
+
 Frustum::Frustum(const glm::mat4& projectionMatrix, const glm::mat4& viewMatrix) : 
   projectionMatrix(projectionMatrix), viewMatrix(viewMatrix) {
-  indices = {0,1,1,2,2,3,3,0, 4,5,5,6,6,7,7,4, 0,4,1,5,2,6,3,7};
   for (int i = 0; i < 8; ++i) {
     render::Vertex v;
     v.position = frustumVertices[i];
@@ -50,7 +53,15 @@ void Frustum::update(const glm::mat4& view) {
   }
 }
 
+const IndexList& Frustum::getIndices() const {
+  return frustumIndices;
+}
+
+const VertexList& Frustum::getVertices() const {
+  return vertices;
+}
 
 
-}  // namespace geometry
+
+}  // namespace util
 }  // namespace gfx1993

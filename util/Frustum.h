@@ -1,12 +1,16 @@
 #ifndef GFX1993_UTIL_FRUSTUM_INCLUDED
 #define GFX1993_UTIL_FRUSTUM_INCLUDED
 
-#include "Geometry.h"
+#include "../base/Pipeline.h"
 
 #include <glm/glm.hpp>
 
 namespace gfx1993 {
-namespace geometry {
+
+using render::IndexList;
+using render::VertexList;
+
+namespace util {
 
 // A frustum, for example for camera debugging and view culling.
 // The 'geometry' should be drawn as lines. It has 8 vertices
@@ -24,18 +28,23 @@ namespace geometry {
 //  F         G
 // The frustum will be in /world/ coordinates.
 
-class Frustum : public Geometry {
+class Frustum {
 public:
   Frustum(const glm::mat4& projectionMatrix,
           const glm::mat4& viewMatrix=glm::mat4(1));
   
   void update(const glm::mat4& viewMatrix);
 
+  const IndexList& getIndices() const;
+  const VertexList& getVertices() const;
+
 private:
   glm::mat4   projectionMatrix, viewMatrix;
+
+  VertexList  vertices;
 };
 
-}  // namespace geometry
+}  // namespace util
 }  // namespace gfx1993
 
 
