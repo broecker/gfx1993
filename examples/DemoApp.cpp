@@ -66,10 +66,10 @@ void DemoApp::run(int argc, char **argv) {
 		const int64_t nowTicks = SDL_GetTicks64();
 		const float dt = static_cast<float>(nowTicks) / lastSecond / 1000.0;
 
+    handleEvents();
+
     appInstance->updateFrame(dt);
     appInstance->renderFrame();
-
-    handleEvents();
 
     blitSurface();
     SDL_UpdateWindowSurface(window);
@@ -168,12 +168,7 @@ void DemoApp::handleEvents() {
     }
 
     if (event.type == SDL_MOUSEWHEEL) {
-      if (event.wheel.y > 0) {
-        camera->handleKeyPress('a');
-      }
-      if (event.wheel.y < 0) {
-        camera->handleKeyPress('z');
-      }
+      appInstance->handleMouseWheel(event.wheel.y, mousePosition);
     }
 
     if (event.type == SDL_WINDOWEVENT) {
@@ -197,6 +192,15 @@ void DemoApp::handleMotion(const glm::ivec2& newMousePosition) {
   const glm::ivec2 delta = newMousePosition - mousePosition;
   this->mousePosition = newMousePosition;
   camera->handleMouseMove(delta);
+}
+
+void DemoApp::handleMouseWheel(int wheel, const glm::ivec2& mousePosition) {
+  if (wheel > 0) {
+    camera->handleKeyPress('a');
+  }
+  if (wheel < 0) {
+    camera->handleKeyPress('z');
+  }
 }
 
 void DemoApp::updateFrame(float dt) {

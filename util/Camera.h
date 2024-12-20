@@ -16,9 +16,9 @@ public:
 
   virtual void handleMouseMove(const glm::ivec2 &delta) = 0;
 
-  virtual glm::mat4 getViewMatrix() = 0;
+  virtual glm::mat4 getViewMatrix() const = 0;
 
-  virtual glm::mat4 getProjectionMatrix() = 0;
+  virtual glm::mat4 getProjectionMatrix() const = 0;
 };
 
 class OrbitCamera : public Camera {
@@ -31,9 +31,9 @@ public:
 
   void handleMouseMove(const glm::ivec2 &delta) override;
 
-  glm::mat4 getViewMatrix() override;
+  glm::mat4 getViewMatrix() const override;
 
-  glm::mat4 getProjectionMatrix() override;
+  glm::mat4 getProjectionMatrix() const override;
 
 private:
   glm::mat4 projectionMatrix;

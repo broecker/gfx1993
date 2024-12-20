@@ -3,6 +3,9 @@
 #include <glm/gtx/polar_coordinates.hpp>
 #include <glm/gtx/transform.hpp>
 
+#include <iostream>
+#include <glm/ext.hpp>
+
 using glm::cross;
 using glm::dot;
 using glm::normalize;
@@ -34,6 +37,8 @@ void OrbitCamera::handleKeyPress(unsigned char key) {
   default:
     break;
   }
+
+  updatePosition();
 }
 
 void OrbitCamera::handleMousePress(int button, int state) {
@@ -44,6 +49,8 @@ void OrbitCamera::handleMousePress(int button, int state) {
   if (button == 1 && state == 1) {
     mode = ROTATE;
   }
+
+  updatePosition();
 }
 
 void OrbitCamera::handleMouseMove(const glm::ivec2 &delta) {
@@ -51,6 +58,7 @@ void OrbitCamera::handleMouseMove(const glm::ivec2 &delta) {
     phi += delta.y;
     theta += delta.x;
     phi = glm::clamp(phi, -89.f, 89.f);
+    updatePosition();    
   }
 
   if (mode == PAN) {
@@ -68,14 +76,17 @@ void OrbitCamera::handleMouseMove(const glm::ivec2 &delta) {
   }
 }
 
-glm::mat4 OrbitCamera::getViewMatrix() {
-  position = glm::euclidean(glm::radians(glm::vec2(phi, theta))) * radius;
-  position += target;
-
+glm::mat4 OrbitCamera::getViewMatrix() const {
   return glm::lookAt(position, target, up);
 }
 
-glm::mat4 OrbitCamera::getProjectionMatrix() { return projectionMatrix; }
+glm::mat4 OrbitCamera::getProjectionMatrix() const { return projectionMatrix; }
+
+void OrbitCamera::updatePosition() {
+  position = glm::euclidean(glm::radians(glm::vec2(phi, theta))) * radius;
+  position += target;
+  // std::cout << "Camera: phi: " << phi << " theta: " << theta << " delta: (" << delta.x << "," << delta.y << ") position: (" << position.x << "," << position.y << "," << position.z << ")\n";
+}
 
 }  // namespace util
 }  // namespace gfx1993

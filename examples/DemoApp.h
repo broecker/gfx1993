@@ -51,6 +51,8 @@ protected:
 
   virtual void handleMotion(const glm::ivec2& mousePosition);
 
+  virtual void handleMouseWheel(int wheel, const glm::ivec2& mousePosition);
+
 private:
   static DemoApp *appInstance;
 
