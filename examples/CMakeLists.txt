@@ -46,6 +46,10 @@ target_link_libraries(04-transparency gfx93-demo-app)
 add_executable(05-clipping 05-clipping.cpp)
 target_link_libraries(05-clipping gfx93-demo-app)
 
-# Line and triangle clipping
+# Texture mapping
 add_executable(06-textures 06-textures.cpp)
 target_link_libraries(06-textures gfx93-demo-app)
+
+# View frustum and culling
+add_executable(07-frustum 07-frustum.cpp)
+target_link_libraries(07-frustum gfx93-demo-app)
