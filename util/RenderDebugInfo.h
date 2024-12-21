@@ -21,6 +21,7 @@ struct DebugInfo {
   PrimitiveDebugInfo points;
   PrimitiveDebugInfo lines;
   PrimitiveDebugInfo triangles;
+  PrimitiveDebugInfo screenFillingQuad;
 
   void reset();
   void print() const;

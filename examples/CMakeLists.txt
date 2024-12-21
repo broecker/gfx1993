@@ -53,3 +53,7 @@ target_link_libraries(06-textures gfx93-demo-app)
 # View frustum and culling
 add_executable(07-frustum 07-frustum.cpp)
 target_link_libraries(07-frustum gfx93-demo-app)
+
+# Wireframe and hidden-line culling
+add_executable(08-wireframe 08-wireframe.cpp)
+target_link_libraries(08-wireframe gfx93-demo-app)

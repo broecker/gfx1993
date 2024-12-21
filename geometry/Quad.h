@@ -15,7 +15,7 @@ public:
   //   | \ |
   // b +---+ c
   // The size will be [-1..1] along the XY axis and 0 on the z axis. It can be
-  // used for screen-space gfx1993.
+  // used for screen-space rendering.
   explicit Quad(const glm::vec4 &color);
 };
 

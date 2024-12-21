@@ -11,6 +11,7 @@
 #include <list>
 
 using glm::ivec2;
+using glm::vec2;
 using glm::vec3;
 using glm::vec4;
 
@@ -242,6 +243,33 @@ void Rasterizer::drawTriangles(const RenderConfig &renderConfig,
   // Rasterization.
   for (size_t i = 0; i < trianglesToDraw.size(); ++i) {
     drawTriangle(renderConfig, clipped[trianglesToDraw[i]]);
+  }
+}
+
+
+void Rasterizer::drawScreenFillingQuad(const RenderConfig& renderConfig) {
+  if (!renderConfig.isValid()) {
+    std::cerr << "Invalid render configuration!\n";
+    return;
+  }
+
+  START_PROFILE("rasterize.screenQuad");
+  debugInfo.screenFillingQuad.processed++;
+  debugInfo.screenFillingQuad.drawn++;
+
+  for (int x = 0; x < renderConfig.viewport->size.x; ++x) {
+    for (int y = 0; y < renderConfig.viewport->size.y; ++y) {
+      ShadingGeometry sgeo;
+      sgeo.color = vec4(1);
+      sgeo.normal = vec3(0);
+      sgeo.windowCoord = glm::ivec2(x,y) + renderConfig.viewport->origin;
+
+      vec2 pos = vec2(x,y) / vec2(renderConfig.viewport->size.x, renderConfig.viewport->size.y);
+      sgeo.position = vec3(pos, 0.0);
+      sgeo.texcoord = pos;
+
+      SAVE_COUNTER(drawFragment(renderConfig, sgeo), debugInfo.screenFillingQuad);
+    }
   }
 }
 

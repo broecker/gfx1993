@@ -1,0 +1,134 @@
+#include <cstdlib>
+#include <iostream>
+#include <memory>
+
+#include <glm/ext.hpp>
+#include <glm/glm.hpp>
+
+#include "DemoApp.h"
+#include "geometry/GridGeometry.h"
+#include "geometry/PlyGeometry.h"
+#include "geometry/Quad.h"
+#include "base/Pipeline.h"
+#include "rendering/Shader.h"
+
+using namespace gfx1993;
+
+
+class VisualizeDepthBufferFragShader : public render::FragmentShader {
+public:
+  render::Fragment shadeSingle(const render::ShadingGeometry &in) override {
+    assert(renderDepth != nullptr);
+
+    render::Fragment result;
+    result.discard = false;
+
+    float depth = renderDepth->getDepth(in.windowCoord.x, in.windowCoord.y);
+    result.color = glm::vec4(glm::lerp(glm::vec3(0.0,1.0,0.0), 
+                                       glm::vec3(1.0,0.0,0.0),
+                                       glm::vec3(depth)), 1.0);
+    return result;
+  };
+
+  std::shared_ptr<render::Depthbuffer> renderDepth;
+};
+
+class Demo08 : public DemoApp {
+public:
+  Demo08() : DemoApp("Demo 08 - Hidden Wireframe") {}
+
+protected:
+  void init() override {
+    gridShader = std::make_shared<render::InputColorShader>();
+    bunnyShader = std::make_shared<render::SingleColorShader>(glm::vec4(0.7, 0.0, 0.0, 1.0));
+    depthBufferShader = std::make_shared<VisualizeDepthBufferFragShader>();
+
+    renderConfig.vertexShader =
+        std::make_shared<render::DefaultVertexTransform>();
+    renderConfig.fragmentShader = std::make_shared<render::NormalColorShader>();
+
+    assert(bunny.loadPly("../models/bunny/reconstruction/bun_zipper_res3.ply"));
+    bunny.transform = glm::scale(glm::vec3(125.f));
+    bunny.center();
+
+    // Filled-in by DemoApp. We'll save it so we can swap it out.
+    renderTarget = renderConfig.framebuffer;
+    depthBuffer = renderConfig.depthbuffer;
+    visualizeBackbufferTarget = std::make_shared<render::Framebuffer>(renderTarget->getWidth(), renderTarget->getHeight());
+  }
+
+  void renderFrame() override {
+    // reset the render matrices
+    render::DefaultVertexTransform *dvt =
+        dynamic_cast<render::DefaultVertexTransform *>(
+            renderConfig.vertexShader.get());
+    dvt->modelMatrix = glm::mat4(1.f);
+    dvt->viewMatrix = camera->getViewMatrix();
+    dvt->projectionMatrix = camera->getProjectionMatrix();
+
+    renderConfig.framebuffer = renderTarget;
+    renderConfig.depthbuffer = depthBuffer;
+
+    // Clear the buffers
+    renderConfig.clearBuffers(glm::vec4(0.7f, 0.7f, 0.9f, 1));
+
+    // Draw the floor grid.
+    renderConfig.fragmentShader = gridShader;
+    rasterizer->drawLines(renderConfig, grid.getVertices(),
+                          grid.getIndices());
+
+    // Draw all the bunnies.
+    renderConfig.fragmentShader = bunnyShader;
+    dvt->modelMatrix = bunny.transform;
+    rasterizer->drawTriangles(renderConfig, bunny.getVertices(),
+                              bunny.getIndices());
+
+    // For debug purposes. We're also drawing to a different render target
+    // to preserve what we have rendered in the framebuffer and depthbuffers.
+    if (drawBackBuffer) {
+      renderConfig.fragmentShader = depthBufferShader;
+      renderConfig.framebuffer = visualizeBackbufferTarget;
+      renderConfig.depthbuffer = nullptr;
+      depthBufferShader->renderDepth = depthBuffer;
+      rasterizer->drawScreenFillingQuad(renderConfig);
+    }
+  }
+
+  void handleKeyboard(unsigned char key, const glm::ivec2& mousePosition) override {
+    if (key == 'b') {
+      renderConfig.drawTriangleBounds = !renderConfig.drawTriangleBounds;
+      std::cout << "Drawing tri raster bounds: " << renderConfig.drawTriangleBounds << std::endl;
+    }
+
+    if (key == 'c') {
+      renderConfig.cullBackFaces = !renderConfig.cullBackFaces;
+      std::cout << "Culling backfaces: " << renderConfig.cullBackFaces << std::endl;
+    }
+
+    if (key == 'd') {
+      drawBackBuffer = !drawBackBuffer;
+    }
+  }
+
+private:
+  geometry::GridGeometry grid;
+  geometry::PlyGeometry bunny;
+
+  std::shared_ptr<render::FragmentShader> gridShader;
+  std::shared_ptr<render::SingleColorShader> lineShader;
+  std::shared_ptr<render::SingleColorShader> bunnyShader;
+  std::shared_ptr<VisualizeDepthBufferFragShader> depthBufferShader;
+
+  std::shared_ptr<render::Framebuffer> renderTarget;
+  std::shared_ptr<render::Depthbuffer> depthBuffer;
+  std::shared_ptr<render::Framebuffer> visualizeBackbufferTarget;
+
+  bool drawBackBuffer = false;  
+};
+
+int main(int argc, char **argv) {
+  Demo08 demo;
+  demo.run(argc, argv);
+
+  return 0;
+}

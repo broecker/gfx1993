@@ -43,6 +43,9 @@ public:
                      const VertexList &vertices,
                      const IndexList &indices) const;
 
+  // Draws a quad in screen coordinates [0..1] with the given shaders.
+  void drawScreenFillingQuad(const RenderConfig &renderConfig);
+
   inline void resetDebugInfo() { debugInfo.reset(); profileInfo.reset(); }
 
   inline util::RenderProfile& getProfile() { return profileInfo; }

@@ -18,7 +18,15 @@ public:
   inline unsigned int getHeight() const { return height; }
 
   inline float getDepth(unsigned int x, unsigned int y) const {
+    assert(x <= (width-1));
+    assert(y <= (height-1));
     return data[x + width * y];
+  }
+
+  inline float getDepth(const glm::vec2& t) const {
+    assert(t.x >= 0 && t.x < 1.0);
+    assert(t.y >= 0 && t.y < 1.0);
+    return getDepth(t.x*width, t.y*width);
   }
 
   inline void plot(const glm::ivec2& coords, float depth) {
