@@ -20,14 +20,14 @@ using glm::vec4;
 namespace gfx1993 {
 namespace render {
 
-#ifdef GFX1993_ENABLE_PROFILING
-#ifdef GFX1993_ENABLE_DEBUG_PROFILING
-  #define START_PROFILE(name) const auto profile_##name_start = profileInfo.startTiming(name)
-#else
-  #define START_PROFILE(name) const auto profile_##name_start = profileInfo.startTiming(name); std::clog << "[Rasterizer stage]: " << name << std::endl;
-#endif // GFX1993_ENABLE_DEBUG_PROFILING
+#if GFX1993_ENABLE_PROFILING
+  #if GFX1993_ENABLE_DEBUG_PROFILING
+    #define START_PROFILE(name) const auto profile_##name_start = profileInfo.startTiming(name); std::clog << "[Rasterizer stage]: " << name << std::endl;
+  #else
+    #define START_PROFILE(name) const auto profile_##name_start = profileInfo.startTiming(name)    
+  #endif // GFX1993_ENABLE_DEBUG_PROFILING
 #else 
-#define START_PROFILE(name) {}
+  #define START_PROFILE(name) {}
 #endif
 
 #define SAVE_COUNTER(rasterFunction, debugCounter) if (rasterFunction) {debugCounter.fragmentsDrawn++;} else {debugCounter.fragmentsDiscarded++;} 
