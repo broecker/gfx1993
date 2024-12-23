@@ -15,6 +15,8 @@ public:
 
   inline const VertexList &getVertices() const { return vertices; }
 
+  VertexList& getMutableVertexList() { return vertices; }
+
   inline const IndexList &getIndices() const { return indices; }
 
   // Access to transform is public -- no reason to write getter+setter

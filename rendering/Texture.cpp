@@ -1,7 +1,3 @@
-//
-// Created by mbroecker on 4/19/20.
-//
-
 #include "Texture.h"
 
 #include <cmath>
@@ -24,20 +20,23 @@ Texture::Texture(unsigned int width, unsigned int height,
 Texture::~Texture() { delete[] data; }
 
 const glm::vec4 &Texture::getTexel(const glm::vec2 &texCoords, LookupMode mode) const {
-  float u,v;
-  if (mode == CLAMP) { 
-    // clamp u and v
-    u = glm::clamp(texCoords.x, 0.f, 1.f);
-    v = glm::clamp(texCoords.y, 0.f, 1.f);
-  }
+  glm::vec2 uv;
 
   if (mode == REPEAT) {
-    u = glm::fract(texCoords.x);
-    v = glm::fract(texCoords.y);
+    uv = texCoords - glm::floor(texCoords);
+    // std::clog << "tc_u:" << texCoords.x << " tc_v:" << texCoords.y << "(" << glm::floor(texCoords.x) << "," << glm::floor(texCoords.y) << ") -> u:" << u << " v: " << v <<  std::endl;
   }
 
-  unsigned int x = std::floor(u * (width-1));
-  unsigned int y = std::floor(v * (height-1));
+  if (mode == CLAMP) {
+    uv = glm::clamp(texCoords, glm::vec2(0), glm::vec2(1));
+  }
+
+  // The coordinates are offset by 0.5 to lie in the /center/ of each texel. See
+  // Van Verth, Bishop: Essential Mathematics for Games, 2nd Ed, pg 311 
+  glm::vec2 tx = uv * glm::vec2(width-1, height-1) - glm::vec2(0.5);
+
+  unsigned int x = ceil(tx.x);
+  unsigned int y = ceil(tx.y);
 
   return getTexel(x, y);
 }
@@ -179,8 +178,8 @@ static double perlin(double x, double y, double z) {
   double u = fade(x),                           // COMPUTE FADE CURVES
          v = fade(y),                           // FOR EACH OF X,Y,Z.
          w = fade(z);
-  int A = p[X  ]+Y, AA = p[A]+Z, AB = p[A+1]+Z,      // HASH COORDINATES OF
-      B = p[X+1]+Y, BA = p[B]+Z, BB = p[B+1]+Z;      // THE 8 CUBE CORNERS,
+  int A = p[X  ]+Y, AA = p[A]+Z, AB = p[A+1]+Z,   // HASH COORDINATES OF
+      B = p[X+1]+Y, BA = p[B]+Z, BB = p[B+1]+Z;   // THE 8 CUBE CORNERS,
 
   return lerp(w, lerp(v, lerp(u, grad(p[AA  ], x, y, z), // AND ADD
                  grad(p[BA  ], x-1, y  , z   )), // BLENDED

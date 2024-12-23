@@ -41,7 +41,6 @@ public:
                                             unsigned int height,
                                             const std::vector<glm::vec4>& data);
 
-
   static std::unique_ptr<Texture> perlinNoise(unsigned int width, 
                                               unsigned int height,
                                               const glm::vec2& scale = glm::vec2(1));
@@ -50,17 +49,20 @@ private:
   unsigned int width, height;
   glm::vec4 *data;
 
+  // For debugging purposes.
   std::string id;
 
   explicit Texture(unsigned int width, unsigned int height, const std::string& id);
 
-  inline const glm::vec4 &getTexel(int x, int y) const {
-    const size_t idx = x+y * width;
-    assert(idx < width*height);
-    return data[idx];
+  inline const glm::vec4 &getTexel(unsigned int x, unsigned int y) const {
+    assert(x < width);
+    assert(y < height);
+    return data[x + y*width];
   }
 
   inline void setTexel(unsigned int x, unsigned int y, const glm::vec4 &c) {
+    assert(x < width);
+    assert(y < height);
     data[x + y * width] = c;
   }
 };
