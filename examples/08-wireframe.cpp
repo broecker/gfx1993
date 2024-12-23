@@ -33,6 +33,27 @@ public:
   std::shared_ptr<render::Depthbuffer> renderDepth;
 };
 
+
+// Creates a number of line vertices from a geometry containing triangles.
+static render::IndexList extractLineIndices(const render::IndexList& indices) {
+  render::IndexList result;
+  if (indices.size() % 3 != 0) {
+    std::cout << "Warning, geometry does not contain well-formed triangles.\n";
+  }
+
+  result.reserve(indices.size()*2);
+
+  for (size_t i = 0; i < indices.size(); i += 3) {
+    result.push_back(indices[i+0]);
+    result.push_back(indices[i+1]);
+    result.push_back(indices[i+1]);
+    result.push_back(indices[i+2]);
+    result.push_back(indices[i+2]);
+    result.push_back(indices[i+0]);
+  }
+  return result;
+}
+
 class Demo08 : public DemoApp {
 public:
   Demo08() : DemoApp("Demo 08 - Hidden Wireframe") {}
@@ -50,6 +71,8 @@ protected:
     assert(bunny.loadPly("../models/bunny/reconstruction/bun_zipper_res3.ply"));
     bunny.transform = glm::scale(glm::vec3(125.f));
     bunny.center();
+
+    dynamic_cast<util::OrbitCamera*>(camera.get())->setTarget(bunny.getCenter());
 
     // Filled-in by DemoApp. We'll save it so we can swap it out.
     renderTarget = renderConfig.framebuffer;
@@ -72,16 +95,31 @@ protected:
     // Clear the buffers
     renderConfig.clearBuffers(glm::vec4(0.7f, 0.7f, 0.9f, 1));
 
-    // Draw the floor grid.
-    renderConfig.fragmentShader = gridShader;
-    rasterizer->drawLines(renderConfig, grid.getVertices(),
-                          grid.getIndices());
-
-    // Draw all the bunnies.
+    // Draw all the bunny; first draw it as triangles, without a color buffer.
+    // This will still fill the depth buffer.
     renderConfig.fragmentShader = bunnyShader;
+    renderConfig.framebuffer = nullptr;
     dvt->modelMatrix = bunny.transform;
     rasterizer->drawTriangles(renderConfig, bunny.getVertices(),
                               bunny.getIndices());
+
+
+    // Draw the bunny again, this time, we'll draw it as line strips only.
+    renderConfig.framebuffer = renderTarget;
+    rasterizer->drawLines(renderConfig, 
+                          bunny.getVertices(), 
+                          extractLineIndices(bunny.getIndices()));
+
+    // Finally, draw the grid. We want to draw it last, so the bunny's
+    // depth pass will block any grid lines behind the model.
+    if (drawGrid) {
+      renderConfig.framebuffer = renderTarget;
+      renderConfig.fragmentShader = gridShader;
+      dvt->modelMatrix = glm::mat4(1);
+      rasterizer->drawLines(renderConfig, 
+                            grid.getVertices(),
+                            grid.getIndices());
+    }
 
     // For debug purposes. We're also drawing to a different render target
     // to preserve what we have rendered in the framebuffer and depthbuffers.
@@ -108,6 +146,10 @@ protected:
     if (key == 'd') {
       drawBackBuffer = !drawBackBuffer;
     }
+
+    if (key == 'g') {
+      drawGrid = !drawGrid;
+    }
   }
 
 private:
@@ -123,7 +165,8 @@ private:
   std::shared_ptr<render::Depthbuffer> depthBuffer;
   std::shared_ptr<render::Framebuffer> visualizeBackbufferTarget;
 
-  bool drawBackBuffer = false;  
+  bool drawBackBuffer = false;
+  bool drawGrid = true;
 };
 
 int main(int argc, char **argv) {
