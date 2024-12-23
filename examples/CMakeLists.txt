@@ -57,3 +57,7 @@ target_link_libraries(07-frustum gfx93-demo-app)
 # Wireframe and hidden-line culling
 add_executable(08-wireframe 08-wireframe.cpp)
 target_link_libraries(08-wireframe gfx93-demo-app)
+
+# Different shading modes.
+add_executable(09-shading 09-shading.cpp)
+target_link_libraries(09-shading gfx93-demo-app)

@@ -22,4 +22,8 @@
 // or Vulkan) this can be left off (I think).
 #define GFX1993_DEMO_USE_OPENMP 1
 
+// If set, uses OpenMP parallel loops to clip triangles. Points and lines are
+// still processed serially; testing showed no performance increase.
+#define GFX1993_PARALLEL_CLIP 1
+
 #endif // GFX1993_BASE_CONFIG_INCLUDED

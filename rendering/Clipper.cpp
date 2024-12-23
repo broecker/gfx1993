@@ -1,7 +1,10 @@
 #include "Clipper.h"
+#include "../base/config.h"
+
 #include <algorithm>
 #include <iostream>
 #include <map>
+#include <omp.h>
 
 #include <deque>
 
@@ -80,6 +83,8 @@ Clipper::clipLines(const render::LinePrimitiveList &lines) const {
 
   LinePrimitiveList clipped;
 
+  // Do not clip lines in parallel; testing showed an actual reduction in
+  // performance!
   for (LinePrimitive line : lines) {
     bool keep = true;
     for (const Clipper::Plane &plane : planes) {
@@ -326,9 +331,19 @@ TrianglePrimitiveList Clipper::clipTrianglesToNdc(
   for (const auto &plane : planes) {
     TrianglePrimitiveList temp;
 
-    for (const auto &t : clipped) {
+    #if GFX1993_PARALLEL_CLIP
+      #pragma omp parallel for shared(temp)
+      for (size_t i = 0; i < clipped.size(); ++i) {
+        const auto& t = clipped[i];
+    #else
+      for (const auto &t : clipped) {
+    #endif
       auto result = clipTriangle(t, plane, debugColorClips, debugClipColor);
-      temp.insert(temp.end(), result.begin(), result.end());
+
+      {
+        #pragma omp critical
+        temp.insert(temp.end(), result.begin(), result.end());
+      }
     }
     clipped = temp;
   }
