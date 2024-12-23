@@ -1,4 +1,6 @@
 #include "Rasterizer.h"
+
+#include "../base/config.h"
 #include "Depthbuffer.h"
 #include "Framebuffer.h"
 #include "Viewport.h"
@@ -18,7 +20,16 @@ using glm::vec4;
 namespace gfx1993 {
 namespace render {
 
-#define START_PROFILE(name) const auto profile_##name_start = profileInfo.startTiming(name)
+#ifdef GFX1993_ENABLE_PROFILING
+#ifdef GFX1993_ENABLE_DEBUG_PROFILING
+  #define START_PROFILE(name) const auto profile_##name_start = profileInfo.startTiming(name)
+#else
+  #define START_PROFILE(name) const auto profile_##name_start = profileInfo.startTiming(name); std::clog << "[Rasterizer stage]: " << name << std::endl;
+#endif // GFX1993_ENABLE_DEBUG_PROFILING
+#else 
+#define START_PROFILE(name) {}
+#endif
+
 #define SAVE_COUNTER(rasterFunction, debugCounter) if (rasterFunction) {debugCounter.fragmentsDrawn++;} else {debugCounter.fragmentsDiscarded++;} 
 
 void Rasterizer::drawPoints(const RenderConfig &renderConfig,
@@ -113,6 +124,12 @@ void Rasterizer::drawLines(const RenderConfig &renderConfig,
     std::cerr << "Invalid render configuration!\n";
     return;
   }
+
+  if (indices.size() % 2 == 1) {
+    std::cerr << "Invalid indices; expected an even number, got: " << indices.size() << std::endl;
+    return;
+  }
+
   START_PROFILE("rasterize.lines");
   debugInfo.lines.processed++;
 
