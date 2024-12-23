@@ -16,4 +16,10 @@
 // How many varying vec4s are supported.
 #define SHADER_VARYING_COUNT 4
 
+// If set, uses OpenMP parallel loops to resample and copy the target render
+// buffer to the window. This is only useful in the default demo app. When using
+// hardware textures or surfaces to display the result (for example, in OpenGL
+// or Vulkan) this can be left off (I think).
+#define GFX1993_DEMO_USE_OPENMP 1
+
 #endif // GFX1993_BASE_CONFIG_INCLUDED

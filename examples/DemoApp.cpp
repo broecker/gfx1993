@@ -1,15 +1,21 @@
 #include "DemoApp.h"
 
+#include "../base/config.h"
+
 #include <cstdlib>
 #include <iostream>
 #include <iomanip>
 
 #include <glm/ext.hpp>
 
+#if GFX1993_DEMO_USE_OPENMP
+  #include <omp.h>
+#endif
+
 namespace {
 
-static const int WIDTH_VGA = 320;
-static const int HEIGHT_VGA = 240;
+static const int WIDTH_VGA = 640;
+static const int HEIGHT_VGA = 480;
 
 }  // namespace
 
@@ -99,7 +105,9 @@ void DemoApp::blitSurface() {
   // Resample buffer and switch to BGRA format.
   {
     const auto resampleProf = rasterizer->getProfile().startTiming("app.blit.resample");
+    #if GFX1993_DEMO_USE_OPENMP
     #pragma omp parallel for
+    #endif
     for (unsigned int w = 0; w < width; ++w) {
       for (unsigned int h = 0; h < height; ++h) {
         glm::vec2 coord(static_cast<float>(w) / width,
@@ -120,7 +128,6 @@ void DemoApp::blitSurface() {
 
   {
     auto copyProf = rasterizer->getProfile().startTiming("app.blit.copy");
-    //std::cout << "Src: " << renderConfig.framebuffer->getWidth() << "x" << renderConfig.framebuffer->getHeight() << "; dest: " << surface->w << "x" << surface->h << std::endl;
     memcpy(surface->pixels, &pixels[0], pixels.size());
   }
 

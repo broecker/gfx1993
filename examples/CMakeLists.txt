@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.5.0)
 
 # Compile + link setup
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLM_ENABLE_EXPERIMENTAL")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLM_ENABLE_EXPERIMENTAL -O0 -fopenmp")
 
 cmake_policy(SET CMP0015 NEW)
 
