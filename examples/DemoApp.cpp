@@ -18,7 +18,7 @@ using namespace util;
 
 DemoApp *DemoApp::appInstance = nullptr;
 DemoApp::DemoApp(const std::string &name)
-    : name(name), width(GFX1993_VGA_WIDTH), height(GFX1993_VGA_HEIGHT),
+    : name(name), width(VGA_WIDTH), height(VGA_HEIGHT),
       logFrameTime(true), mousePosition(0,0) {
   rasterizer = std::make_unique<Rasterizer>();
 
