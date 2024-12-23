@@ -22,7 +22,7 @@ public:
     fragment.color = glm::vec4(1,0,1,1);
 
     if (texture) {
-      fragment.color = texture->getTexel(in.texcoord);
+      fragment.color = texture->getTexel(in.texcoord,  mode);
     }
     return fragment;
   }
@@ -32,8 +32,20 @@ public:
     this->texture = texture;
   }
 
+  void switchLookup() {
+    if (mode == render::Texture::CLAMP) {
+      mode = render::Texture::REPEAT;
+    } else {
+      mode = render::Texture::CLAMP;
+    }
+
+    std::cout << "[TexShader] Switched lookup to " << mode << std::endl;
+  }
+
 private:
   std::shared_ptr<render::Texture> texture;
+
+  render::Texture::LookupMode mode = render::Texture::REPEAT;
 };
 
 class TexCoordShader : public render::FragmentShader {
@@ -65,6 +77,11 @@ protected:
     quad->transform = glm::rotate(glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f));
     // And scale it up by 5
     quad->transform *= glm::scale(glm::vec3(5));
+
+    // And change the texture coordinates from [0..1] to [-1..2]
+    for (auto& v : quad->getMutableVertexList()) {
+      v.texcoord = v.texcoord * glm::vec2(3) - glm::vec2(1);
+    }
   }
 
   void renderFrame() override {
@@ -106,6 +123,15 @@ protected:
     if (key == 't') {
       renderConfig.fragmentShader = texCoordShader;
       texture = nullptr;
+    }
+
+    if (key == 'm') {
+      textureShader->switchLookup();
+    }
+
+    if (key == 'n') {
+      texture = render::Texture::perlinNoise(128, 128, glm::vec2(10));
+      updateTexture();
     }
   }
 
