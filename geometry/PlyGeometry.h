@@ -17,6 +17,10 @@ public:
   // Centers the geometry without changing the transform.
   void center();
 
+  inline glm::vec3 getCenter() const {
+    return glm::vec3(0, boundingSphereRadius, 0);
+  }
+
 private:
   float boundingSphereRadius;
 };

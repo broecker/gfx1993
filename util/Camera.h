@@ -35,6 +35,8 @@ public:
 
   glm::mat4 getProjectionMatrix() const override;
 
+  inline void setTarget(const glm::vec3& tgt) { target = tgt; }
+
 private:
   glm::mat4 projectionMatrix;
 
