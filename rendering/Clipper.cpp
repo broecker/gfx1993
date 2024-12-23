@@ -4,7 +4,6 @@
 #include <map>
 
 #include <deque>
-#include <glm/gtx/io.hpp>
 
 namespace gfx1993 {
 namespace render {

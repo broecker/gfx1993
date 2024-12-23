@@ -11,8 +11,16 @@ set_property(TARGET gfx93-rendering PROPERTY CXX_STANDARD 17)
 # Compile + link setup
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O0 -g -DGLM_ENABLE_EXPERIMENTAL")
 
+include(FetchContent)
+FetchContent_Declare(
+gunit
+GIT_REPOSITORY https://github.com/cpp-testing/GUnit.git
+GIT_TAG        master
+)
+FETCHCONTENT_MAKEAVAILABLE(gunit)
+
 add_executable(gfx93-rendering-clipper-test ClipperTest.cpp)
-target_link_libraries(gfx93-rendering-clipper-test gfx93-rendering)
+target_link_libraries(gfx93-rendering-clipper-test gfx93-rendering gunit)
 
 add_test(PlaneFromPoints gfx93-rendering-clipper-test "plane-from-points")
 add_test(PlaneWithFrontSpacePoint gfx93-rendering-clipper-test "plane-frontspace")
