@@ -141,9 +141,10 @@ Clipper::clipTriangles(render::TrianglePrimitiveList triangles) const {
   TrianglePrimitiveList clipped;
   clipped.reserve(triangles.size());
 
-  const static size_t MAX_TRI_COUNT = 1000;
-
-  for (size_t i = 0; i < triangles.size() && i < MAX_TRI_COUNT; ++i) {
+  #if GFX1993_PARALLEL_CLIP
+    #pragma omp parallel for shared(clipped)
+  #endif
+  for (size_t i = 0; i < triangles.size(); ++i) {
     // Triangles might change during iteration, as new triangles are created by
     // clipping.
     TrianglePrimitive triangle = triangles[i];
@@ -247,6 +248,7 @@ Clipper::clipTriangles(render::TrianglePrimitiveList triangles) const {
     }
 
     if (keep) {
+      #pragma omp critical
       clipped.push_back(triangle);
     }
   }
