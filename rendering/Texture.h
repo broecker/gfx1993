@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <glm/glm.hpp>
 
@@ -16,7 +17,12 @@ class Texture {
 public:
   virtual ~Texture();
 
-  const glm::vec4 &getTexel(const glm::vec2 &texCoords) const;
+  enum LookupMode {
+    CLAMP,
+    REPEAT,
+  };
+
+  const glm::vec4 &getTexel(const glm::vec2 &texCoords, LookupMode mode=CLAMP) const;
 
   const std::string& getId() const { return id; }
 
@@ -30,6 +36,15 @@ public:
                                                    const glm::vec4 &b);
 
   static std::unique_ptr<Texture> loadPPM(const std::string &filename);
+
+  static std::unique_ptr<Texture> fromVec4s(unsigned int width, 
+                                            unsigned int height,
+                                            const std::vector<glm::vec4>& data);
+
+
+  static std::unique_ptr<Texture> perlinNoise(unsigned int width, 
+                                              unsigned int height,
+                                              const glm::vec2& scale = glm::vec2(1));
 
 private:
   unsigned int width, height;

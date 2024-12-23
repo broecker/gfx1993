@@ -21,3 +21,6 @@ FETCHCONTENT_MAKEAVAILABLE(gunit)
 
 add_executable(gfx93-rendering-clipper-test ClipperTest.cpp)
 target_link_libraries(gfx93-rendering-clipper-test gfx93-rendering gunit)
+
+add_executable(gfx93-rendering-texture-test TextureTest.cpp)
+target_link_libraries(gfx93-rendering-texture-test gfx93-rendering gunit)
