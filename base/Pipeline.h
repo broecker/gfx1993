@@ -1,6 +1,8 @@
 #ifndef SRENDER_PIPELINE_H
 #define SRENDER_PIPELINE_H
 
+#include "config.h"
+
 #include <glm/glm.hpp>
 #include <vector>
 
@@ -32,23 +34,31 @@ struct Vertex {
   glm::vec2 texcoord;
 
   inline Vertex()
-      : position(0, 0, 0, 1), normal(0, 0, 0), color(1, 1, 1, 1),
-        texcoord(0, 0) {}
+      : position(0, 0, 0, 1), 
+        normal(0.f),
+        color(1.f),
+        texcoord(0.f) {}
 
   inline explicit Vertex(const glm::vec4 &pos)
-      : position(pos), normal(0, 0, 0), color(0, 0, 0, 1), texcoord(0, 0) {}
+      : position(pos),
+        normal(0.f),
+        color(0, 0, 0, 1),
+        texcoord(0.f) {}
 
   inline Vertex(const glm::vec4 &pos, const glm::vec3 &n, const glm::vec4 &col,
                 const glm::vec2 &tc)
-      : position(pos), normal(n), color(col), texcoord(tc) {}
+      : position(pos),
+        normal(n),
+        color(col),
+        texcoord(tc) {}
 };
 
 // The output of a vertex shader -- the transformed vertex.
 struct VertexOut {
-  // After view and projection transform
+  // After view and projection transform.
   glm::vec4 clipPosition;
 
-  // For shading -- position and normal in world coords
+  // For shading; position and normal in world coords.
   glm::vec3 worldPosition;
   glm::vec3 worldNormal;
 
@@ -56,6 +66,10 @@ struct VertexOut {
   // coordinates.
   glm::vec4 color;
   glm::vec2 texcoord;
+
+  // User/custom-defined varyings that will be interpolated between
+  // fragments.
+  glm::vec4 varying[SHADER_VARYING_COUNT];
 };
 
 // Linearly interpolates between two vertexouts.
@@ -72,7 +86,8 @@ struct PointPrimitive {
 struct LinePrimitive {
   VertexOut a, b;
 
-  inline LinePrimitive(const VertexOut &a_, const VertexOut &b_)
+  inline LinePrimitive(const VertexOut &a_,
+                       const VertexOut &b_)
       : a(a_), b(b_){};
 
   ShadingGeometry rasterize(float d) const;
@@ -81,7 +96,8 @@ struct LinePrimitive {
 struct TrianglePrimitive {
   VertexOut a, b, c;
 
-  inline TrianglePrimitive(const VertexOut &a_, const VertexOut &b_,
+  inline TrianglePrimitive(const VertexOut &a_,
+                           const VertexOut &b_,
                            const VertexOut &c_)
       : a(a_), b(b_), c(c_) {}
 
@@ -105,6 +121,8 @@ struct ShadingGeometry {
 
   glm::ivec2 windowCoord;
   float depth;
+
+  glm::vec4 varying[SHADER_VARYING_COUNT];
 };
 
 // Linearly interpolates between two ShadingGeometries.

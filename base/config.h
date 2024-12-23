@@ -13,4 +13,7 @@
 // Indexlist data types.
 
 
+// How many varying vec4s are supported.
+#define SHADER_VARYING_COUNT 4
+
 #endif // GFX1993_BASE_CONFIG_INCLUDED

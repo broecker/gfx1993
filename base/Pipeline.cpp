@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 
 using glm::vec4;
+using glm::mix;
 
 namespace gfx1993 {
 namespace render {
@@ -13,11 +14,14 @@ VertexOut lerp(const VertexOut &a, const VertexOut &b, float d) {
   result.worldNormal = glm::mix(a.worldNormal, b.worldNormal, d);
   result.color = glm::mix(a.color, b.color, d);
   result.texcoord = glm::mix(a.texcoord, b.texcoord, d);
+  for (int i = 0; i < SHADER_VARYING_COUNT; ++i) {
+    result.varying[i] = glm::mix(a.varying[i], b.varying[i], d);
+  }
   return result;
 }
 
 ShadingGeometry interpolate(const ShadingGeometry &a,
-                              const ShadingGeometry &b, float d) {
+                            const ShadingGeometry &b, float d) {
   ShadingGeometry result;
 
   result.position = mix(a.position, b.position, d);
@@ -25,6 +29,13 @@ ShadingGeometry interpolate(const ShadingGeometry &a,
 
   result.color = mix(a.color, b.color, d);
   result.windowCoord = mix(a.windowCoord, b.windowCoord, d);
+
+  result.texcoord = mix(a.texcoord, b.texcoord, d);
+  result.depth = mix(a.depth, b.depth, d);
+
+  for (int i = 0; i < SHADER_VARYING_COUNT; ++i) {
+    result.varying[i] = mix(a.varying[i], b.varying[i], d);
+  }
 
   return result;
 }
@@ -35,6 +46,9 @@ ShadingGeometry PointPrimitive::rasterize() const {
   result.normal = p.worldNormal;
   result.color = p.color;
   result.texcoord = p.texcoord;
+  for (int i = 0; i < SHADER_VARYING_COUNT; ++i) {
+    result.varying[i] = p.varying[i];
+  }
   return result;
 }
 
@@ -44,20 +58,34 @@ ShadingGeometry LinePrimitive::rasterize(float d) const {
   result.normal = normalize(mix(a.worldNormal, b.worldNormal, d));
   result.color = mix(a.color, b.color, d);
   result.texcoord = mix(a.texcoord, b.texcoord, d);
+  for (int i = 0; i < SHADER_VARYING_COUNT; ++i) {
+    result.varying[i] = mix(a.varying[i], b.varying[i], d);
+  }
   return result;
 }
 
-ShadingGeometry TrianglePrimitive::rasterize(const glm::vec3 &bary) const {
+// Three-way LERP along barycentric coordinates.
+template<typename glm_vec>
+static inline glm_vec baryLerp(const glm_vec& a,
+                               const glm_vec& b,
+                               const glm_vec& c,
+                               const glm::vec3& bary) {
   float bsum = bary.x + bary.y + bary.z;
+  return (a * bary.x + 
+          b * bary.y + 
+          c * bary.z) / bsum;
+}
 
+ShadingGeometry TrianglePrimitive::rasterize(const glm::vec3 &bary) const {
   ShadingGeometry sgeo;
-  sgeo.position = a.worldPosition * bary.x + b.worldPosition * bary.y +
-                  c.worldPosition * bary.z / bsum;
-  sgeo.normal = a.worldNormal * bary.x + b.worldNormal * bary.y +
-                c.worldNormal * bary.z / bsum;
-  sgeo.color = a.color * bary.x + b.color * bary.y + c.color * bary.z / bsum;
-  sgeo.texcoord =
-      a.texcoord * bary.x + b.texcoord * bary.y + c.texcoord * bary.z / bsum;
+  sgeo.position = baryLerp(a.worldPosition, b.worldPosition, c.worldPosition, bary);
+  sgeo.normal = baryLerp(a.worldNormal, b.worldNormal, c.worldNormal, bary);
+  sgeo.color = baryLerp(a.color, b.color, c.color, bary);
+  sgeo.texcoord = baryLerp(a.texcoord, b.texcoord, c.texcoord, bary);
+
+  for (int i = 0; i < SHADER_VARYING_COUNT; ++i) {
+    sgeo.varying[i] = baryLerp(a.varying[i], b.varying[i], c.varying[i], bary);
+  }
 
   return sgeo;
 }

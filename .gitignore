@@ -11,3 +11,5 @@ CMakeFiles
 *.cmake
 *.cbp
 
+base/gfx93-pipeline-test
+rendering/gfx93-rendering-clipper-test
