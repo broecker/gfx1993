@@ -69,7 +69,7 @@ struct VertexOut {
 
   // User/custom-defined varyings that will be interpolated between
   // fragments.
-  glm::vec4 varying[SHADER_VARYING_COUNT];
+  glm::vec4 varying[GFX1993_SHADER_VARYING_COUNT];
 };
 
 // Linearly interpolates between two vertexouts.
@@ -95,11 +95,15 @@ struct LinePrimitive {
 
 struct TrianglePrimitive {
   VertexOut a, b, c;
+  glm::vec3 surfaceNormal;
 
   inline TrianglePrimitive(const VertexOut &a_,
                            const VertexOut &b_,
                            const VertexOut &c_)
-      : a(a_), b(b_), c(c_) {}
+      : a(a_), b(b_), c(c_),
+        surfaceNormal(glm::normalize(
+          glm::cross(b_.worldPosition - a_.worldPosition, 
+                       c_.worldPosition - a_.worldPosition))) {}
 
   ShadingGeometry rasterize(const glm::vec3 &bary) const;
 
@@ -116,13 +120,17 @@ struct ShadingGeometry {
   glm::vec3 position;
   glm::vec3 normal;
 
+  // The normal of the initial geometric surface in world coordinates. This is
+  // only filled-in for triangles.
+  glm::vec3 surfaceNormal;
+
   glm::vec4 color;
   glm::vec2 texcoord;
 
   glm::ivec2 windowCoord;
   float depth;
 
-  glm::vec4 varying[SHADER_VARYING_COUNT];
+  glm::vec4 varying[GFX1993_SHADER_VARYING_COUNT];
 };
 
 // Linearly interpolates between two ShadingGeometries.

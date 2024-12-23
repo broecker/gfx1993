@@ -14,7 +14,7 @@ VertexOut lerp(const VertexOut &a, const VertexOut &b, float d) {
   result.worldNormal = glm::mix(a.worldNormal, b.worldNormal, d);
   result.color = glm::mix(a.color, b.color, d);
   result.texcoord = glm::mix(a.texcoord, b.texcoord, d);
-  for (int i = 0; i < SHADER_VARYING_COUNT; ++i) {
+  for (int i = 0; i < GFX1993_SHADER_VARYING_COUNT; ++i) {
     result.varying[i] = glm::mix(a.varying[i], b.varying[i], d);
   }
   return result;
@@ -33,7 +33,7 @@ ShadingGeometry interpolate(const ShadingGeometry &a,
   result.texcoord = mix(a.texcoord, b.texcoord, d);
   result.depth = mix(a.depth, b.depth, d);
 
-  for (int i = 0; i < SHADER_VARYING_COUNT; ++i) {
+  for (int i = 0; i < GFX1993_SHADER_VARYING_COUNT; ++i) {
     result.varying[i] = mix(a.varying[i], b.varying[i], d);
   }
 
@@ -46,7 +46,7 @@ ShadingGeometry PointPrimitive::rasterize() const {
   result.normal = p.worldNormal;
   result.color = p.color;
   result.texcoord = p.texcoord;
-  for (int i = 0; i < SHADER_VARYING_COUNT; ++i) {
+  for (int i = 0; i < GFX1993_SHADER_VARYING_COUNT; ++i) {
     result.varying[i] = p.varying[i];
   }
   return result;
@@ -58,7 +58,7 @@ ShadingGeometry LinePrimitive::rasterize(float d) const {
   result.normal = normalize(mix(a.worldNormal, b.worldNormal, d));
   result.color = mix(a.color, b.color, d);
   result.texcoord = mix(a.texcoord, b.texcoord, d);
-  for (int i = 0; i < SHADER_VARYING_COUNT; ++i) {
+  for (int i = 0; i < GFX1993_SHADER_VARYING_COUNT; ++i) {
     result.varying[i] = mix(a.varying[i], b.varying[i], d);
   }
   return result;
@@ -83,10 +83,10 @@ ShadingGeometry TrianglePrimitive::rasterize(const glm::vec3 &bary) const {
   sgeo.color = baryLerp(a.color, b.color, c.color, bary);
   sgeo.texcoord = baryLerp(a.texcoord, b.texcoord, c.texcoord, bary);
 
-  for (int i = 0; i < SHADER_VARYING_COUNT; ++i) {
+  for (int i = 0; i < GFX1993_SHADER_VARYING_COUNT; ++i) {
     sgeo.varying[i] = baryLerp(a.varying[i], b.varying[i], c.varying[i], bary);
   }
-
+  sgeo.surfaceNormal = surfaceNormal;
   return sgeo;
 }
 
