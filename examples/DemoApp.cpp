@@ -12,20 +12,13 @@
   #include <omp.h>
 #endif
 
-namespace {
-
-static const int WIDTH_VGA = 640;
-static const int HEIGHT_VGA = 480;
-
-}  // namespace
-
 using namespace gfx1993;
 using namespace render;
 using namespace util;
 
 DemoApp *DemoApp::appInstance = nullptr;
 DemoApp::DemoApp(const std::string &name)
-    : name(name), width(WIDTH_VGA), height(HEIGHT_VGA),
+    : name(name), width(GFX1993_VGA_WIDTH), height(GFX1993_VGA_HEIGHT),
       logFrameTime(true), mousePosition(0,0) {
   rasterizer = std::make_unique<Rasterizer>();
 

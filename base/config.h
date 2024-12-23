@@ -26,4 +26,8 @@
 // still processed serially; testing showed no performance increase.
 #define GFX1993_PARALLEL_CLIP 1
 
+// Internal rendering resolution. Currently only used to set up the Demo App.
+#define GFX1993_VGA_WIDTH 640
+#define GFX1993_VGA_HEIGHT 480
+
 #endif // GFX1993_BASE_CONFIG_INCLUDED
