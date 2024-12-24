@@ -107,8 +107,9 @@ protected:
       auto cube = std::make_unique<geometry::CubeGeometry>(glm::mix(minSize, maxSize, randf()));
 
       cube->transform = makeRandomTransform();
+      glm::vec4 color = makeRandomColor();
       for (render::Vertex& v : cube->getMutableVertexList()) {
-        v.color = makeRandomColor();
+        v.color = color;
       }
 
       cubes.emplace_back(std::move(cube));
@@ -146,11 +147,12 @@ protected:
 
     if (key == 't') {
       auto teapot = std::make_unique<geometry::Teapot>();
+      glm::vec4 color = makeRandomColor();
       for (render::Vertex& v : teapot->getMutableVertexList()) {
-        v.color = makeRandomColor();
+        v.color = color;
       }
+      teapot->transform = makeRandomTransform();
       cubes.emplace_back(std::move(teapot));
-     
     }
   }
 
