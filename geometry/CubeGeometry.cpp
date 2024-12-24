@@ -11,15 +11,16 @@ using glm::vec4;
 using render::Vertex;
 
 CubeGeometry::CubeGeometry(const glm::vec3 &sidelength) {
-  // create a cube
-  vertices.push_back(Vertex(vec4(-1, 1, 1, 1)));
-  vertices.push_back(Vertex(vec4(-1, -1, 1, 1)));
-  vertices.push_back(Vertex(vec4(1, -1, 1, 1)));
-  vertices.push_back(Vertex(vec4(1, 1, 1, 1)));
-  vertices.push_back(Vertex(vec4(-1, 1, -1, 1)));
+  // Top four vertices.
+  vertices.push_back(Vertex(vec4(-1,  1,  1, 1)));
+  vertices.push_back(Vertex(vec4(-1,  1, -1, 1)));
+  vertices.push_back(Vertex(vec4( 1,  1, -1, 1)));
+  vertices.push_back(Vertex(vec4( 1,  1,  1, 1)));
+  // Bottom-four.
+  vertices.push_back(Vertex(vec4(-1, -1,  1, 1)));
   vertices.push_back(Vertex(vec4(-1, -1, -1, 1)));
-  vertices.push_back(Vertex(vec4(1, -1, -1, 1)));
-  vertices.push_back(Vertex(vec4(1, 1, -1, 1)));
+  vertices.push_back(Vertex(vec4( 1, -1, -1, 1)));
+  vertices.push_back(Vertex(vec4( 1, -1,  1, 1)));
 
   vec4 halfSide = vec4(sidelength * 0.5f, 1.0f);
 
@@ -36,30 +37,49 @@ CubeGeometry::CubeGeometry(const glm::vec3 &sidelength) {
     vertices[i].color.b = b;
   }
 
+  // These are the indices for outside-facing triangle sides.
+  // Top +Y
   indices.push_back(0);
+  indices.push_back(2);
   indices.push_back(1);
+  indices.push_back(0);
+  indices.push_back(3);
+  indices.push_back(2);
+  // -X
+  indices.push_back(1);
+  indices.push_back(6);
+  indices.push_back(5);
   indices.push_back(1);
   indices.push_back(2);
+  indices.push_back(6);
+  // +Z
+  indices.push_back(2);
+  indices.push_back(7);
+  indices.push_back(6);
   indices.push_back(2);
   indices.push_back(3);
+  indices.push_back(7);
+  // +X 
+  indices.push_back(3);
+  indices.push_back(4);
+  indices.push_back(7);
   indices.push_back(3);
   indices.push_back(0);
   indices.push_back(4);
+  // -Z
+  indices.push_back(0);
   indices.push_back(5);
-  indices.push_back(5);
-  indices.push_back(6);
-  indices.push_back(6);
-  indices.push_back(7);
-  indices.push_back(7);
   indices.push_back(4);
   indices.push_back(0);
-  indices.push_back(4);
   indices.push_back(1);
   indices.push_back(5);
-  indices.push_back(2);
+  // // -Y
   indices.push_back(6);
-  indices.push_back(3);
+  indices.push_back(4);
+  indices.push_back(5);
+  indices.push_back(6);
   indices.push_back(7);
+  indices.push_back(4);
 }
 
 }  // namespace geometry

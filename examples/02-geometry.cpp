@@ -6,12 +6,23 @@
 #include <glm/glm.hpp>
 
 #include "DemoApp.h"
+#include "geometry/CubeGeometry.h"
 #include "geometry/GridGeometry.h"
 #include "geometry/PlyGeometry.h"
 #include "base/Pipeline.h"
 #include "rendering/Shader.h"
 
 using namespace gfx1993;
+
+static float randf() {
+  return static_cast<float>(rand()) / RAND_MAX;
+}
+
+static glm::vec3 randVec(const glm::vec3& min, const glm::vec3& max) {
+  return glm::vec3(glm::mix(min.x, max.x, randf()),
+                   glm::mix(min.y, max.y, randf()),
+                   glm::mix(min.z, max.z, randf()));
+}
 
 class Demo02 : public DemoApp {
 public:
@@ -21,7 +32,9 @@ protected:
   void init() override {
     renderConfig.vertexShader =
         std::make_shared<render::DefaultVertexTransform>();
-    renderConfig.fragmentShader = std::make_shared<render::NormalColorShader>();
+
+    normalColorShader = std::make_shared<render::NormalColorShader>();
+    inputColorShader = std::make_shared<render::InputColorShader>();
 
     grid = std::make_unique<geometry::GridGeometry>();
   }
@@ -36,23 +49,29 @@ protected:
     dvt->viewMatrix = camera->getViewMatrix();
     dvt->projectionMatrix = camera->getProjectionMatrix();
 
-    try {
-      // Clear the buffers
-      renderConfig.clearBuffers(glm::vec4(0.7f, 0.7f, 0.9f, 1));
+    // Clear the buffers
+    renderConfig.clearBuffers(glm::vec4(0.7f, 0.7f, 0.9f, 1));
 
-      // Draw the floor grid.
-      rasterizer->drawLines(renderConfig, grid->getVertices(),
-                            grid->getIndices());
+    // Draw the floor grid.
+    renderConfig.fragmentShader = inputColorShader;
+    rasterizer->drawLines(renderConfig, grid->getVertices(),
+                          grid->getIndices());
 
-      // Draw all the bunnies.
-      for (auto bunny = bunnyList.begin(); bunny != bunnyList.end(); ++bunny) {
-        dvt->modelMatrix = (*bunny)->transform;
-        rasterizer->drawTriangles(renderConfig, (*bunny)->getVertices(),
-                                  (*bunny)->getIndices());
-      }
-    } catch (const char *txt) {
-      std::cerr << "Render error :\"" << txt << "\"\n";
+    // Draw all the bunnies.
+    renderConfig.fragmentShader = normalColorShader;
+    for (const auto& bunny : bunnyList) {
+      dvt->modelMatrix = bunny->transform;
+      rasterizer->drawTriangles(renderConfig, bunny->getVertices(),
+                                bunny->getIndices());
     }
+
+    // Draw all the cubes.
+    renderConfig.fragmentShader = inputColorShader;
+    for (const auto& cube : cubes) {
+      dvt->modelMatrix = cube->transform;
+      rasterizer->drawTriangles(renderConfig, cube->getVertices(), cube->getIndices());
+    }
+
   }
 
   void handleKeyboard(unsigned char key, const glm::ivec2& mousePosition) override {
@@ -62,6 +81,32 @@ protected:
     }
 
     if (key == 'c') {
+      const glm::vec3 minPos(-15);
+      const glm::vec3 maxPos(15);
+
+      const glm::vec3 minSize(2);
+      const glm::vec3 maxSize(20);
+
+      auto cube = std::make_unique<geometry::CubeGeometry>(glm::mix(minSize, maxSize, randf()));
+
+      // Random rotation and translation.
+      glm::vec3 rotationAxis = glm::normalize(randVec(glm::vec3(-1), glm::vec3(1)));
+      glm::mat4 rotate = glm::rotate(randf() * 360.f, rotationAxis);
+
+      cube->transform = rotate * glm::translate(randVec(minPos, maxPos));
+
+      // Random color.
+      float r = randf();
+      float g = randf();
+      float b = 1.f - r - g;
+      for (render::Vertex& v : cube->getMutableVertexList()) {
+        v.color = glm::vec4(r, g, b, 1.f);
+      }
+
+      cubes.emplace_back(std::move(cube));
+    }
+
+    if (key == 'f') {
       renderConfig.cullBackFaces = !renderConfig.cullBackFaces;
       std::cout << "Culling backfaces: " << renderConfig.cullBackFaces << std::endl;
     }
@@ -95,6 +140,11 @@ protected:
 private:
   std::unique_ptr<geometry::GridGeometry> grid;
   std::vector<std::unique_ptr<geometry::PlyGeometry>> bunnyList;
+  std::vector<std::unique_ptr<geometry::CubeGeometry>> cubes;
+
+  std::shared_ptr<render::FragmentShader> normalColorShader;
+  std::shared_ptr<render::FragmentShader> inputColorShader;
+
 };
 
 int main(int argc, char **argv) {
