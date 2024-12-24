@@ -17,8 +17,16 @@ using namespace glm;
 
 
 struct PointLight {
-  glm::vec3 position;
-  glm::vec3 color;
+  // In world-space coordinates.
+  vec3 position;
+  vec3 color;
+
+  // Constant, linear, quadratic attenuation; see
+  // Van Verth, Bishop: Essential Mathematics for Games, 2nd Ed, pg 326
+  // k_c, k_l, k_q
+  vec3 attenuation;
+
+  float intensity;
 };
 
 // Calculate lighting in the VertexShader based on surface normals. No need for
@@ -28,22 +36,10 @@ public:
   render::VertexOut transformSingle(const render::Vertex &in) override {
     render::VertexOut out = DefaultVertexTransform::transformSingle(in);
 
-    // TODO(mbroecker) -- calculate lighting.
-    vec3 ambient = vec3(0.1f);
-
-    vec3 L = normalize(light.position - vec3(in.position));
-
-    vec3 diffuse = surfaceColor * dot(L, in.normal) * light.color;
-    vec3 specular(0);
-
-    out.color = glm::vec4(ambient + diffuse + specular, 1.0f);
-
     return out;
   }
 
   PointLight light;
-  glm::vec3 surfaceColor;
-
 };
 
 // Calculate lighting in the VertexShader, interpolate results in the fragment
@@ -64,32 +60,50 @@ public:
   }
 };
 
-// Calculate lighting in the Fragment shader, by using the transformed world
-// position and normals.
-class BlinnPhongShader : public render::FragmentShader {
+class PhongShader : public render::FragmentShader {
 public:
   render::Fragment shadeSingle(const render::ShadingGeometry& in) override {
     render::Fragment out;
-    vec3 ambient(0.1f);
-    vec3 diffuse(0);
+    assert(profile != nullptr);
+    auto p = profile->startTiming("rasterize.tris.shade.phong");
+
+    vec3 L = light.position - vec3(in.position);
+    float lightDist = length(L);
+    L = L / lightDist;
+
+    // Calculate light intensity.
+    float distanceAttenuation = dot(light.attenuation, vec3(1.f, lightDist, lightDist*lightDist));
+    float iL = light.intensity / distanceAttenuation;
+
+    // Light model components.
+    vec3 ambient = iL * light.color * surfaceColor;
+    vec3 diffuse = iL * light.color * surfaceColor * glm::max(glm::dot(in.normal, L), 0.f);
+
+   
     vec3 specular(0);
+    if (dot(in.normal, L) < 0) { 
+      vec3 view = in.position - vec3(eyePosition);
+      vec3 half = (L + view) / glm::length(L + view);
 
-    vec3 L = normalize(light.position - vec3(in.position));
-
-    float l = dot(L, in.surfaceNormal);
-    if (l > 0) {
-      diffuse = surfaceColor * light.color;
+      specular = iL * light.color * surfaceColor * pow(max(0.f, dot(in.normal, half)), specularExponent);
     }
 
     out.color = glm::vec4(ambient + diffuse + specular, 1.0f);
 
+    // TODO: scale or tone-map?
+    out.color = glm::min(out.color, vec4(1.0));
     return out;
   }
 
   PointLight light;
-  glm::vec3 surfaceColor;
-};
+  vec3 surfaceColor;
+  vec3 emission = vec3(0);
+  float specularExponent;
 
+  vec3 eyePosition;
+
+  util::RenderProfile* profile = nullptr;
+};
 
 class Demo09 : public DemoApp {
 public:
@@ -97,21 +111,43 @@ public:
 
 protected:
   void init() override {
+    light.color = vec3(0.5);
+    light.position = vec3(0.f, 50.f, 0.f);
+    light.intensity = 0.8f;
+    light.attenuation = vec3(0.6f, 0.4f, 0.1f);
+
     gridShader = std::make_shared<render::InputColorShader>();
-    phongShader = std::make_shared<BlinnPhongShader>(); 
-    phongShader->light.color = vec3(0.7);
-    phongShader->light.position = vec3(50.f, 50.f, 20.f);
-    phongShader->surfaceColor = vec3(0.7);
+    phongShader = std::make_shared<PhongShader>(); 
+    phongShader->light = light;
+    phongShader->surfaceColor = vec3(0.7, 0.4, 0.2);
+    phongShader->specularExponent = 6.f;
 
     renderConfig.vertexShader =
         std::make_shared<render::DefaultVertexTransform>();
-    renderConfig.fragmentShader = std::make_shared<render::NormalColorShader>();
-
+    
     assert(bunny.loadPly("../models/bunny/reconstruction/bun_zipper_res3.ply"));
     bunny.transform = glm::scale(glm::vec3(125.f));
     bunny.center();
 
+    // Randomize vertex colors;
+    for (render::Vertex& v : bunny.getMutableVertexList()) {
+      v.color.r = static_cast<float>(rand()) / RAND_MAX;
+      v.color.g = static_cast<float>(rand()) / RAND_MAX;
+      v.color.b = 1.f - v.color.r - v.color.g;
+    } 
+
     dynamic_cast<util::OrbitCamera*>(camera.get())->setTarget(bunny.getCenter());
+  }
+
+  void updateFrame(float dt) override {
+    DemoApp::updateFrame(dt);
+
+    lightTheta += (dt * 5.f);
+    light.position.x = sin(lightTheta) * lightRadius;
+    light.position.y = lightRadius;
+    light.position.z = cos(lightTheta) * lightRadius;
+    
+    phongShader->light.position = light.position;
   }
 
   void renderFrame() override {
@@ -126,8 +162,10 @@ protected:
     // Clear the buffers
     renderConfig.clearBuffers(glm::vec4(0.7f, 0.7f, 0.9f, 1));
 
-    // Draw all the bunny; first draw it as triangles, without a color buffer.
-    // This will still fill the depth buffer.
+    
+    phongShader->eyePosition = inverse(dvt->viewMatrix) * vec4(0,0,0,1);
+    phongShader->profile = &rasterizer->getProfile();
+
     renderConfig.fragmentShader = phongShader;
     dvt->modelMatrix = bunny.transform;
     rasterizer->drawTriangles(renderConfig, bunny.getVertices(),
@@ -166,9 +204,13 @@ private:
   geometry::PlyGeometry bunny;
 
   std::shared_ptr<render::FragmentShader> gridShader;
-  std::shared_ptr<BlinnPhongShader> phongShader;
+  std::shared_ptr<PhongShader> phongShader;
 
   PointLight light;
+  // For animation.
+  float lightRadius = 30.f;
+  float lightTheta = 0.f;
+
 
   bool drawGrid = true;
 };
