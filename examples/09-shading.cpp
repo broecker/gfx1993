@@ -6,6 +6,7 @@
 #include <glm/glm.hpp>
 
 #include "DemoApp.h"
+#include "geometry/CubeGeometry.h"
 #include "geometry/GridGeometry.h"
 #include "geometry/PlyGeometry.h"
 #include "geometry/Quad.h"
@@ -122,6 +123,7 @@ protected:
     phongShader->surfaceColor = vec3(0.7, 0.4, 0.2);
     phongShader->specularExponent = 6.f;
 
+    colorShader = std::make_shared<render::SingleColorShader>(vec4(1));
     renderConfig.vertexShader =
         std::make_shared<render::DefaultVertexTransform>();
     
@@ -129,12 +131,7 @@ protected:
     bunny.transform = glm::scale(glm::vec3(125.f));
     bunny.center();
 
-    // Randomize vertex colors;
-    for (render::Vertex& v : bunny.getMutableVertexList()) {
-      v.color.r = static_cast<float>(rand()) / RAND_MAX;
-      v.color.g = static_cast<float>(rand()) / RAND_MAX;
-      v.color.b = 1.f - v.color.r - v.color.g;
-    } 
+    cube = std::make_shared<geometry::CubeGeometry>(vec3(2.5f));
 
     dynamic_cast<util::OrbitCamera*>(camera.get())->setTarget(bunny.getCenter());
   }
@@ -148,6 +145,8 @@ protected:
     light.position.z = cos(lightTheta) * lightRadius;
     
     phongShader->light.position = light.position;
+
+    cube->transform = glm::translate(light.position);
   }
 
   void renderFrame() override {
@@ -161,7 +160,6 @@ protected:
 
     // Clear the buffers
     renderConfig.clearBuffers(glm::vec4(0.7f, 0.7f, 0.9f, 1));
-
     
     phongShader->eyePosition = inverse(dvt->viewMatrix) * vec4(0,0,0,1);
     phongShader->profile = &rasterizer->getProfile();
@@ -171,6 +169,11 @@ protected:
     rasterizer->drawTriangles(renderConfig, bunny.getVertices(),
                               bunny.getIndices());
 
+
+    // Draw a small cube where the light is.
+    dvt->modelMatrix = cube->transform;
+    renderConfig.fragmentShader = colorShader;
+    rasterizer->drawTriangles(renderConfig, cube->getVertices(), cube->getIndices());
 
     // Finally, draw the grid. We want to draw it last, so the bunny's
     // depth pass will block any grid lines behind the model.
@@ -202,9 +205,11 @@ protected:
 private:
   geometry::GridGeometry grid;
   geometry::PlyGeometry bunny;
+  std::shared_ptr<geometry::CubeGeometry> cube;
 
   std::shared_ptr<render::FragmentShader> gridShader;
   std::shared_ptr<PhongShader> phongShader;
+  std::shared_ptr<render::SingleColorShader> colorShader;
 
   PointLight light;
   // For animation.
