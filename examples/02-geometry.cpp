@@ -115,6 +115,10 @@ protected:
       cubes.emplace_back(std::move(cube));
     }
 
+    if (key == 'd') {
+      cubes.clear();
+    }
+
     if (key == 'f') {
       renderConfig.cullBackFaces = !renderConfig.cullBackFaces;
       std::cout << "Culling backfaces: " << renderConfig.cullBackFaces << std::endl;
