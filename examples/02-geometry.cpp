@@ -9,6 +9,7 @@
 #include "geometry/CubeGeometry.h"
 #include "geometry/GridGeometry.h"
 #include "geometry/PlyGeometry.h"
+#include "geometry/Teapot.h"
 #include "base/Pipeline.h"
 #include "rendering/Shader.h"
 
@@ -22,6 +23,25 @@ static glm::vec3 randVec(const glm::vec3& min, const glm::vec3& max) {
   return glm::vec3(glm::mix(min.x, max.x, randf()),
                    glm::mix(min.y, max.y, randf()),
                    glm::mix(min.z, max.z, randf()));
+}
+
+static glm::mat4 makeRandomTransform() {
+  const glm::vec3 minPos(-15);
+  const glm::vec3 maxPos(15);
+
+  // Random rotation and translation.
+  glm::vec3 rotationAxis = glm::normalize(randVec(glm::vec3(-1), glm::vec3(1)));
+  glm::mat4 rotate = glm::rotate(randf() * 360.f, rotationAxis);
+
+  return rotate * glm::translate(randVec(minPos, maxPos));
+}
+
+static glm::vec4 makeRandomColor() {
+  // Random color.
+  float r = randf();
+  float g = randf();
+  float b = 1.f - r - g;
+  return glm::vec4(r,g,b,1);
 }
 
 class Demo02 : public DemoApp {
@@ -81,26 +101,14 @@ protected:
     }
 
     if (key == 'c') {
-      const glm::vec3 minPos(-15);
-      const glm::vec3 maxPos(15);
-
       const glm::vec3 minSize(2);
       const glm::vec3 maxSize(20);
 
       auto cube = std::make_unique<geometry::CubeGeometry>(glm::mix(minSize, maxSize, randf()));
 
-      // Random rotation and translation.
-      glm::vec3 rotationAxis = glm::normalize(randVec(glm::vec3(-1), glm::vec3(1)));
-      glm::mat4 rotate = glm::rotate(randf() * 360.f, rotationAxis);
-
-      cube->transform = rotate * glm::translate(randVec(minPos, maxPos));
-
-      // Random color.
-      float r = randf();
-      float g = randf();
-      float b = 1.f - r - g;
+      cube->transform = makeRandomTransform();
       for (render::Vertex& v : cube->getMutableVertexList()) {
-        v.color = glm::vec4(r, g, b, 1.f);
+        v.color = makeRandomColor();
       }
 
       cubes.emplace_back(std::move(cube));
@@ -135,12 +143,21 @@ protected:
     if (key == 'G') {
       bunnyList.clear();
     }
+
+    if (key == 't') {
+      auto teapot = std::make_unique<geometry::Teapot>();
+      for (render::Vertex& v : teapot->getMutableVertexList()) {
+        v.color = makeRandomColor();
+      }
+      cubes.emplace_back(std::move(teapot));
+     
+    }
   }
 
 private:
   std::unique_ptr<geometry::GridGeometry> grid;
   std::vector<std::unique_ptr<geometry::PlyGeometry>> bunnyList;
-  std::vector<std::unique_ptr<geometry::CubeGeometry>> cubes;
+  std::vector<std::unique_ptr<geometry::Geometry>> cubes;
 
   std::shared_ptr<render::FragmentShader> normalColorShader;
   std::shared_ptr<render::FragmentShader> inputColorShader;
