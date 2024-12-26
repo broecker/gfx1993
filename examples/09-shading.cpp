@@ -128,7 +128,7 @@ protected:
   void init() override {
     light.color = vec3(0.5);
     light.position = vec3(0.f, 50.f, 0.f);
-    light.intensity = 100.f;
+    light.intensity = 500.f;
     light.attenuation = vec3(0.6f, 0.4f, 0.1f);
     light.ambient = vec3(0.07, 0.07, 0.09);
 
@@ -150,10 +150,10 @@ protected:
     renderConfig.vertexShader =
         std::make_shared<render::DefaultVertexTransform>();
     
-    geometry = std::make_shared<geometry::Sphere>(25.f, 9, 
+    geometry = std::make_shared<geometry::Sphere>(15.f, 9, 
     18);
     geometry->setRandomFaceColors();
-    flatGeometry = std::make_shared<geometry::Sphere>(25.f, 9, 18);
+    flatGeometry = std::make_shared<geometry::Sphere>(15.f, 9, 18);
     flatGeometry->makeFlatShaded();
     flatGeometry->setRandomFaceColors();
   }
@@ -166,8 +166,8 @@ protected:
     light.position.y = lightRadius;
     light.position.z = cos(lightTheta) * lightRadius;
     
-    phongShader->light.position = light.position;
-    goraudShader->light.position = light.position;
+    phongShader->light = light;
+    goraudShader->light = light;
 
     cube.transform = glm::translate(light.position);
   }
@@ -190,9 +190,7 @@ protected:
     phongShader->eyePosition = eyePosition;
     phongShader->profile = &rasterizer->getProfile();
     goraudShader->eyePosition = eyePosition;
-    goraudShader->modelMatrix = geometry->transform;
     goraudShader->profile = &rasterizer->getProfile();
-    fixedFunctionShader->modelMatrix = geometry->transform;
 
     // Here is the difference in shading: 
     // The Phong shading model is per fragment; we use the default vertex 
@@ -201,37 +199,36 @@ protected:
     // The Goraud shader, on the other hand, calculates the lighting information
     // per vertex and writes out a color value per vertex, which is then
     // interpolated by the rasterizer and the fragment shader.
+
     // Flat shading
-    if (shadingMode == 0) {
-      renderConfig.vertexShader = goraudShader;
-      renderConfig.fragmentShader = inputColorShader;
-      rasterizer->drawTriangles(renderConfig, 
-                                flatGeometry->getVertices(),
-                                 flatGeometry->getIndices());
-    }
+    renderConfig.vertexShader = goraudShader;
+    goraudShader->modelMatrix = glm::translate(vec3(-40, 0, 0));
+    renderConfig.fragmentShader = inputColorShader;
+    rasterizer->drawTriangles(renderConfig, 
+                              flatGeometry->getVertices(),
+                                flatGeometry->getIndices());
     
     // Goraud shading
-    if (shadingMode == 1) {
-      renderConfig.vertexShader = goraudShader;
-      renderConfig.fragmentShader = inputColorShader;
-      rasterizer->drawTriangles(renderConfig, 
-                                geometry->getVertices(),
-                                 geometry->getIndices());
-    }
+    renderConfig.vertexShader = goraudShader;
+    goraudShader->modelMatrix = glm::mat4(1.f);
+    renderConfig.fragmentShader = inputColorShader;
+    rasterizer->drawTriangles(renderConfig, 
+                              geometry->getVertices(),
+                              geometry->getIndices());
 
     // Phong shading
-    if (shadingMode == 2) {
-      renderConfig.vertexShader = fixedFunctionShader;
-      renderConfig.fragmentShader = phongShader;
-      rasterizer->drawTriangles(renderConfig, 
-                                geometry->getVertices(),
-                                 geometry->getIndices());
-    }
+    renderConfig.vertexShader = fixedFunctionShader;
+    fixedFunctionShader->modelMatrix = glm::translate(vec3(40, 0, 0));
+    renderConfig.fragmentShader = phongShader;
+    rasterizer->drawTriangles(renderConfig, 
+                              geometry->getVertices(),
+                               geometry->getIndices());
 
     // Draw a small cube where the light is.
     fixedFunctionShader->modelMatrix = cube.transform;
     renderConfig.vertexShader = fixedFunctionShader;
     renderConfig.fragmentShader = colorShader;
+    colorShader->setColor(vec4(light.color, 1));
     rasterizer->drawTriangles(renderConfig, cube.getVertices(), cube.getIndices());
 
     // Finally, draw the grid. We want to draw it last, so the bunny's
@@ -252,21 +249,8 @@ protected:
       std::cout << "Drawing tri raster bounds: " << renderConfig.drawTriangleBounds << std::endl;
     }
 
-    if (key == 'c') {
-      renderConfig.cullBackFaces = !renderConfig.cullBackFaces;
-      std::cout << "Culling backfaces: " << renderConfig.cullBackFaces << std::endl;
-    }
-
     if (key == 'g') {
       drawGrid = !drawGrid;
-    }
-
-    if (key == 's') {
-      ++shadingMode;
-      if (shadingMode == 3) {
-        shadingMode = 0;
-      }
-      std::cout << "Shading mode: " << shadingMode << std::endl;
     }
   }
 
@@ -286,13 +270,8 @@ private:
   
   PointLight light;
   // For animation.
-  float lightRadius = 30.f;
+  float lightRadius = 50.f;
   float lightTheta = 0.f;
-
-  // 0 -- flat
-  // 1 -- Goraud
-  // 2 -- Phong;
-  int shadingMode = 0;
 
   bool drawGrid = true;
 };
