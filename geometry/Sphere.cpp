@@ -5,7 +5,6 @@
 #include <glm/gtc/random.hpp>
 
 #include <cassert>
-#include <iostream>
 #include <random>
 
 namespace gfx1993 {
@@ -38,13 +37,7 @@ Sphere::Sphere(float radius, unsigned int latitudes, unsigned int longitudes) {
   assert(longitudes > 2);
 
   for (unsigned int lat = 0; lat < latitudes; ++lat) {
-
     float theta = (static_cast<float>(lat) / (latitudes-1) * LATITUDE_RANGE - 90) + MAX_LATITUDE;
-    std::cout << "lat: " << lat << " t: " << theta << std::endl;
-
-    float theta1 = (static_cast<float>(lat+1) / (latitudes-1) * LATITUDE_RANGE - 90) + MAX_LATITUDE;
-    std::cout << "lat: " << lat << " t1: " << theta1 << std::endl;
-
     // A full circle on the horizontal plane.
     for (unsigned int lon = 0; lon < longitudes; ++lon) {
       float phi = static_cast<float>(lon) / longitudes * 360.f;
