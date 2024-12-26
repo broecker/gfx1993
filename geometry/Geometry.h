@@ -19,6 +19,11 @@ public:
 
   inline const IndexList &getIndices() const { return indices; }
 
+  // Converts this geometry into flat-shaded by recreating vertices that have
+  // per-face normals. This only works on triangle geometries and triples the
+  // vertices.
+  void makeFlatShaded();
+
   // Access to transform is public -- no reason to write getter+setter
   // for the most-used member.
   glm::mat4 transform = glm::mat4(1.f);
