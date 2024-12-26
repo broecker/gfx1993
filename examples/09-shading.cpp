@@ -30,35 +30,73 @@ struct PointLight {
   float intensity;
 };
 
-// Calculate lighting in the VertexShader based on surface normals. No need for
-// interpolation in the fragment shader, as the results are constant.
-class FlatVertexShader : public render::DefaultVertexTransform {
+struct Material {
+  vec3 color;
+  vec3 emission;
+  float specularExponent;
+};
+
+// General rendering equation; however, it's calculated in world coordinates,
+// not eye coordinates.
+vec3 shade(const PointLight& light, 
+           const Material& surface,
+           const vec3& worldPosition,
+           const vec3& worldNormal,
+           const vec3& eyePosition) {
+ vec3 L = light.position - vec3(worldPosition);
+    float lightDist = length(L);
+    L = L / lightDist;
+
+    // Calculate light intensity.
+    float distanceAttenuation = dot(light.attenuation, vec3(1.f, lightDist, lightDist*lightDist));
+    float iL = light.intensity / distanceAttenuation;
+
+    // Light model components.
+    vec3 ambient = iL * light.color * surface.color;
+    vec3 diffuse = iL * light.color * surface.color * glm::max(glm::dot(worldNormal, L), 0.f);
+
+
+    vec3 specular(0);
+    if (dot(worldNormal, L) < 0) { 
+      vec3 view = vec3(worldPosition) - vec3(eyePosition);
+      vec3 half = (L + view) / glm::length(L + view);
+
+      specular = iL * light.color * surface.color * pow(max(0.f, dot(worldNormal, half)), surface.specularExponent);
+    }
+
+    vec3 color = surface.emission + ambient + diffuse + specular;
+
+    // TODO: scale or tone-map?
+    color = glm::min(color, vec3(1.0));
+
+    return color;
+}
+
+class GoraudVertexShader : public render::DefaultVertexTransform {
 public:
   render::VertexOut transformSingle(const render::Vertex &in) override {
-    render::VertexOut out = DefaultVertexTransform::transformSingle(in);
+    assert(profile != nullptr);
+    auto p = profile->startTiming("rasterize.tris.shade.goraud");
 
+    render::VertexOut out = DefaultVertexTransform::transformSingle(in);
+    
+    vec3 color = shade(
+      light,
+      surface,
+      out.worldPosition,
+      out.worldNormal,
+      eyePosition
+    );
+
+    out.color = vec4(color, 1.0);
     return out;
   }
 
-  PointLight light;
-};
+  PointLight  light;
+  Material    surface;
+  vec3 eyePosition;
 
-// Calculate lighting in the VertexShader, interpolate results in the fragment
-// shader.
-class GoroudVertexShader : public render::DefaultVertexTransform {
-
-};
-
-class GoroudFragmentShader : public render::FragmentShader {
-public:
-  render::Fragment shadeSingle(const render::ShadingGeometry &in) override {
-    render::Fragment frag;
-
-    frag.color = in.color;
-    frag.discard = false;
-
-    return frag;
-  }
+  util::RenderProfile* profile = nullptr;
 };
 
 class PhongShader : public render::FragmentShader {
@@ -68,47 +106,21 @@ public:
     assert(profile != nullptr);
     auto p = profile->startTiming("rasterize.tris.shade.phong");
 
-    vec3 L = light.position - vec3(in.position);
-    float lightDist = length(L);
-    L = L / lightDist;
+    out.color = vec4(shade(light, surface, in.position, in.normal, eyePosition), 1.0);
 
-    // Calculate light intensity.
-    float distanceAttenuation = dot(light.attenuation, vec3(1.f, lightDist, lightDist*lightDist));
-    float iL = light.intensity / distanceAttenuation;
-
-    // Light model components.
-    vec3 ambient = iL * light.color * surfaceColor;
-    vec3 diffuse = iL * light.color * surfaceColor * glm::max(glm::dot(in.normal, L), 0.f);
-
-   
-    vec3 specular(0);
-    if (dot(in.normal, L) < 0) { 
-      vec3 view = in.position - vec3(eyePosition);
-      vec3 half = (L + view) / glm::length(L + view);
-
-      specular = iL * light.color * surfaceColor * pow(max(0.f, dot(in.normal, half)), specularExponent);
-    }
-
-    out.color = glm::vec4(ambient + diffuse + specular, 1.0f);
-
-    // TODO: scale or tone-map?
-    out.color = glm::min(out.color, vec4(1.0));
     return out;
   }
 
-  PointLight light;
-  vec3 surfaceColor;
-  vec3 emission = vec3(0);
-  float specularExponent;
-
-  vec3 eyePosition;
+  PointLight  light;
+  Material    surface;
+  vec3        eyePosition;
 
   util::RenderProfile* profile = nullptr;
 };
 
 class Demo09 : public DemoApp {
 public:
-  Demo09() : DemoApp("Demo 09 - Shading") {}
+  Demo09() : DemoApp("Demo 09 - Shading"), cube(vec3(2.5)) {}
 
 protected:
   void init() override {
@@ -117,11 +129,19 @@ protected:
     light.intensity = 0.8f;
     light.attenuation = vec3(0.6f, 0.4f, 0.1f);
 
-    gridShader = std::make_shared<render::InputColorShader>();
+    Material surface {.color = vec3(0.7, 0.5, 0.2), 
+                      .emission=vec3(0.05, 0.05, 0.15),
+                      .specularExponent=2.f};
+
+    fixedFunctionShader = std::make_shared<render::DefaultVertexTransform>();
+    inputColorShader = std::make_shared<render::InputColorShader>();
     phongShader = std::make_shared<PhongShader>(); 
     phongShader->light = light;
-    phongShader->surfaceColor = vec3(0.7, 0.4, 0.2);
-    phongShader->specularExponent = 6.f;
+    phongShader->surface = surface;
+
+    goraudShader = std::make_shared<GoraudVertexShader>();
+    goraudShader->light = light;
+    goraudShader->surface = surface;
 
     colorShader = std::make_shared<render::SingleColorShader>(vec4(1));
     renderConfig.vertexShader =
@@ -130,8 +150,11 @@ protected:
     assert(bunny.loadPly("../models/bunny/reconstruction/bun_zipper_res3.ply"));
     bunny.transform = glm::scale(glm::vec3(125.f));
     bunny.center();
-
-    cube = std::make_shared<geometry::CubeGeometry>(vec3(2.5f));
+    
+    assert(flatBunny.loadPly("../models/bunny/reconstruction/bun_zipper_res3.ply"));
+    flatBunny.transform = glm::scale(glm::vec3(125.f));
+    flatBunny.center();
+    flatBunny.makeFlatShaded();
 
     dynamic_cast<util::OrbitCamera*>(camera.get())->setTarget(bunny.getCenter());
   }
@@ -145,41 +168,79 @@ protected:
     light.position.z = cos(lightTheta) * lightRadius;
     
     phongShader->light.position = light.position;
+    goraudShader->light.position = light.position;
 
-    cube->transform = glm::translate(light.position);
+    cube.transform = glm::translate(light.position);
   }
 
   void renderFrame() override {
-    // reset the render matrices
-    render::DefaultVertexTransform *dvt =
-        dynamic_cast<render::DefaultVertexTransform *>(
-            renderConfig.vertexShader.get());
-    dvt->modelMatrix = glm::mat4(1.f);
-    dvt->viewMatrix = camera->getViewMatrix();
-    dvt->projectionMatrix = camera->getProjectionMatrix();
+    // Reset the render matrices.
+    fixedFunctionShader->modelMatrix = glm::mat4(1.f);
+    fixedFunctionShader->viewMatrix = camera->getViewMatrix();
+    fixedFunctionShader->projectionMatrix = camera->getProjectionMatrix();
+
+    goraudShader->modelMatrix = glm::mat4(1.f);
+    goraudShader->viewMatrix = camera->getViewMatrix();
+    goraudShader->projectionMatrix = camera->getProjectionMatrix();
 
     // Clear the buffers
     renderConfig.clearBuffers(glm::vec4(0.7f, 0.7f, 0.9f, 1));
     
-    phongShader->eyePosition = inverse(dvt->viewMatrix) * vec4(0,0,0,1);
+    // Set up shader uniforms.
+    glm::vec4 eyePosition = inverse(fixedFunctionShader->viewMatrix) * vec4(0,0,0,1);
+    phongShader->eyePosition = eyePosition;
     phongShader->profile = &rasterizer->getProfile();
+    goraudShader->eyePosition = eyePosition;
+    goraudShader->modelMatrix = bunny.transform;
+    goraudShader->profile = &rasterizer->getProfile();
+    fixedFunctionShader->modelMatrix = bunny.transform;
 
-    renderConfig.fragmentShader = phongShader;
-    dvt->modelMatrix = bunny.transform;
-    rasterizer->drawTriangles(renderConfig, bunny.getVertices(),
-                              bunny.getIndices());
+    // Here is the difference in shading: 
+    // The Phong shading model is per fragment; we use the default vertex 
+    // transform, which also calculates per-fragment position and normal
+    // information which we'll use during shading.
+    // The Goraud shader, on the other hand, calculates the lighting information
+    // per vertex and writes out a color value per vertex, which is then
+    // interpolated by the rasterizer and the fragment shader.
+    // Flat shading
+    if (shadingMode == 0) {
+      renderConfig.vertexShader = goraudShader;
+      renderConfig.fragmentShader = inputColorShader;
+      rasterizer->drawTriangles(renderConfig, 
+                                flatBunny.getVertices(),
+                                 flatBunny.getIndices());
+    }
+    
+    // Goraud shading
+    if (shadingMode == 1) {
+      renderConfig.vertexShader = goraudShader;
+      renderConfig.fragmentShader = inputColorShader;
+      rasterizer->drawTriangles(renderConfig, 
+                                bunny.getVertices(),
+                                 bunny.getIndices());
+    }
 
+    // Phong shading
+    if (shadingMode == 2) {
+      renderConfig.vertexShader = fixedFunctionShader;
+      renderConfig.fragmentShader = phongShader;
+      rasterizer->drawTriangles(renderConfig, 
+                                bunny.getVertices(),
+                                 bunny.getIndices());
+    }
 
     // Draw a small cube where the light is.
-    dvt->modelMatrix = cube->transform;
+    fixedFunctionShader->modelMatrix = cube.transform;
+    renderConfig.vertexShader = fixedFunctionShader;
     renderConfig.fragmentShader = colorShader;
-    rasterizer->drawTriangles(renderConfig, cube->getVertices(), cube->getIndices());
+    rasterizer->drawTriangles(renderConfig, cube.getVertices(), cube.getIndices());
 
     // Finally, draw the grid. We want to draw it last, so the bunny's
     // depth pass will block any grid lines behind the model.
     if (drawGrid) {
-      renderConfig.fragmentShader = gridShader;
-      dvt->modelMatrix = glm::mat4(1);
+      renderConfig.fragmentShader = inputColorShader;
+      fixedFunctionShader->modelMatrix = glm::mat4(1);
+      renderConfig.vertexShader = fixedFunctionShader;
       rasterizer->drawLines(renderConfig, 
                             grid.getVertices(),
                             grid.getIndices());
@@ -200,22 +261,38 @@ protected:
     if (key == 'g') {
       drawGrid = !drawGrid;
     }
+
+    if (key == 's') {
+      ++shadingMode;
+      if (shadingMode == 3) {
+        shadingMode = 0;
+      }
+      std::cout << "Shading mode: " << shadingMode << std::endl;
+    }
   }
 
 private:
   geometry::GridGeometry grid;
   geometry::PlyGeometry bunny;
-  std::shared_ptr<geometry::CubeGeometry> cube;
+  geometry::PlyGeometry flatBunny;
 
-  std::shared_ptr<render::FragmentShader> gridShader;
+  geometry::CubeGeometry cube;
+
+  std::shared_ptr<render::DefaultVertexTransform> fixedFunctionShader;
+  std::shared_ptr<render::FragmentShader> inputColorShader;
   std::shared_ptr<PhongShader> phongShader;
   std::shared_ptr<render::SingleColorShader> colorShader;
-
+  std::shared_ptr<GoraudVertexShader> goraudShader;
+  
   PointLight light;
   // For animation.
   float lightRadius = 30.f;
   float lightTheta = 0.f;
 
+  // 0 -- flat
+  // 1 -- Goraud
+  // 2 -- Phong;
+  int shadingMode = 0;
 
   bool drawGrid = true;
 };
