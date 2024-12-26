@@ -9,6 +9,7 @@
 #include "geometry/CubeGeometry.h"
 #include "geometry/GridGeometry.h"
 #include "geometry/PlyGeometry.h"
+#include "geometry/Sphere.h"
 #include "geometry/Teapot.h"
 #include "base/Pipeline.h"
 #include "rendering/Shader.h"
@@ -36,14 +37,6 @@ static glm::mat4 makeRandomTransform() {
   return rotate * glm::translate(randVec(minPos, maxPos));
 }
 
-static glm::vec4 makeRandomColor() {
-  // Random color.
-  float r = randf();
-  float g = randf();
-  float b = 1.f - r - g;
-  return glm::vec4(r,g,b,1);
-}
-
 class Demo02 : public DemoApp {
 public:
   Demo02() : DemoApp("Demo 02 - Hello Geometry") {}
@@ -55,8 +48,11 @@ protected:
 
     normalColorShader = std::make_shared<render::NormalColorShader>();
     inputColorShader = std::make_shared<render::InputColorShader>();
+    singleColorShader = std::make_shared<render::SingleColorShader>(glm::vec4(1,0,1,1));
 
     grid = std::make_unique<geometry::GridGeometry>();
+
+    logFrameTime = false;
   }
 
   void renderFrame() override {
@@ -73,9 +69,11 @@ protected:
     renderConfig.clearBuffers(glm::vec4(0.7f, 0.7f, 0.9f, 1));
 
     // Draw the floor grid.
-    renderConfig.fragmentShader = inputColorShader;
-    rasterizer->drawLines(renderConfig, grid->getVertices(),
-                          grid->getIndices());
+    if (drawGrid) {
+      renderConfig.fragmentShader = inputColorShader;
+      rasterizer->drawLines(renderConfig, grid->getVertices(),
+                            grid->getIndices());
+    }
 
     // Draw all the bunnies.
     renderConfig.fragmentShader = normalColorShader;
@@ -90,6 +88,13 @@ protected:
     for (const auto& cube : cubes) {
       dvt->modelMatrix = cube->transform;
       rasterizer->drawTriangles(renderConfig, cube->getVertices(), cube->getIndices());
+    }
+
+    // Draw all point geometries.
+    renderConfig.fragmentShader = singleColorShader;
+    for (const auto& geo : pointGeometries) {
+      dvt->modelMatrix = geo->transform;
+      rasterizer->drawTriangles(renderConfig, geo->getVertices(), geo->getIndices());
     }
 
   }
@@ -107,16 +112,14 @@ protected:
       auto cube = std::make_unique<geometry::CubeGeometry>(glm::mix(minSize, maxSize, randf()));
 
       cube->transform = makeRandomTransform();
-      glm::vec4 color = makeRandomColor();
-      for (render::Vertex& v : cube->getMutableVertexList()) {
-        v.color = color;
-      }
-
+      cube->setRandomFaceColors();
       cubes.emplace_back(std::move(cube));
     }
 
     if (key == 'd') {
       cubes.clear();
+      pointGeometries.clear();
+      bunnyList.clear();
     }
 
     if (key == 'f') {
@@ -145,18 +148,26 @@ protected:
       bunnyList.emplace_back(std::move(bunny));
     }
 
-    if (key == 'G') {
-      bunnyList.clear();
+    if (key == 's') {
+      auto sphere = std::make_unique<geometry::Sphere>(20.f, 18, 36);
+      // sphere->transform = makeRandomTransform();
+      
+      pointGeometries.emplace_back(std::move(sphere));
     }
 
     if (key == 't') {
       auto teapot = std::make_unique<geometry::Teapot>();
-      glm::vec4 color = makeRandomColor();
-      for (render::Vertex& v : teapot->getMutableVertexList()) {
-        v.color = color;
-      }
+      teapot->setRandomFaceColors();
       teapot->transform = makeRandomTransform();
       cubes.emplace_back(std::move(teapot));
+    }
+
+    if (key == 'x') {
+      drawGrid = !drawGrid;
+    }
+
+    if (key == 'z') {
+      logFrameTime = !logFrameTime;
     }
   }
 
@@ -165,8 +176,13 @@ private:
   std::vector<std::unique_ptr<geometry::PlyGeometry>> bunnyList;
   std::vector<std::unique_ptr<geometry::Geometry>> cubes;
 
+  std::vector<std::unique_ptr<geometry::Geometry>> pointGeometries;
+
   std::shared_ptr<render::FragmentShader> normalColorShader;
   std::shared_ptr<render::FragmentShader> inputColorShader;
+  std::shared_ptr<render::FragmentShader> singleColorShader;
+
+  bool drawGrid = false;
 
 };
 
