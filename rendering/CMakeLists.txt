@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5.0)
 enable_testing()
 
 # Main renderer library
-add_library(gfx93-rendering STATIC Rasterizer.cpp Viewport.cpp Shader.cpp Clipper.cpp Clipper.h Texture.h Texture.cpp RenderConfig.h RenderConfig.cpp Framebuffer.h Framebuffer.cpp Depthbuffer.h Depthbuffer.cpp)
+add_library(gfx93-rendering STATIC Rasterizer.h Rasterizer.cpp Viewport.h Viewport.cpp Shader.h Shader.cpp Clipper.cpp Clipper.h Texture.h Texture.cpp RenderConfig.h RenderConfig.cpp Framebuffer.h Framebuffer.cpp Depthbuffer.h Depthbuffer.cpp)
 target_link_libraries(gfx93-rendering gfx93-base)
 target_link_libraries(gfx93-rendering gfx93-util)
 
@@ -21,6 +21,12 @@ FETCHCONTENT_MAKEAVAILABLE(gunit)
 
 add_executable(gfx93-rendering-clipper-test ClipperTest.cpp)
 target_link_libraries(gfx93-rendering-clipper-test gfx93-rendering gunit)
+
+add_executable(gfx93-rendering-rasterizer-test RasterizerTest.cpp)
+target_link_libraries(gfx93-rendering-rasterizer-test gfx93-rendering gunit)
+
+add_executable(gfx93-rendering-renderconfig-test RenderConfigTest.cpp)
+target_link_libraries(gfx93-rendering-renderconfig-test gfx93-rendering gunit)
 
 add_executable(gfx93-rendering-texture-test TextureTest.cpp)
 target_link_libraries(gfx93-rendering-texture-test gfx93-rendering gunit)

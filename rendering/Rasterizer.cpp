@@ -447,14 +447,30 @@ void Rasterizer::drawTriangle(const RenderConfig &renderConfig,
   }
 }
 
+bool Rasterizer::drawDepthFragment(const render::RenderConfig& renderConfig,
+                                   const ShadingGeometry &geometry) const {
+  if (!renderConfig.depthWrite) {
+    return false;
+  }
+  if (renderConfig.depthTest) {
+    return renderConfig.depthbuffer->conditionalPlot(
+        geometry.windowCoord.x, geometry.windowCoord.y, geometry.depth);
+  } else {
+    renderConfig.depthbuffer->plot(
+        geometry.windowCoord.x, geometry.windowCoord.y, geometry.depth);
+    return true;
+  }
+}
+
 bool Rasterizer::drawFragment(const render::RenderConfig &renderConfig,
                               const ShadingGeometry &geometry) const {
   // No need for shading, write to depth buffer and that's it.
   if (!renderConfig.framebuffer) {
-    return renderConfig.depthbuffer->conditionalPlot(
-        geometry.windowCoord.x, geometry.windowCoord.y, geometry.depth);
+    return drawDepthFragment(renderConfig, geometry);
   } 
+
   if (!renderConfig.depthbuffer ||
+      !renderConfig.depthTest ||
       (renderConfig.depthbuffer &&
         renderConfig.depthbuffer->isVisible(geometry.windowCoord,
                                             geometry.depth))) {
@@ -467,7 +483,7 @@ bool Rasterizer::drawFragment(const render::RenderConfig &renderConfig,
       return false;
     } else {
       // Fragment is valid -- write depth now.
-      if (renderConfig.depthbuffer)
+      if (renderConfig.depthbuffer && renderConfig.depthWrite)
         renderConfig.depthbuffer->plot(geometry.windowCoord, geometry.depth);
     }
 

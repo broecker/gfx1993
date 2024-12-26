@@ -116,7 +116,7 @@ struct TrianglePrimitive {
 
 // Shading Geometry is the input of a fragment shader.
 struct ShadingGeometry {
-  // world position and normal
+  // World position and normal
   glm::vec3 position;
   glm::vec3 normal;
 

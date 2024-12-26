@@ -19,7 +19,18 @@ bool RenderConfig::hasValidRenderOutput() const {
   }
 
   // Make sure we have a viewport and at least a single render target.
-  return viewport && (framebuffer || depthbuffer);
+  if (!viewport || !(framebuffer || depthbuffer)) {
+    return false;
+  }
+
+  // Make sure the viewport fits the render target.
+  if (framebuffer) {
+    return (viewport->origin.x + viewport->size.x <= static_cast<int>(framebuffer->getWidth()) && 
+            viewport->origin.y + viewport->size.y <= static_cast<int>(framebuffer->getHeight()));
+  } else {
+     return (viewport->origin.x + viewport->size.x <= static_cast<int>(depthbuffer->getWidth()) && 
+            viewport->origin.y + viewport->size.y <= static_cast<int>(depthbuffer->getHeight()));   
+  }
 }
 } // namespace render
 } // namespace gfx1993

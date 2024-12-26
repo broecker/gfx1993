@@ -2,6 +2,7 @@
 #define DEPTHBUFFER_INCLUDED
 
 #include <glm/glm.hpp>
+#include <limits>
 
 namespace gfx1993 {
 namespace render {
@@ -12,7 +13,10 @@ public:
 
   virtual ~Depthbuffer();
 
-  virtual void clear();
+  virtual void clear(float depth);
+  inline void clear() {
+    clear(std::numeric_limits<float>::max());
+  }
 
   inline unsigned int getWidth() const { return width; }
   inline unsigned int getHeight() const { return height; }
@@ -21,6 +25,10 @@ public:
     assert(x <= (width-1));
     assert(y <= (height-1));
     return data[x + width * y];
+  }
+
+  inline float getDepth(const glm::ivec2& t) const {
+    return getDepth(t.x, t.y);
   }
 
   inline float getDepth(const glm::vec2& t) const {

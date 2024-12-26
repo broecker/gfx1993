@@ -7,6 +7,7 @@
 
 #include "Depthbuffer.h"
 #include "Framebuffer.h"
+#include "Viewport.h"
 
 namespace gfx1993 {
 namespace render {
@@ -42,6 +43,12 @@ struct RenderConfig {
 
   // If set to true, triangles facing away from our view will be discarded.
   bool cullBackFaces = true;
+
+  // If set to true, we'll write to the depth buffer.
+  bool depthWrite = true;
+  // If set to true, we will only write to the depth and frame buffers if the
+  // depth test succeeds. Disable to always write.
+  bool depthTest = true;
 
   // Debug flags follow.
 

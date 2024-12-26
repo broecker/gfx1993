@@ -8,8 +8,9 @@ namespace render {
 
 class Viewport {
 public:
-  Viewport(unsigned int x, unsigned int y, unsigned int width,
-           unsigned int height);
+  Viewport(unsigned int x, unsigned int y,
+           unsigned int width, unsigned int height);
+  Viewport(const glm::ivec2& origin, const glm::ivec2& size);
 
   bool isInside(const glm::ivec2 &p) const;
 

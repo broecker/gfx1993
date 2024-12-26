@@ -1,7 +1,6 @@
 #include "Depthbuffer.h"
 
 #include <cassert>
-#include <cfloat>
 
 namespace gfx1993 {
 namespace render {
@@ -12,9 +11,9 @@ Depthbuffer::Depthbuffer(unsigned int w, unsigned int h) : width(w), height(h) {
 
 Depthbuffer::~Depthbuffer() { delete[] data; }
 
-void Depthbuffer::clear() {
+void Depthbuffer::clear(float depth) {
   for (unsigned int i = 0; i < width * height; ++i) {
-    data[i] = FLT_MAX;
+    data[i] = depth;
   }
 }
 

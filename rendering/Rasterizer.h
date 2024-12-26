@@ -43,7 +43,8 @@ public:
                      const VertexList &vertices,
                      const IndexList &indices) const;
 
-  // Draws a quad in screen coordinates [0..1] with the given shaders.
+  // Fills the screen in coordinates [0..1] with the given fragment shader.
+  // Because no actual vertices are drawn, no vertex shader is used.
   void drawScreenFillingQuad(const RenderConfig &renderConfig);
 
   inline void resetDebugInfo() { debugInfo.reset(); profileInfo.reset(); }
@@ -72,6 +73,10 @@ private:
   // methods. Returns whether the pixel was actually drawn or not.
   bool drawFragment(const RenderConfig &renderConfig,
                     const ShadingGeometry &geometry) const;
+
+  // Rasterizes a single fragment /only/ to the depth buffer.
+  bool drawDepthFragment(const RenderConfig &renderConfig,
+                         const ShadingGeometry &geometry) const;
 
   Clipper               clipper;
   mutable util::DebugInfo     debugInfo;

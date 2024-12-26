@@ -7,6 +7,9 @@ Viewport::Viewport(unsigned int x, unsigned int y, unsigned int w,
                    unsigned int h)
     : origin(x, y), size(w, h) {}
 
+Viewport::Viewport(const glm::ivec2& origin, const glm::ivec2& size)
+  : origin(origin), size(size) {}
+
 glm::vec3 Viewport::calculateWindowCoordinates(const glm::vec3 &ndc) const {
   const float rangeFar = 1.f;
   const float rangeNear = 0.f;
