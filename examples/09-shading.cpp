@@ -10,6 +10,7 @@
 #include "geometry/GridGeometry.h"
 #include "geometry/PlyGeometry.h"
 #include "geometry/Quad.h"
+#include "geometry/Sphere.h"
 #include "base/Pipeline.h"
 #include "rendering/Shader.h"
 
@@ -27,12 +28,14 @@ struct PointLight {
   // k_c, k_l, k_q
   vec3 attenuation;
 
+  vec3 ambient;
+
   float intensity;
 };
 
 struct Material {
   vec3 color;
-  vec3 emission;
+  vec3 emission = vec3(0.f);
   float specularExponent;
 };
 
@@ -52,9 +55,8 @@ vec3 shade(const PointLight& light,
     float iL = light.intensity / distanceAttenuation;
 
     // Light model components.
-    vec3 ambient = iL * light.color * surface.color;
+    vec3 ambient = iL * light.ambient * surface.color;
     vec3 diffuse = iL * light.color * surface.color * glm::max(glm::dot(worldNormal, L), 0.f);
-
 
     vec3 specular(0);
     if (dot(worldNormal, L) < 0) { 
@@ -126,11 +128,12 @@ protected:
   void init() override {
     light.color = vec3(0.5);
     light.position = vec3(0.f, 50.f, 0.f);
-    light.intensity = 0.8f;
+    light.intensity = 100.f;
     light.attenuation = vec3(0.6f, 0.4f, 0.1f);
+    light.ambient = vec3(0.07, 0.07, 0.09);
 
     Material surface {.color = vec3(0.7, 0.5, 0.2), 
-                      .emission=vec3(0.05, 0.05, 0.15),
+                      .emission=vec3(0),
                       .specularExponent=2.f};
 
     fixedFunctionShader = std::make_shared<render::DefaultVertexTransform>();
@@ -147,16 +150,12 @@ protected:
     renderConfig.vertexShader =
         std::make_shared<render::DefaultVertexTransform>();
     
-    assert(bunny.loadPly("../models/bunny/reconstruction/bun_zipper_res3.ply"));
-    bunny.transform = glm::scale(glm::vec3(125.f));
-    bunny.center();
-    
-    assert(flatBunny.loadPly("../models/bunny/reconstruction/bun_zipper_res3.ply"));
-    flatBunny.transform = glm::scale(glm::vec3(125.f));
-    flatBunny.center();
-    flatBunny.makeFlatShaded();
-
-    dynamic_cast<util::OrbitCamera*>(camera.get())->setTarget(bunny.getCenter());
+    geometry = std::make_shared<geometry::Sphere>(25.f, 9, 
+    18);
+    geometry->setRandomFaceColors();
+    flatGeometry = std::make_shared<geometry::Sphere>(25.f, 9, 18);
+    flatGeometry->makeFlatShaded();
+    flatGeometry->setRandomFaceColors();
   }
 
   void updateFrame(float dt) override {
@@ -191,9 +190,9 @@ protected:
     phongShader->eyePosition = eyePosition;
     phongShader->profile = &rasterizer->getProfile();
     goraudShader->eyePosition = eyePosition;
-    goraudShader->modelMatrix = bunny.transform;
+    goraudShader->modelMatrix = geometry->transform;
     goraudShader->profile = &rasterizer->getProfile();
-    fixedFunctionShader->modelMatrix = bunny.transform;
+    fixedFunctionShader->modelMatrix = geometry->transform;
 
     // Here is the difference in shading: 
     // The Phong shading model is per fragment; we use the default vertex 
@@ -207,8 +206,8 @@ protected:
       renderConfig.vertexShader = goraudShader;
       renderConfig.fragmentShader = inputColorShader;
       rasterizer->drawTriangles(renderConfig, 
-                                flatBunny.getVertices(),
-                                 flatBunny.getIndices());
+                                flatGeometry->getVertices(),
+                                 flatGeometry->getIndices());
     }
     
     // Goraud shading
@@ -216,8 +215,8 @@ protected:
       renderConfig.vertexShader = goraudShader;
       renderConfig.fragmentShader = inputColorShader;
       rasterizer->drawTriangles(renderConfig, 
-                                bunny.getVertices(),
-                                 bunny.getIndices());
+                                geometry->getVertices(),
+                                 geometry->getIndices());
     }
 
     // Phong shading
@@ -225,8 +224,8 @@ protected:
       renderConfig.vertexShader = fixedFunctionShader;
       renderConfig.fragmentShader = phongShader;
       rasterizer->drawTriangles(renderConfig, 
-                                bunny.getVertices(),
-                                 bunny.getIndices());
+                                geometry->getVertices(),
+                                 geometry->getIndices());
     }
 
     // Draw a small cube where the light is.
@@ -273,8 +272,9 @@ protected:
 
 private:
   geometry::GridGeometry grid;
-  geometry::PlyGeometry bunny;
-  geometry::PlyGeometry flatBunny;
+
+  std::shared_ptr<geometry::Geometry> geometry;
+  std::shared_ptr<geometry::Geometry> flatGeometry;
 
   geometry::CubeGeometry cube;
 
