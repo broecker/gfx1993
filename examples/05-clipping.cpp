@@ -168,8 +168,7 @@ protected:
     triangles =
         std::make_unique<RandomTriangleGeometry>(glm::vec3(-10), glm::vec3(10));
     grid = std::make_unique<geometry::GridGeometry>();
-    camera = std::make_unique<util::OrbitCamera>(glm::vec3(0, 0, 0),
-                                                 glm::vec3(0, 1, 0), 15.0f);
+    camera = std::make_unique<util::OrbitCamera>(glm::vec3(0, 0, 0),15.0f);
 
     makeLine(glm::vec3(0.f), glm::vec3(20.f, 0, 0), glm::vec4(1, 0, 0, 1));
     makeLine(glm::vec3(0.f), glm::vec3(0, 20.f, 0), glm::vec4(0, 1, 0, 1));

@@ -29,8 +29,7 @@ DemoApp::DemoApp(const std::string &name)
   renderConfig.depthbuffer =
       std::make_shared<Depthbuffer>(width, height);
 
-  camera = std::make_unique<OrbitCamera>(glm::vec3(0, 0, 0), glm::vec3(0, 1, 0),
-                                         30.0f);
+  camera = std::make_unique<OrbitCamera>(glm::vec3(0, 0, 0), 30.0f);
 
   srand(time(0));
   handleResize(width, height);
@@ -148,7 +147,6 @@ void DemoApp::handleEvents() {
 
     if (event.type == SDL_KEYDOWN) {
       switch (event.key.keysym.sym) {
-      case SDLK_q:
       case SDLK_ESCAPE:
         running = false;
         break;
@@ -191,19 +189,17 @@ void DemoApp::handleMouse(int button, int state, const glm::ivec2& mousePosition
 void DemoApp::handleMotion(const glm::ivec2& newMousePosition) {
   const glm::ivec2 delta = newMousePosition - mousePosition;
   this->mousePosition = newMousePosition;
-  camera->handleMouseMove(delta);
+  
+  camera->handleInputRotate(glm::vec3(delta.y, delta.x, 0.f));
 }
 
 void DemoApp::handleMouseWheel(int wheel, const glm::ivec2& mousePosition) {
-  if (wheel > 0) {
-    camera->handleKeyPress('a');
-  }
-  if (wheel < 0) {
-    camera->handleKeyPress('z');
-  }
+  // For an orbit camera, translation along Z means adjusting the radius.
+  camera->handleInputTranslate(glm::vec3(0,0, wheel));
 }
 
 void DemoApp::updateFrame(float dt) {
+  camera->update(dt);
 }
 
 void DemoApp::handleResize(unsigned int w, unsigned int h) {

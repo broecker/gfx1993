@@ -64,8 +64,7 @@ protected:
         std::make_shared<render::SingleColorShader>(glm::vec4(0, 0, 1, 1));
 
     sphere = std::make_unique<WireSphere>(10.0f);
-    camera = std::make_unique<util::OrbitCamera>(glm::vec3(0, 0, 0),
-                                                 glm::vec3(0, 1, 0), 10.0f);
+    camera = std::make_unique<util::OrbitCamera>(glm::vec3(0, 0, 0), 0.f);
   }
 
   void renderFrame() override {

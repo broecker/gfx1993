@@ -12,52 +12,35 @@ using glm::normalize;
 using glm::vec2;
 using glm::vec3;
 using glm::vec4;
+using glm::mat4;
 
 namespace gfx1993 {
 namespace util {
 
-OrbitCamera::OrbitCamera(const vec3 &t, const vec3 &u, float r)
-    : projectionMatrix(glm::perspective(90.f, 1.3f, 1.f, 100.f)), target(t),
-      up(u), position(t), radius(r), phi(0.f), theta(0.f), mode(ROTATE) {}
+// To avoid gimbal lock.
+constexpr float MIN_PITCH = -88.f;
+constexpr float MAX_PITCH = 88.f;
 
-void OrbitCamera::handleKeyPress(unsigned char key) {
-  switch (key) {
-  case 'a':
-  case '-':
-    // radius *= 1.4f;
-    radius += 0.4f;
-    break;
-  case 'z':
-  case '=':
-  case '+':
-    // Don't go closer than the near plane.
-    radius = glm::max(1.f, radius -= 0.5f);
-    // radius -= 0.4f;
-    break;
-  default:
-    break;
-  }
+static const mat4 defaultProjectionMatrix = glm::perspective(90.f, 1.3f, 1.f, 100.f);
+
+Camera::Camera(const glm::mat4& projectionMatrix, const glm::vec3& position) :
+  projectionMatrix(projectionMatrix), position(position), up(vec3(0,1,0)) {}
+
+OrbitCamera::OrbitCamera(const vec3 &t, float r) :
+    Camera(defaultProjectionMatrix, position), target(t), radius(r), phi(0.f), theta(0.f), mode(ROTATE) {}
+
+void OrbitCamera::handleInputTranslate(const vec3& delta) {
+  radius += delta.z;
+  radius = glm::max(1.f, radius -= 0.5f);
 
   updatePosition();
 }
 
-void OrbitCamera::handleMousePress(int button, int state) {
-  if (button == 1 && state == 0) {
-    mode = PAN;
-  }
-
-  if (button == 1 && state == 1) {
-    mode = ROTATE;
-  }
-
-  updatePosition();
-}
-
-void OrbitCamera::handleMouseMove(const glm::ivec2 &delta) {
+void OrbitCamera::handleInputRotate(const vec3 &delta) {
   if (mode == ROTATE) {
-    phi += delta.y;
-    theta += delta.x;
-    phi = glm::clamp(phi, -89.f, 89.f);
+    phi += delta.x;
+    theta += delta.y;
+    phi = glm::clamp(phi, MIN_PITCH, MAX_PITCH);
     updatePosition();    
   }
 
@@ -80,12 +63,55 @@ glm::mat4 OrbitCamera::getViewMatrix() const {
   return glm::lookAt(position, target, up);
 }
 
-glm::mat4 OrbitCamera::getProjectionMatrix() const { return projectionMatrix; }
-
 void OrbitCamera::updatePosition() {
   position = glm::euclidean(glm::radians(glm::vec2(phi, theta))) * radius;
   position += target;
   // std::cout << "Camera: phi: " << phi << " theta: " << theta << " delta: (" << delta.x << "," << delta.y << ") position: (" << position.x << "," << position.y << "," << position.z << ")\n";
+}
+
+FreeCamera::FreeCamera(const glm::vec3& position) : 
+  Camera(defaultProjectionMatrix, position), yaw(0), pitch(0),
+    movementSpeed(1), rotationSpeed(20), velocity(0.f), maxSpeed(250.f), speedDecay(0.5f) {};
+
+void FreeCamera::handleInputTranslate(const vec3& delta) {
+  const vec3 right = getRight();
+
+  velocity += forward * delta.z * movementSpeed.z;
+  velocity += right * delta.x * movementSpeed.x;
+  velocity += up * delta.y * movementSpeed.y;
+  
+  // Safety-check to avoid division by zero.
+  if (dot(velocity, velocity) > 0.1) {
+    velocity = glm::normalize(velocity);
+    velocity *= maxSpeed;
+  } else {
+    velocity = vec3(0);
+  }
+}
+
+void FreeCamera::update(float dt) {
+  position += velocity * dt;
+  velocity *= speedDecay;
+}
+
+void FreeCamera::handleInputRotate(const vec3 &delta) {
+  yaw -= delta.y * movementSpeed.y;
+  pitch += delta.x * movementSpeed.x;
+
+  pitch = glm::clamp(pitch, MIN_PITCH, MAX_PITCH);
+
+  float yrad = glm::radians(yaw);
+  float prad = glm::radians(pitch);
+
+  // See https://www.mauriciopoppe.com/notes/computer-graphics/viewing/camera/first-person-shot/
+  // It constructs a rotation matrix.
+  forward.x = -sin(yrad) * cos(prad);
+  forward.y = sin(prad);
+  forward.z = -cos(yrad) * cos(prad);
+}
+
+glm::mat4 FreeCamera::getViewMatrix() const {
+  return glm::lookAt(position, position + forward, up);
 }
 
 }  // namespace util
