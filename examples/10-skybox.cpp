@@ -9,6 +9,7 @@
 #include "DemoApp.h"
 #include "geometry/GridGeometry.h"
 #include "geometry/Quad.h"
+#include "geometry/Teapot.h"
 #include "base/Pipeline.h"
 #include "rendering/Shader.h"
 #include "util/Camera.h"
@@ -84,7 +85,10 @@ protected:
       vec3(0.8f, 0.8f, 0.9f), 
       vec3(0.3f, 0.3f, 0.4f));
 
-    grid = std::make_unique<geometry::GridGeometry>();    
+    grid = std::make_unique<geometry::GridGeometry>();
+
+    teapot.makeIndicesForPointCloud();
+    colorShader = std::make_unique<SingleColorShader>(vec4(1,0,1,1));
   }
 
   void renderFrame() override {
@@ -114,9 +118,20 @@ protected:
     rasterizer->drawLines(renderConfig, grid->getVertices(),
                           grid->getIndices());
 
+    renderConfig.fragmentShader = colorShader;
+    rasterizer->drawPoints(renderConfig, teapot.getVertices(), teapot.getIndices());
   }
 
   void handleKeyboard(unsigned char key, const glm::ivec2& mouse) override { 
+    if (key == '=') {
+      renderConfig.pointSize += 2;
+    }
+    if (key == '-') {
+      renderConfig.pointSize -= 2;
+    }
+
+    renderConfig.pointSize = glm::clamp(renderConfig.pointSize, 1u, 11u);
+    std::cout << "Point size: " << renderConfig.pointSize << std::endl;    
   }
 
 
@@ -124,11 +139,14 @@ private:
   std::unique_ptr<geometry::GridGeometry> grid;
 
   std::shared_ptr<render::DefaultVertexTransform> fixedFunctionTransform;
-  std::shared_ptr<render::FragmentShader> gridShader;  
+  std::shared_ptr<render::FragmentShader> gridShader;
+  std::shared_ptr<render::SingleColorShader> colorShader;
 
   std::shared_ptr<SkyboxVertexShader> skyboxVertShader;
   std::shared_ptr<SkyboxFragmentShader> skyboxFragShader;
   geometry::Quad skybox;
+
+  geometry::Teapot teapot;
 };
 
 int main(int argc, char **argv) {

@@ -70,6 +70,19 @@ GTEST("RenderConfiguration Test") {
 
     EXPECT(!config.isValid());
   }
+
+  SHOULD("Require an odd point size") {
+    RenderConfig config;
+    config.depthbuffer = std::make_shared<Depthbuffer>(4,4);
+    config.viewport = std::make_shared<Viewport>(ivec2(0), ivec2(4));
+
+    config.vertexShader = std::make_shared<DefaultVertexTransform>();
+    config.fragmentShader = std::make_shared<SingleColorShader>(glm::vec4(1,0,0,1));
+
+    config.pointSize = 2;
+
+    EXPECT(!config.isValid());
+  }
 }
 
 }  // namespace render

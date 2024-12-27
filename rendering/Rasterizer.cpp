@@ -7,6 +7,7 @@
 #include "Shader.h"
 
 #include <algorithm>
+#include <glm/ext.hpp>
 #include <glm/gtx/io.hpp>
 #include <glm/gtx/transform.hpp>
 #include <iostream>
@@ -86,15 +87,21 @@ void Rasterizer::drawPoints(const RenderConfig &renderConfig,
           !renderConfig.depthbuffer->conditionalPlot(pos_win))
         continue;
 
-      // calculate shading geometry
-      ShadingGeometry sgeo = p.rasterize();
-      sgeo.windowCoord = ivec2(pos_win);
-      sgeo.depth = pos_win.z;
+      // Enable 'fat' points here.
+      int halfSize = (renderConfig.pointSize-1) / 2;
+      for (int x = -halfSize; x <= halfSize; ++x) {
+        for (int y = -halfSize; y <= halfSize; ++y) {
+          // calculate shading geometry
+          ShadingGeometry sgeo = p.rasterize();
+          sgeo.windowCoord = ivec2(pos_win) + ivec2(x,y);
+          sgeo.depth = pos_win.z;
 
-      // shade fragment and plot
-      SAVE_COUNTER(drawFragment(renderConfig, sgeo), debugInfo.points);
+          // shade fragment and plot
+          SAVE_COUNTER(drawFragment(renderConfig, sgeo), debugInfo.points);
 
-      debugInfo.lines.drawn++;
+          debugInfo.points.drawn++;
+        }
+      }
     }
   }
 }

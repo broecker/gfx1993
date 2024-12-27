@@ -32,5 +32,12 @@ bool RenderConfig::hasValidRenderOutput() const {
             viewport->origin.y + viewport->size.y <= static_cast<int>(depthbuffer->getHeight()));   
   }
 }
+
+bool RenderConfig::isValid() const {
+  bool oddPointSize = (pointSize % 2 ==1);
+  return hasValidRenderOutput() && hasValidShaderConfiguration() && oddPointSize;
+}
+
+
 } // namespace render
 } // namespace gfx1993

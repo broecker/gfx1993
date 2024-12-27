@@ -24,6 +24,8 @@ public:
   // vertices.
   void makeFlatShaded();
 
+  void makeIndicesForPointCloud();
+
   void setRandomFaceColors();
 
   // Access to transform is public -- no reason to write getter+setter

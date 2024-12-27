@@ -50,6 +50,10 @@ struct RenderConfig {
   // depth test succeeds. Disable to always write.
   bool depthTest = true;
 
+  // The number of pixels a single point primitive should cover. This must be an
+  // odd number.
+  unsigned int pointSize = 1;
+
   // Debug flags follow.
 
   // If set to true, bounding areas will be drawn around rasterized triangles.
@@ -67,9 +71,7 @@ struct RenderConfig {
     return vertexShader && fragmentShader;
   }
 
-  inline bool isValid() const {
-    return hasValidRenderOutput() && hasValidShaderConfiguration();
-  }
+  bool isValid() const;
 };
 
 } // namespace render

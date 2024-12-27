@@ -63,6 +63,14 @@ void Geometry::setRandomFaceColors() {
   }
 }
 
+void Geometry::makeIndicesForPointCloud() {
+  IndexList newIndices;
+  for (size_t i = 0; i < vertices.size(); ++i) {
+    newIndices.push_back(i);
+  }
+  indices = newIndices;
+}
+
 
 
 
