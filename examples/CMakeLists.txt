@@ -61,3 +61,7 @@ target_link_libraries(08-wireframe gfx93-demo-app)
 # Different shading modes.
 add_executable(09-shading 09-shading.cpp)
 target_link_libraries(09-shading gfx93-demo-app)
+
+# Skybox rendering.
+add_executable(10-skybox 10-skybox.cpp)
+target_link_libraries(10-skybox gfx93-demo-app)
