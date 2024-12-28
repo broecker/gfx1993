@@ -1,8 +1,11 @@
 #ifndef DEPTHBUFFER_INCLUDED
 #define DEPTHBUFFER_INCLUDED
 
+#include "../base/config.h"
+
 #include <glm/glm.hpp>
 #include <limits>
+#include <vector>
 
 namespace gfx1993 {
 namespace render {
@@ -11,7 +14,7 @@ class Depthbuffer {
 public:
   Depthbuffer(unsigned int w, unsigned int h);
 
-  virtual ~Depthbuffer();
+  virtual ~Depthbuffer() = default;
 
   virtual void clear(float depth);
   inline void clear() {
@@ -43,6 +46,9 @@ public:
 
   inline void plot(unsigned int x, unsigned int y, float z) {
     data[x + width * y] = z;
+#if GFX1993_DEPTHBUFFER_LOG_WRITES
+    depthWrites[x + width * y]++;
+#endif
   }
 
   bool conditionalPlot(const glm::vec3 &pos);
@@ -57,9 +63,34 @@ public:
     return z < data[x + width * y];
   }
 
+  inline unsigned int getDepthWrites(unsigned int x, unsigned int y) const {
+    assert(x <= (width-1));
+    assert(y <= (height-1));
+    return depthWrites[x + width * y];
+  }
+
+  inline unsigned short getMaxDepthWrites() const {
+    unsigned short max = 0;
+    for (size_t i = 0; i < depthWrites.size(); ++i) {
+      max = glm::max(max, depthWrites[i]);
+    }
+    return max;
+  }
+
+  inline float getMaxDepth() const {
+    float max = std::numeric_limits<float>::max();
+    for (size_t i = 0; i < data.size(); ++i) {
+      max = glm::min(max, data[i]);
+    }
+    return max;
+  }
+
 protected:
   unsigned int width, height;
-  float *data;
+  std::vector<float> data;
+
+  // This is only filled when GFX1993_DEPTHBUFFER_LOG_WRITES is set.
+  mutable std::vector<unsigned short> depthWrites;
 };
 
 } // namespace render

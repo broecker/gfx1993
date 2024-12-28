@@ -37,6 +37,35 @@ static glm::mat4 makeRandomTransform() {
   return rotate * glm::translate(randVec(minPos, maxPos));
 }
 
+// Visualize depth complexity.
+class DepthShader : public render::FragmentShader {
+public:
+  render::Fragment shadeSingle(const render::ShadingGeometry &in) override {
+
+    render::Fragment result;
+    result.discard = false;
+
+    float delta = 0.f;
+    if (renderDepthWrites) {
+      delta = depthBuffer->getDepthWrites(in.windowCoord.x, in.windowCoord.y) / maxDepthWrites;
+    } else {
+      delta = depthBuffer->getDepth(in.windowCoord.x, in.windowCoord.y) / maxDepth;
+    }
+    result.color = glm::vec4(glm::lerp(glm::vec3(0.0,0.0,0.0), 
+                                       glm::vec3(1.0,0.0,0.0),
+                                       glm::vec3(delta)), 1.0);
+    return result;
+  };
+
+  unsigned int maxDepthWrites;
+  float maxDepth;
+
+  bool renderDepthWrites = false;
+
+  std::shared_ptr<render::Depthbuffer> depthBuffer;
+};
+
+
 class Demo02 : public DemoApp {
 public:
   Demo02() : DemoApp("Demo 02 - Hello Geometry") {}
@@ -46,11 +75,16 @@ protected:
     renderConfig.vertexShader =
         std::make_shared<render::DefaultVertexTransform>();
 
+    depthBuffer = renderConfig.depthbuffer;
+
     normalColorShader = std::make_shared<render::NormalColorShader>();
     inputColorShader = std::make_shared<render::InputColorShader>();
     singleColorShader = std::make_shared<render::SingleColorShader>(glm::vec4(1,0,1,1));
 
     grid = std::make_unique<geometry::GridGeometry>();
+
+    depthShader = std::make_shared<DepthShader>();
+    depthShader->depthBuffer = depthBuffer;
 
     logFrameTime = false;
   }
@@ -65,15 +99,16 @@ protected:
     dvt->viewMatrix = camera->getViewMatrix();
     dvt->projectionMatrix = camera->getProjectionMatrix();
 
+    // Reattach the depthbuffer.
+    renderConfig.depthbuffer = depthBuffer;
+
     // Clear the buffers
     renderConfig.clearBuffers(glm::vec4(0.7f, 0.7f, 0.9f, 1));
 
     // Draw the floor grid.
-    if (drawGrid) {
-      renderConfig.fragmentShader = inputColorShader;
-      rasterizer->drawLines(renderConfig, grid->getVertices(),
-                            grid->getIndices());
-    }
+    renderConfig.fragmentShader = inputColorShader;
+    rasterizer->drawLines(renderConfig, grid->getVertices(),
+                          grid->getIndices());
 
     // Draw all the bunnies.
     renderConfig.fragmentShader = normalColorShader;
@@ -97,6 +132,19 @@ protected:
       rasterizer->drawTriangles(renderConfig, geo->getVertices(), geo->getIndices());
     }
 
+    // Draw depth complexity if requested; this requires
+    // GFX1993_DEPTHBUFFER_LOG_WRITES to be set.
+    if (drawDepthComplexity) {
+      depthShader->maxDepth = std::max(depthBuffer->getMaxDepth(),
+        static_cast<float>(1));
+      depthShader->maxDepthWrites = std::max(depthBuffer->getMaxDepthWrites(),
+        static_cast<unsigned short>(1));
+      
+      renderConfig.fragmentShader = depthShader;
+      renderConfig.depthbuffer = nullptr;
+
+      rasterizer->drawScreenFillingQuad(renderConfig);
+    }
   }
 
   void handleKeyboard(unsigned char key, const glm::ivec2& mousePosition) override {
@@ -162,12 +210,12 @@ protected:
       cubes.emplace_back(std::move(teapot));
     }
 
-    if (key == 'x') {
-      drawGrid = !drawGrid;
+    if (key == 'z') {
+      drawDepthComplexity = !drawDepthComplexity;
     }
 
-    if (key == 'z') {
-      logFrameTime = !logFrameTime;
+    if (key == 'x') {
+      depthShader->renderDepthWrites = !depthShader->renderDepthWrites;
     }
   }
 
@@ -181,9 +229,11 @@ private:
   std::shared_ptr<render::FragmentShader> normalColorShader;
   std::shared_ptr<render::FragmentShader> inputColorShader;
   std::shared_ptr<render::FragmentShader> singleColorShader;
+  std::shared_ptr<DepthShader> depthShader;
 
-  bool drawGrid = false;
+  std::shared_ptr<render::Depthbuffer> depthBuffer;
 
+  bool drawDepthComplexity = false;
 };
 
 int main(int argc, char **argv) {

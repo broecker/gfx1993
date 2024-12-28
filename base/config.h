@@ -27,6 +27,10 @@
 #define GFX1993_PARALLEL_CLIP 1
 
 
+// If enabled, adds another layer to the depth buffer that measures writes to
+// each pixel.
+#define GFX1993_DEPTHBUFFER_LOG_WRITES 1
+
 // Constants to follow.
 namespace gfx1993 {
 
