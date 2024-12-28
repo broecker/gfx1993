@@ -45,6 +45,10 @@ protected:
 
   virtual void renderFrame() = 0;
 
+  virtual void handleEvent(const SDL_Event& e);
+
+
+  // Convenience methods, called by handleEvent above;
   virtual void handleKeyboard(unsigned char key, const glm::ivec2& mousePosition);
 
   virtual void handleMouse(int button, int state, const glm::ivec2& mousePosition);

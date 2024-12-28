@@ -144,40 +144,44 @@ void DemoApp::handleEvents() {
     if (event.type == SDL_QUIT) {
       running = false;
     }
-
-    if (event.type == SDL_KEYDOWN) {
-      switch (event.key.keysym.sym) {
-      case SDLK_ESCAPE:
-        running = false;
-        break;
-      default:
-        break;
-      }
-
-      appInstance->handleKeyboard(event.key.keysym.sym, mousePosition);
-    }
-
-    if (event.type == SDL_MOUSEMOTION) {
-      appInstance->handleMotion(glm::ivec2(event.motion.x, event.motion.y));
-    }
-
-    if (event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP) {
-      appInstance->handleMouse(event.button.button, event.button.state, glm::ivec2(event.button.x, event.button.y));
-    }
-
-    if (event.type == SDL_MOUSEWHEEL) {
-      appInstance->handleMouseWheel(event.wheel.y, mousePosition);
-    }
-
-    if (event.type == SDL_WINDOWEVENT) {
-      if (event.window.event ==  SDL_WINDOWEVENT_RESIZED) {
-        handleResize(event.window.data1, event.window.data2);
-        std::cout << "Resized window to " << event.window.data1 << "x" << event.window.data2 << std::endl;
-      }
-    }
-  }
+    handleEvent(event);
+  }   
 
   rasterizer->getProfile().endTiming(eventProf);
+}
+
+void DemoApp::handleEvent(const SDL_Event& event) {
+ if (event.type == SDL_KEYDOWN) {
+  switch (event.key.keysym.sym) {
+    case SDLK_ESCAPE:
+      running = false;
+      break;
+    default:
+      break;
+    }
+
+    appInstance->handleKeyboard(event.key.keysym.sym, mousePosition);
+  }
+
+  // TODO: handle keyup.
+  if (event.type == SDL_MOUSEMOTION) {
+    appInstance->handleMotion(glm::ivec2(event.motion.x, event.motion.y));
+  }
+
+  if (event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP) {
+    appInstance->handleMouse(event.button.button, event.button.state, glm::ivec2(event.button.x, event.button.y));
+  }
+
+  if (event.type == SDL_MOUSEWHEEL) {
+    appInstance->handleMouseWheel(event.wheel.y, mousePosition);
+  }
+
+  if (event.type == SDL_WINDOWEVENT) {
+    if (event.window.event ==  SDL_WINDOWEVENT_RESIZED) {
+      handleResize(event.window.data1, event.window.data2);
+      std::cout << "Resized window to " << event.window.data1 << "x" << event.window.data2 << std::endl;
+    }
+  }
 }
 
 void DemoApp::handleKeyboard(unsigned char key, const glm::ivec2& mousePosition) {}
