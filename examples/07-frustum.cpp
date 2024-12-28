@@ -5,9 +5,10 @@
 #include <glm/ext.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
+#include <glm/gtc/random.hpp>
 
 #include "DemoApp.h"
-#include "geometry/GridGeometry.h"
+#include "geometry/Geometry.h"
 #include "base/Pipeline.h"
 #include "rendering/Shader.h"
 #include "util/Camera.h"
@@ -17,34 +18,68 @@ using namespace gfx1993;
 using namespace render;
 using namespace glm;
 
+class PointField : public geometry::Geometry {
+public:
+  PointField(int width, int depth) {
+    for (int x = -width/2; x <= width/2; x++) {
+      for (int z = -depth/2; z <= depth/2; z++) {
+        render::Vertex v;
+        v.color = glm::vec4(1,0,1,1);
+        v.normal = glm::vec3(0);
+        v.texcoord = glm::vec2(static_cast<float>(x)/width,
+                               static_cast<float>(z)/depth);
+
+        float y = glm::perlin(v.texcoord) * 10.f;
+        v.position = glm::vec4(x, y, z, 1);
+
+        vertices.push_back(v);
+        indices.push_back(vertices.size()-1);
+      }
+    }
+
+    std::cout << "Created a [" << width+1 << "x" << depth+1 << "] point field.\n";
+    assert(indices.size() == vertices.size());
+  }
+
+  // Assigns each point a color whether it's inside or outside the frustum.
+  void updatePoints(const util::Frustum& f) {
+    for (render::Vertex& v : vertices) {
+      if (f.isInside(glm::vec3(v.position))) {
+        v.color = glm::vec4(0,1,0,1);
+      } else {
+        v.color = glm::vec4(1,0,0,1);
+      }
+    }
+  }
+};
+
 class Demo07 : public DemoApp {
 public:
   Demo07() : DemoApp("Demo 07 - Frustum"),
-    camera0(glm::perspective(30.f, static_cast<float>(width) / height, 1.f, 30.f), vec3(0, 0, 10), 10),
-    camera1(glm::perspective(30.f, static_cast<float>(width) / height, 1.f, 70.f), vec3(10, 2, 0)),
-    frustum0(camera0.getProjectionMatrix(), glm::mat4(1)),
-    frustum1(camera1.getProjectionMatrix(), camera1.getViewMatrix()) {}
+    camera0(glm::perspective(30.f, static_cast<float>(width) / height, 1.f, 100.f), vec3(0, 0, 10), 10),
+    camera1(glm::perspective(30.f, static_cast<float>(width) / height, 1.f, 30.f), vec3(10, 2, 0)),
+    frustum1(camera1.getProjectionMatrix(), camera1.getViewMatrix()),
+    points(100, 100) {}
 
 protected:
   void init() override {
-    gridShader = std::make_shared<InputColorShader>();
-    redShader = std::make_shared<render::SingleColorShader>(vec4(1,0,0,1));
-    blueShader = std::make_shared<render::SingleColorShader>(vec4(0,0,1,1));
-
+    colorShader = std::make_shared<InputColorShader>();
     renderConfig.vertexShader =
         std::make_shared<render::DefaultVertexTransform>();
-    renderConfig.fragmentShader = gridShader;
+    renderConfig.fragmentShader = colorShader;
 
-    grid = std::make_unique<geometry::GridGeometry>();
     logFrameTime = false;
+
+    updateFrame(0);
   }
 
   void updateFrame(float dt) override {
     camera0.update(dt);
     camera1.update(dt);
 
-    frustum0.update(camera0.getViewMatrix());
     frustum1.update(camera1.getViewMatrix());
+
+    points.updatePoints(frustum1);
   }
 
   void renderFrame() override {
@@ -63,15 +98,13 @@ protected:
     // Clear the buffers
     renderConfig.clearBuffers(glm::vec4(0.7f, 0.7f, 0.9f, 1));
 
-    // Draw the floor grid.
-    renderConfig.fragmentShader = gridShader;
-    rasterizer->drawLines(renderConfig, grid->getVertices(),
-                          grid->getIndices());
+    // Draw some points.
+    renderConfig.fragmentShader = colorShader;
+    renderConfig.pointSize = 9;
+    dvt->modelMatrix = glm::mat4(1.f);
+    rasterizer->drawPoints(renderConfig, points.getVertices(), points.getIndices());
 
-    // Draw the frustums.
-    renderConfig.fragmentShader = redShader;
-    rasterizer->drawLines(renderConfig, frustum0.getVertices(), frustum0.getIndices());
-    renderConfig.fragmentShader = blueShader;
+    // Draw the frustum.
     rasterizer->drawLines(renderConfig, frustum1.getVertices(), frustum1.getIndices());
   }
 
@@ -122,15 +155,14 @@ protected:
   }
 
 private:
-  std::unique_ptr<geometry::GridGeometry> grid;
   util::OrbitCamera camera0;
   util::FreeCamera camera1;
 
-  util::Frustum frustum0;
+  // This follows the free camera.
   util::Frustum frustum1;
 
-  std::shared_ptr<render::InputColorShader> gridShader;
-  std::shared_ptr<render::SingleColorShader> redShader, blueShader;
+  std::shared_ptr<render::InputColorShader> colorShader;
+  PointField points;
 
   int activeCamera = 0;
 

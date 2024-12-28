@@ -147,7 +147,16 @@ const VertexList& Frustum::getVertices() const {
 // See Akenine-Moeller; Realtime-Rendering 2nd Ed, A5.2
 void Frustum::Plane::set(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c) {
   normal = normalize(cross(b-a, c-a));
-  distance = dot(-normal, a);
+  d = dot(-normal, a);
+}
+
+bool Frustum::isInside(const glm::vec3& pt) const {
+  for (int i = 0; i < PLANES_COUNT; ++i) {
+    if (planes[i].distance(pt) < 0) {
+      return false;
+    }
+  }
+  return true;
 }
 
 

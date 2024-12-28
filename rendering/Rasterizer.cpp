@@ -40,7 +40,7 @@ void Rasterizer::drawPoints(const RenderConfig &renderConfig,
     std::cerr << "Invalid render configuration!\n";
   }
   START_PROFILE("rasterize.points");
-  debugInfo.points.processed++;
+  debugInfo.points.processed += indices.size();
 
   // Vertex transform.
   VertexOutList transformedVertices;
@@ -96,13 +96,21 @@ void Rasterizer::drawPoints(const RenderConfig &renderConfig,
           sgeo.windowCoord = ivec2(pos_win) + ivec2(x,y);
           sgeo.depth = pos_win.z;
 
+          // Discard (no need for shading) if we're outside the valid window.
+          // TODO(mbroecker): This should be calculated with the viewport!
+          if (sgeo.windowCoord.x < 0 || sgeo.windowCoord.y < 0 || 
+              sgeo.windowCoord.x > renderConfig.framebuffer->getWidth()-1 ||
+              sgeo.windowCoord.y > renderConfig.framebuffer->getHeight()-1) {
+            // std::clog << "[mbr] ignoring [" << x << "," << y << "]: (" << sgeo.windowCoord.x << "," << sgeo.windowCoord.y << ")\n";
+            continue;
+          }
+
           // shade fragment and plot
           SAVE_COUNTER(drawFragment(renderConfig, sgeo), debugInfo.points);
-
-          debugInfo.points.drawn++;
         }
       }
-    }
+      debugInfo.points.drawn++;
+    }    
   }
 }
 

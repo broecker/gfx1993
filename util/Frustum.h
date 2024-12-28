@@ -41,6 +41,8 @@ public:
   const IndexList& getIndices() const;
   const VertexList& getVertices() const;
 
+  bool isInside(const glm::vec3& pt) const;
+
 private:
   glm::mat4   projectionMatrix, viewMatrix;
 
@@ -57,9 +59,13 @@ private:
   // Implicit notation for all planes.
   struct Plane {
     glm::vec3     normal;
-    float         distance;
+    float         d;
 
     void set(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c);
+
+    inline float distance(const glm::vec3& pt) const {
+      return glm::dot(pt, normal) + d;
+    }
   };
   
   Plane       planes[PLANES_COUNT];
