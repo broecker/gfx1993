@@ -33,14 +33,38 @@ public:
   Frustum(const glm::mat4& projectionMatrix,
           const glm::mat4& viewMatrix=glm::mat4(1));
   
+  // Updates the position of the frustum, keeping the projection constant. This
+  // will also recalculate all planes used for clipping.
   void update(const glm::mat4& viewMatrix);
 
+  // For debug line drawing.
   const IndexList& getIndices() const;
   const VertexList& getVertices() const;
 
 private:
   glm::mat4   projectionMatrix, viewMatrix;
 
+  enum PlaneName {
+    NEAR = 0,
+    LEFT,
+    RIGHT,
+    TOP,
+    BOTTOM,
+    FAR,
+    PLANES_COUNT
+  };
+
+  // Implicit notation for all planes.
+  struct Plane {
+    glm::vec3     normal;
+    float         distance;
+
+    void set(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c);
+  };
+  
+  Plane       planes[PLANES_COUNT];
+
+  // Corner vertices for debug drawing.
   VertexList  vertices;
 };
 

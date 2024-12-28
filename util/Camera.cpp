@@ -26,6 +26,10 @@ static const mat4 defaultProjectionMatrix = glm::perspective(90.f, 1.3f, 1.f, 10
 Camera::Camera(const glm::mat4& projectionMatrix, const glm::vec3& position) :
   projectionMatrix(projectionMatrix), position(position), up(vec3(0,1,0)) {}
 
+OrbitCamera::OrbitCamera(const glm::mat4& projectionMatrix, const glm::vec3& target, float radius) :
+  Camera(projectionMatrix, position),
+  target(target), radius(radius), phi(0), theta(0), mode(ROTATE) {}
+
 OrbitCamera::OrbitCamera(const vec3 &t, float r) :
     Camera(defaultProjectionMatrix, position), target(t), radius(r), phi(0.f), theta(0.f), mode(ROTATE) {}
 
@@ -72,6 +76,11 @@ void OrbitCamera::updatePosition() {
 FreeCamera::FreeCamera(const glm::vec3& position) : 
   Camera(defaultProjectionMatrix, position), yaw(0), pitch(0),
     movementSpeed(1), rotationSpeed(20), velocity(0.f), maxSpeed(250.f), speedDecay(0.5f) {};
+
+FreeCamera::FreeCamera(const glm::mat4& projectionMatrix, const glm::vec3& position) : 
+  Camera(projectionMatrix, position), yaw(0), pitch(0),
+    movementSpeed(1), rotationSpeed(20), velocity(0.f), maxSpeed(250.f), speedDecay(0.5f) {};
+
 
 void FreeCamera::handleInputTranslate(const vec3& delta) {
   const vec3 right = getRight();

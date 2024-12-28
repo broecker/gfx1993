@@ -41,6 +41,7 @@ protected:
 // A camera that rotates around a fixed point.
 class OrbitCamera : public Camera {
 public:
+  OrbitCamera(const glm::mat4& projectionMatrix, const glm::vec3& target, float radius);
   OrbitCamera(const glm::vec3 &target, float radius);
 
   void handleInputRotate(const glm::vec3& delta) override;
@@ -63,9 +64,10 @@ private:
 
 class FreeCamera : public Camera {
 public:
+  FreeCamera(const glm::mat4& projectionMatrix, const glm::vec3& position);
   FreeCamera(const glm::vec3& position);
 
-    void handleInputRotate(const glm::vec3& delta) override;
+  void handleInputRotate(const glm::vec3& delta) override;
 
   void handleInputTranslate(const glm::vec3& delta) override;
 
