@@ -2,6 +2,7 @@
 #define GFX1993_UTIL_FRUSTUM_INCLUDED
 
 #include "../base/Pipeline.h"
+#include "BoundingVolumes.h"
 
 #include <glm/glm.hpp>
 
@@ -42,6 +43,8 @@ public:
   const VertexList& getVertices() const;
 
   bool isInside(const glm::vec3& pt) const;
+
+  bool isInside(const BoundingSphere& sphere) const;
 
 private:
   glm::mat4   projectionMatrix, viewMatrix;

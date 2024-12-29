@@ -159,6 +159,14 @@ bool Frustum::isInside(const glm::vec3& pt) const {
   return true;
 }
 
+bool Frustum::isInside(const BoundingSphere& sphere) const {
+  for (int i = 0; i < PLANES_COUNT; ++i) {
+    if (planes[i].distance(sphere.center) < -sphere.radius) {
+      return false;
+    }
+  }
+  return true;
+}
 
 }  // namespace util
 }  // namespace gfx1993
