@@ -24,7 +24,7 @@ glm::vec3 Viewport::calculateWindowCoordinates(const glm::vec3 &ndc) const {
 
 bool Viewport::isInside(const glm::ivec2 &p) const {
   glm::ivec2 t = p - origin;
-  return (t.x <= size.x && t.y <= size.y);
+  return (t.x >= 0 && t.y >=0 && t.x < size.x && t.y < size.y);
 }
 
 }  // namespace render

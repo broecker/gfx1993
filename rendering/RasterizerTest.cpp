@@ -13,6 +13,7 @@
 
 namespace gfx1993 {
 namespace render {
+namespace {
 
 using glm::ivec2;
 using glm::vec4;
@@ -46,7 +47,6 @@ constexpr int TEST_W=4;
 constexpr int TEST_H=4;
 constexpr int TEST_PIXELS=TEST_W*TEST_H;
 
-namespace {
 void printRenderedImage(std::shared_ptr<Framebuffer> frameBuffer,
                         std::shared_ptr<Depthbuffer> depthBuffer) {
   std::cout << "Rendered image:\n";
@@ -251,8 +251,6 @@ GTEST("Rasterizer Test") {
 
     rasterizer.drawPoints(config, points, indices);
 
-    printRenderedImage(frameBuffer, depthBuffer);
-
     // Top row and left column are red (clear color) and depth is is not set.
     for (int x = 0; x < TEST_W; ++x) {
       EXPECT(frameBuffer->getPixel(x, 0) == red);
@@ -274,6 +272,52 @@ GTEST("Rasterizer Test") {
       for (int y = 0; y < 3; ++y) {
         EXPECT(frameBuffer->getPixel(1+x, 1+y) == black);
         EXPECT(depthBuffer->getDepth(1+x, 1+y) == 0);
+      }
+    }
+  }
+
+  SHOULD("Clip fat points against viewport") {
+    RenderConfig config;
+    config.framebuffer = frameBuffer;
+    config.depthbuffer = depthBuffer;
+    // A 1x1 px viewport.
+    config.viewport = std::make_shared<render::Viewport>(2, 2, 1, 1);
+
+    const vec4 red = vec4(1,0,0,1);
+
+    frameBuffer->clear(red);
+    depthBuffer->clear(10.f);
+
+    config.vertexShader = std::make_shared<TestVertShader>();
+    config.fragmentShader = std::make_shared<TestFragShader>();
+
+    // This will cover everything in our 4x4 framebuffer.
+    config.pointSize = 5;
+
+    // Draw a single black point at the center of the screen.
+    VertexList points{ Vertex(vec4(0,0,-1,1)) };
+    IndexList indices{ 0 };  
+
+    ASSERT(config.isValid());
+
+    rasterizer.drawPoints(config, points, indices);
+
+    EXPECT(rasterizer.getDebugInfo().points.drawn == 1);
+    EXPECT(rasterizer.getDebugInfo().points.fragmentsDrawn == 1);   
+
+    // Only the 1x1 pixel area (i.e. the point clipped against the viewport) is
+    // filled with black and depth is set.
+    const vec4 black(0,0,0,1);
+    for (int x = 0; x < TEST_W; ++x) {
+      for (int y = 0; y < TEST_H; ++y) {
+        if (x == 2 && y == 2) {
+          EXPECT(frameBuffer->getPixel(x, y) == black);
+          EXPECT(depthBuffer->getDepth(x, y) == 0);
+        }
+        else {
+          EXPECT(frameBuffer->getPixel(x, y) == red);
+          EXPECT(depthBuffer->getDepth(x,y) == 10);
+        }
       }
     }
   }
