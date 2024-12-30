@@ -184,7 +184,14 @@ void DemoApp::handleEvent(const SDL_Event& event) {
   }
 }
 
-void DemoApp::handleKeyboard(unsigned char key, const glm::ivec2& mousePosition) {}
+void DemoApp::handleKeyboard(unsigned char key, const glm::ivec2& mousePosition) {
+  if (key == '-') {
+    camera->handleInputTranslate(glm::vec3(0,0,1));
+  }
+  if (key == '+' || key == '=') {
+    camera->handleInputTranslate(glm::vec3(0,0,-1));
+  }
+}
 
 void DemoApp::handleMouse(int button, int state, const glm::ivec2& mousePosition) {
   this->mousePosition = mousePosition;

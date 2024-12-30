@@ -107,6 +107,8 @@ protected:
   }
 
   void handleKeyboard(unsigned char key, const glm::ivec2& mouse) override {
+    DemoApp::handleKeyboard(key, mouse);
+
     if (key == 'c') {
       texture = render::Texture::makeCheckerboard(
           64, 64, 8, glm::vec4(1.f, 0.f, 0.f, 1.f),
