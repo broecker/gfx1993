@@ -84,30 +84,37 @@ void Rasterizer::drawPoints(const RenderConfig &renderConfig,
       // If there is a depth buffer but the depth test fails -> discard fragment
       // (early)
       if (renderConfig.depthbuffer &&
-          !renderConfig.depthbuffer->conditionalPlot(pos_win))
+          !renderConfig.depthbuffer->isVisible(pos_win, pos_win.z))
         continue;
 
       // Enable 'fat' points here.
-      int halfSize = (renderConfig.pointSize-1) / 2;
-      for (int x = -halfSize; x <= halfSize; ++x) {
-        for (int y = -halfSize; y <= halfSize; ++y) {
-          // calculate shading geometry
-          ShadingGeometry sgeo = p.rasterize();
-          sgeo.windowCoord = ivec2(pos_win) + ivec2(x,y);
-          sgeo.depth = pos_win.z;
+      if (renderConfig.pointSize > 1) {
+        int halfSize = (renderConfig.pointSize-1) / 2;
+        for (int x = -halfSize; x <= halfSize; ++x) {
+          for (int y = -halfSize; y <= halfSize; ++y) {
+            // calculate shading geometry
+            ShadingGeometry sgeo = p.rasterize();
+            sgeo.windowCoord = ivec2(pos_win) + ivec2(x,y);
+            sgeo.depth = pos_win.z;
 
-          // Discard (no need for shading) if we're outside the valid window.
-          // TODO(mbroecker): This should be calculated with the viewport!
-          if (sgeo.windowCoord.x < 0 || sgeo.windowCoord.y < 0 || 
-              sgeo.windowCoord.x > renderConfig.framebuffer->getWidth()-1 ||
-              sgeo.windowCoord.y > renderConfig.framebuffer->getHeight()-1) {
-            // std::clog << "[mbr] ignoring [" << x << "," << y << "]: (" << sgeo.windowCoord.x << "," << sgeo.windowCoord.y << ")\n";
-            continue;
+            // Discard (no need for shading) if we're outside the valid window.
+            // TODO(mbroecker): This should be calculated with the viewport!
+            if (sgeo.windowCoord.x < 0 || sgeo.windowCoord.y < 0 || 
+                sgeo.windowCoord.x > renderConfig.framebuffer->getWidth()-1 ||
+                sgeo.windowCoord.y > renderConfig.framebuffer->getHeight()-1) {
+              continue;
+            }
+
+            // shade fragment and plot
+            SAVE_COUNTER(drawFragment(renderConfig, sgeo), debugInfo.points);
           }
-
-          // shade fragment and plot
-          SAVE_COUNTER(drawFragment(renderConfig, sgeo), debugInfo.points);
         }
+      } else {
+        ShadingGeometry sgeo = p.rasterize();
+          sgeo.windowCoord = ivec2(pos_win);
+          sgeo.depth = pos_win.z;
+        // shade fragment and plot
+        SAVE_COUNTER(drawFragment(renderConfig, sgeo), debugInfo.points);
       }
       debugInfo.points.drawn++;
     }    

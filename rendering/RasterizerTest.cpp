@@ -17,6 +17,21 @@ namespace render {
 using glm::ivec2;
 using glm::vec4;
 
+// Simple pass-through shader.
+class TestVertShader : public VertexShader {
+public:
+  VertexOut transformSingle(const Vertex &in) override {
+    return VertexOut{.clipPosition = in.position, .color = in.color };
+  }
+};
+
+class TestFragShader : public FragmentShader {
+public:
+  Fragment shadeSingle(const ShadingGeometry& in) override {
+    return Fragment {.color = in.color, .discard=false };
+  }
+};
+
 class DiscardFragShader : public FragmentShader {
 public:
   Fragment shadeSingle(const ShadingGeometry &in) {
@@ -30,6 +45,28 @@ public:
 constexpr int TEST_W=4;
 constexpr int TEST_H=4;
 constexpr int TEST_PIXELS=TEST_W*TEST_H;
+
+namespace {
+void printRenderedImage(std::shared_ptr<Framebuffer> frameBuffer,
+                        std::shared_ptr<Depthbuffer> depthBuffer) {
+  std::cout << "Rendered image:\n";
+  for (unsigned int x = 0; x < TEST_W; ++x) {
+    for (unsigned int y = 0; y < TEST_H; ++y) {
+      const glm::vec4& px = frameBuffer->getPixel(x,y);
+      std::cout << px.x << "," << px.y << "," << px.z << " ";
+    }
+    std::cout << std::endl;
+  }
+
+  std::cout << "Rendered depth:\n";
+  for ( int x = 0; x < TEST_W; ++x) {
+    for (unsigned int y = 0; y < TEST_H; ++y) {
+      std::cout << depthBuffer->getDepth(x,y) << " ";
+    }
+    std::cout << std::endl;
+  }
+}
+}  // namespace
 
 GTEST("Rasterizer Test") {
   Rasterizer rasterizer;
@@ -143,7 +180,6 @@ GTEST("Rasterizer Test") {
     }
   }
 
-
   SHOULD("Rasterize only to viewport area") {
     RenderConfig config;
     config.framebuffer = frameBuffer;
@@ -187,6 +223,57 @@ GTEST("Rasterizer Test") {
       for (int x = 1; x < TEST_W-2; ++x) {
         EXPECT(frameBuffer->getPixel(x, y) == blue);
         EXPECT(depthBuffer->getDepth(x, y) < 1.f);
+      }
+    }
+  }
+
+  SHOULD("Draw fat points") {
+    RenderConfig config;
+    config.framebuffer = frameBuffer;
+    config.depthbuffer = depthBuffer;
+    config.viewport = viewport;
+
+    const vec4 red = vec4(1,0,0,1);
+
+    frameBuffer->clear(red);
+    depthBuffer->clear(10.f);
+
+    config.vertexShader = std::make_shared<TestVertShader>();
+    config.fragmentShader = std::make_shared<TestFragShader>();
+
+    config.pointSize = 3;
+
+    // Draw a single black point at the center of the screen.
+    VertexList points{ Vertex(vec4(0,0,-1,1)) };
+    IndexList indices{ 0 };  
+
+    ASSERT(config.isValid());
+
+    rasterizer.drawPoints(config, points, indices);
+
+    printRenderedImage(frameBuffer, depthBuffer);
+
+    // Top row and left column are red (clear color) and depth is is not set.
+    for (int x = 0; x < TEST_W; ++x) {
+      EXPECT(frameBuffer->getPixel(x, 0) == red);
+      EXPECT(depthBuffer->getDepth(x, 0) == 10);
+    }
+    for (int y = 0; y < TEST_H; ++y) {
+      EXPECT(frameBuffer->getPixel(0, y) == red);
+      EXPECT(depthBuffer->getDepth(0, y) == 10);
+    }
+
+    EXPECT(rasterizer.getDebugInfo().points.drawn == 1);
+    EXPECT(rasterizer.getDebugInfo().points.fragmentsDrawn == 9);
+    
+
+    // The 3x3 pixel area (i.e. the point) is filled with black and depth is
+    // set.
+    const vec4 black(0,0,0,1);
+    for (int x = 0; x < 3; ++x) {
+      for (int y = 0; y < 3; ++y) {
+        EXPECT(frameBuffer->getPixel(1+x, 1+y) == black);
+        EXPECT(depthBuffer->getDepth(1+x, 1+y) == 0);
       }
     }
   }
