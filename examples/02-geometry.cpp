@@ -16,26 +16,46 @@
 
 using namespace gfx1993;
 
+using glm::vec2;
+using glm::vec3;
+using glm::vec4;
+
 static float randf() {
   return static_cast<float>(rand()) / RAND_MAX;
 }
 
-static glm::vec3 randVec(const glm::vec3& min, const glm::vec3& max) {
-  return glm::vec3(glm::mix(min.x, max.x, randf()),
-                   glm::mix(min.y, max.y, randf()),
-                   glm::mix(min.z, max.z, randf()));
+static vec3 randVec(const vec3& min, const vec3& max) {
+  return vec3(glm::mix(min.x, max.x, randf()),
+              glm::mix(min.y, max.y, randf()),
+              glm::mix(min.z, max.z, randf()));
 }
 
 static glm::mat4 makeRandomTransform() {
-  const glm::vec3 minPos(-15);
-  const glm::vec3 maxPos(15);
+  const vec3 minPos(-15);
+  const vec3 maxPos(15);
 
   // Random rotation and translation.
-  glm::vec3 rotationAxis = glm::normalize(randVec(glm::vec3(-1), glm::vec3(1)));
+  vec3 rotationAxis = glm::normalize(randVec(vec3(-1), vec3(1)));
   glm::mat4 rotate = glm::rotate(randf() * 360.f, rotationAxis);
 
   return rotate * glm::translate(randVec(minPos, maxPos));
 }
+
+class Origin : public geometry::Geometry {
+public:
+  Origin() {
+    vertices.push_back(render::Vertex{vec4(0,0,0,1), vec3(0), vec4(1,0,0,1), vec2(0)});
+    vertices.push_back(render::Vertex{vec4(10,0,0,1), vec3(0), vec4(1,0,0,1), vec2(0)});
+
+    vertices.push_back(render::Vertex{vec4(0,0,0,1), vec3(0), vec4(0,1,0,1), vec2(0)});
+    vertices.push_back(render::Vertex{vec4(0,10,0,1), vec3(0), vec4(0,1,0,1), vec2(0)});
+
+    vertices.push_back(render::Vertex{vec4(0,0,0,1), vec3(0), vec4(0,0,1,1), vec2(0)});
+    vertices.push_back(render::Vertex{vec4(0,0,10,1), vec3(0), vec4(0,0,1,1), vec2(0)});
+
+    indices = {0,1, 2,3, 4,5};
+  }
+};
 
 // Visualize depth complexity.
 class DepthShader : public render::FragmentShader {
@@ -51,9 +71,9 @@ public:
     } else {
       delta = depthBuffer->getDepth(in.windowCoord.x, in.windowCoord.y) / maxDepth;
     }
-    result.color = glm::vec4(glm::lerp(glm::vec3(0.0,0.0,0.0), 
-                                       glm::vec3(1.0,0.0,0.0),
-                                       glm::vec3(delta)), 1.0);
+    result.color = glm::vec4(glm::lerp(vec3(0.0,0.0,0.0), 
+                                       vec3(1.0,0.0,0.0),
+                                       vec3(delta)), 1.0);
     return result;
   };
 
@@ -81,8 +101,6 @@ protected:
     inputColorShader = std::make_shared<render::InputColorShader>();
     singleColorShader = std::make_shared<render::SingleColorShader>(glm::vec4(1,0,1,1));
 
-    grid = std::make_unique<geometry::GridGeometry>();
-
     depthShader = std::make_shared<DepthShader>();
     depthShader->depthBuffer = depthBuffer;
 
@@ -107,8 +125,13 @@ protected:
 
     // Draw the floor grid.
     renderConfig.fragmentShader = inputColorShader;
-    rasterizer->drawLines(renderConfig, grid->getVertices(),
-                          grid->getIndices());
+    rasterizer->drawLines(renderConfig, grid.getVertices(),
+                          grid.getIndices());
+
+    // Draw the origin.
+    renderConfig.depthTest = false;
+    rasterizer->drawLines(renderConfig, origin.getVertices(), origin.getIndices());
+    renderConfig.depthTest = true;
 
     // Draw all the bunnies.
     renderConfig.fragmentShader = normalColorShader;
@@ -220,7 +243,8 @@ protected:
   }
 
 private:
-  std::unique_ptr<geometry::GridGeometry> grid;
+  geometry::GridGeometry grid;
+  Origin origin;
   std::vector<std::unique_ptr<geometry::PlyGeometry>> bunnyList;
   std::vector<std::unique_ptr<geometry::Geometry>> cubes;
 
