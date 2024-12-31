@@ -1,5 +1,12 @@
 http://fgiesen.wordpress.com/2013/02/10/optimizing-the-basic-rasterizer/
 http://joshbeam.com/articles/triangle_rasterization
+https://github.com/joshb/triangleraster
 
 # BUILD-style portal/sector rendering.
 https://bisqwit.iki.fi/jutut/kuvat/programming_examples/portalrendering.html
+
+# Span rendering / triangle rasterization
+https://mcejp.github.io/2020/11/06/bresenham.html
+
+# Perspective correct interpolation
+https://andrewkchan.dev/posts/perspective-interpolation.html
