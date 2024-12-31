@@ -312,7 +312,7 @@ void Rasterizer::drawScreenFillingQuad(const RenderConfig& renderConfig) {
 void Rasterizer::drawLine(const RenderConfig &renderConfig,
                           const LinePrimitive &line) const {
   assert(renderConfig.fragmentShader);
-  START_PROFILE("rasterize.lines.shade");
+  START_PROFILE("rasterize.lines.draw");
 
   using namespace glm;
 
@@ -347,7 +347,10 @@ void Rasterizer::drawLine(const RenderConfig &renderConfig,
     sgeo.windowCoord = a;
     sgeo.depth = depth;
 
-    SAVE_COUNTER(drawFragment(renderConfig, sgeo), debugInfo.lines);
+    {
+      START_PROFILE("rasterize.lines.shade");
+      SAVE_COUNTER(drawFragment(renderConfig, sgeo), debugInfo.lines);
+    }
 
     // 'Core' Bresenham algorithm.
     if (a.x == b.x && a.y == b.y)

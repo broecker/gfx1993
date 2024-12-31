@@ -65,3 +65,7 @@ target_link_libraries(09-shading gfx93-demo-app)
 # Skybox rendering.
 add_executable(10-skybox 10-skybox.cpp)
 target_link_libraries(10-skybox gfx93-demo-app)
+
+# Frustum / BVH interactions
+add_executable(11-bvh 11-bvh.cpp)
+target_link_libraries(11-bvh gfx93-demo-app)
