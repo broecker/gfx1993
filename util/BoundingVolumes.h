@@ -2,10 +2,13 @@
 #define GFX1993_UTIL_BOUNDING_VOLUMES_INCLUDED
 
 #include <glm/glm.hpp>
+#include <limits>
 #include <memory>
+
 
 #include "../base/Pipeline.h"
 #include "../geometry/Geometry.h"
+#include "../geometry/CubeGeometry.h"
 
 namespace gfx1993 {
 namespace util {
@@ -18,7 +21,8 @@ struct BoundingSphere {
 
 // An alis-aligned bounding box with all coordinates in world space.
 struct AABB {
-  glm::vec3   min, max;
+  glm::vec3 min = glm::vec3(std::numeric_limits<glm::vec3::value_type>::max());
+  glm::vec3 max = glm::vec3(std::numeric_limits<glm::vec3::value_type>::min());
 
   glm::vec3 getCenter() const { return (min + max) * 0.5f; }
 
@@ -27,6 +31,12 @@ struct AABB {
             pt.y >= min.y && pt.y <= max.y &&
             pt.z >= min.z && pt.z <= max.z;
   }
+
+  void extend(const glm::vec3& p);
+
+  // Updates an existing geometry with these dimensions. Ideal for debug
+  // drawing.
+  void updateGeometry(geometry::Cube& cube);
 };
 
 // TODO(mbroecker) Extend with templates + generic stored data.

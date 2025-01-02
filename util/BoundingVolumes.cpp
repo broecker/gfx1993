@@ -13,6 +13,23 @@ namespace util {
 using glm::vec3;
 using glm::vec4;
 
+void AABB::extend(const glm::vec3& p) {
+  min = glm::min(min, p);
+  max = glm::max(max, p);
+}
+
+void AABB::updateGeometry(geometry::Cube& cube) {
+  cube.getMutableVertexList()[0].position = vec4(max.x, max.y, min.z, 1.f);
+  cube.getMutableVertexList()[1].position = vec4(min.x, max.y, min.z, 1.f);
+  cube.getMutableVertexList()[2].position = vec4(min.x, max.y, max.z, 1.f);
+  cube.getMutableVertexList()[3].position = vec4(max, 1.f);
+
+  cube.getMutableVertexList()[4].position = vec4(max.x, min.y, min.z, 1.f);
+  cube.getMutableVertexList()[5].position = vec4(min, 1.f);
+  cube.getMutableVertexList()[6].position = vec4(min.x, min.y, max.z, 1.f);
+  cube.getMutableVertexList()[7].position = vec4(max.x, min.y, max.z, 1.f);
+}
+
 BoundingSphere fromGeometry(const geometry::Geometry& geo) {
   // Calculate center.
   vec3 center(0.f);
@@ -33,15 +50,10 @@ BoundingSphere fromGeometry(const geometry::Geometry& geo) {
 }
 
 AABB fromVertices(const render::VertexList& vertices) {
-  AABB bbox;
-  bbox.min = vec3(std::numeric_limits<vec3::value_type>::max());
-  bbox.max = vec3(std::numeric_limits<vec3::value_type>::min());
-
+  AABB bbox;  
   for (const auto& v : vertices) {
-    bbox.min = glm::min(bbox.min, vec3(v.position));
-    bbox.max = glm::max(bbox.max, vec3(v.position));
+    bbox.extend(vec3(v.position));
   }
-
   return bbox;
 }
 
