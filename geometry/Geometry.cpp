@@ -48,9 +48,9 @@ void Geometry::makeFlatShaded() {
 
 void Geometry::setRandomFaceColors() {
   for (size_t i = 0; i < indices.size(); i += 3 ) {
-    Vertex a = vertices[indices[i+0]];
-    Vertex b = vertices[indices[i+1]];
-    Vertex c = vertices[indices[i+2]];
+    Vertex& a = vertices[indices[i+0]];
+    Vertex& b = vertices[indices[i+1]];
+    Vertex& c = vertices[indices[i+2]];
 
     float r = static_cast<float>(std::rand()) / RAND_MAX;
     float g = static_cast<float>(std::rand()) / RAND_MAX;
