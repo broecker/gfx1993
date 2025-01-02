@@ -69,3 +69,7 @@ target_link_libraries(10-skybox gfx93-demo-app)
 # Frustum / BVH interactions
 add_executable(11-bvh 11-bvh.cpp)
 target_link_libraries(11-bvh gfx93-demo-app)
+
+# Frustum / AABB culling
+add_executable(12-frustum-aabb 12-frustum-aabb.cpp)
+target_link_libraries(12-frustum-aabb gfx93-demo-app)

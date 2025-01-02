@@ -23,6 +23,10 @@ struct DebugInfo {
   PrimitiveDebugInfo triangles;
   PrimitiveDebugInfo screenFillingQuad;
 
+  // We can also use this to fill in higher-level objects, such as bounding
+  // boxes that should be culled /before/ we get to the rasterizer stage.
+  PrimitiveDebugInfo aabbs;
+
   void reset();
   void print() const;
 };

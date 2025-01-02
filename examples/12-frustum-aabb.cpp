@@ -21,10 +21,17 @@ using namespace gfx1993;
 using namespace render;
 using namespace glm;
 
+constexpr int TILE_SIZE = 32;
+constexpr int TILE_COUNT = 5;
+
 class PointField : public geometry::Geometry {
 public:
   PointField(int width, int depth, const glm::vec3& offset) : bboxGeometry(geometry::Cube::makeLines()) {
     boundingBox.max = boundingBox.min = offset;
+
+    // Static lighting;
+    const vec3 terrainColor(0.4, 0.6, 0.3);
+    const vec3 sunDirection = glm::normalize(vec3(0.6, -1, 0.4));
 
     for (int x = -width/2; x <= width/2; x++) {
       for (int z = -depth/2; z <= depth/2; z++) {
@@ -35,9 +42,24 @@ public:
                                (static_cast<float>(z) + offset.z)/depth);
 
         float y = glm::perlin(v.texcoord) * 10.f;
-        glm::vec3 pos = glm::vec3(x, y, z) + offset;
+        vec3 pos = glm::vec3(x, y, z) + offset;
         boundingBox.extend(pos);
         v.position = glm::vec4(pos, 1);
+        
+        // Calculate the 'previous' points in the field for dx/dz.
+        vec2 t0((static_cast<float>(x-1) + offset.x) / width,
+                (static_cast<float>(z-0) + offset.z) / depth);
+        vec3 p0 = vec3(x-1, glm::perlin(t0) * 10.f, z) + offset;
+
+        vec2 t1((static_cast<float>(x-0) + offset.x) / width,
+                (static_cast<float>(z-1) + offset.z) / depth);
+        vec3 p1 = vec3(x, glm::perlin(t1) * 10.f, z-1) + offset;
+
+        v.normal = glm::normalize(glm::cross(p0 - pos, p1 - pos));
+
+        // Static lighting.
+        vec3 color = glm::max(0.f, dot(v.normal, sunDirection)) * terrainColor;
+        v.color = vec4(color, 1.0);
 
         vertices.push_back(v);
         indices.push_back(vertices.size()-1);        
@@ -50,11 +72,18 @@ public:
     assert(indices.size() == vertices.size());
   }
 
+  void setBoundingBoxColor(const vec3& color) {
+    for (auto& v : bboxGeometry.getMutableVertexList()) {
+      v.color = vec4(color, 1.f);
+    }
+  }
+
   const util::AABB& getBoundingBox() const { return boundingBox; }
 
   const geometry::Cube& getBoundingBoxGeo() const { return bboxGeometry; }
 
   bool            visible;
+
 private:
   util::AABB      boundingBox;
   geometry::Cube  bboxGeometry;
@@ -62,10 +91,14 @@ private:
 
 class Demo12 : public DemoApp {
 public:
-  Demo12() : DemoApp("Demo 12 - Frustum / AABB Culling"),
-    camera0(glm::perspective(30.f, static_cast<float>(width) / height, 1.f, 100.f), vec3(0, 0, 10), 10),
-    camera1(glm::perspective(30.f, static_cast<float>(width) / height, 1.f, 30.f), vec3(10, 2, 0)),
-    frustum1(camera1.getProjectionMatrix(), camera1.getViewMatrix()) {}
+  Demo12() : DemoApp("Demo 12 - Frustum / AABB Culling"), frustum(mat4(1.f), mat4(1.f)) {
+      camera = std::make_unique<util::FreeCamera>(
+          glm::perspective(30.f, static_cast<float>(width) / height, 1.f, 200.f), 
+          vec3(0, 2, 10));
+
+      frustum = util::Frustum(camera->getProjectionMatrix(), camera->getViewMatrix());
+
+    }
 
 protected:
   void init() override {
@@ -74,26 +107,37 @@ protected:
         std::make_shared<render::DefaultVertexTransform>();
     renderConfig.fragmentShader = colorShader;
 
-    tiles.push_back(std::make_unique<PointField>(50, 50, glm::vec3(-50, 0, 0)));
-    for (int x = -1; x <= 1; ++x) {
-      for (int z= -1; z <= 1; ++z) {
-        tiles.push_back(std::make_unique<PointField>(50, 50, glm::vec3(50*x,0,50*z)));
+    for (int x = -TILE_COUNT/2; x <= TILE_COUNT/2; ++x) {
+      for (int z= -TILE_COUNT/2; z <= TILE_COUNT/2; ++z) {
+        tiles.push_back(std::make_unique<PointField>(TILE_SIZE, TILE_SIZE, glm::vec3(TILE_SIZE*x,0,TILE_SIZE*z)));
       }
     }
 
     logFrameTime = true;
-
     updateFrame(0);
   }
 
   void updateFrame(float dt) override {
-    camera0.update(dt);
-    camera1.update(dt);
-
-    frustum1.update(camera1.getViewMatrix());
+    camera->update(dt);
+    frustum.update(camera->getViewMatrix());
 
     for (const auto& tile : tiles) {
-      tile->visible = frustum1.isInside(tile->getBoundingBox());
+      util::Frustum::IntersectionResult result = frustum.testIntersection(tile->getBoundingBox());
+
+      if (result == util::Frustum::INSIDE) {
+        tile->visible = true;
+        tile->setBoundingBoxColor(vec3(0,1,0));
+      }
+
+      if (result == util::Frustum::INTERSECTING) {
+        tile->visible = true;
+        tile->setBoundingBoxColor(vec3(1,1,0));
+      }
+
+      if (result == util::Frustum::OUTSIDE) {
+        tile->visible = false;
+        tile->setBoundingBoxColor(vec3(1,0,0));
+      }
     }
   }
 
@@ -107,8 +151,8 @@ protected:
             renderConfig.vertexShader.get());
 
     dvt->modelMatrix = glm::mat4(1.f);
-    dvt->viewMatrix = getActiveCamera()->getViewMatrix();
-    dvt->projectionMatrix = getActiveCamera()->getProjectionMatrix();
+    dvt->viewMatrix = camera->getViewMatrix();
+    dvt->projectionMatrix = camera->getProjectionMatrix();
 
     // Clear the buffers
     renderConfig.clearBuffers(glm::vec4(0.7f, 0.7f, 0.9f, 1));
@@ -119,10 +163,15 @@ protected:
     renderConfig.pointSize = 9;
     dvt->modelMatrix = glm::mat4(1.f);
     
+    auto& debugInfo = rasterizer->getDebugInfo();
+
     for (const auto& tile : tiles) {
+      debugInfo.aabbs.drawn++;
       if (!tile->visible) {
+        debugInfo.aabbs.backfaceCulled++;
         continue;
       }
+      
 
       // Draw bounding box.
       renderConfig.depthWrite = false;
@@ -136,25 +185,11 @@ protected:
       renderConfig.depthTest = true;
       rasterizer->drawPoints(renderConfig, tile->getVertices(), tile->getIndices());
     }
-      
-
-    // Draw the frustum.
-    rasterizer->drawLines(renderConfig, frustum1.getVertices(), frustum1.getIndices());
   }
 
   void handleKeyboard(unsigned char key, const glm::ivec2& mouse) override { 
     glm::vec3 delta(0.f);
     switch (key) {
-      case 'c':
-        activeCamera = 1 - activeCamera;
-        std::cout << "Active camera: " << activeCamera << std::endl;
-        break;
-      case '1':
-        activeCamera = 0;
-        break;
-      case '2':
-        activeCamera = 1;
-        break;
       case 'w':
         delta.z = 1;
         break;
@@ -178,36 +213,22 @@ protected:
     };
 
     if (glm::dot(delta, delta) > 0) {
-      getActiveCamera()->handleInputTranslate(delta);
+      camera->handleInputTranslate(delta);
     }
   }
 
   void handleMotion(const glm::ivec2& newMousePosition) override {
     const glm::ivec2 delta = newMousePosition - mousePosition;
     this->mousePosition = newMousePosition;
-    getActiveCamera()->handleInputRotate(glm::vec3(delta.y, delta.x, 0));
+    camera->handleInputRotate(glm::vec3(delta.y, delta.x, 0));
   }
 
 private:
-  util::OrbitCamera camera0;
-  util::FreeCamera camera1;
-
   // This follows the free camera.
-  util::Frustum frustum1;
+  util::Frustum frustum;
 
   std::shared_ptr<render::InputColorShader> colorShader;
   std::vector<std::unique_ptr<PointField>>  tiles;
-
-
-  int activeCamera = 0;
-
-  util::Camera* getActiveCamera() {
-    if (activeCamera == 0) {
-      return &camera0;
-    } else {
-      return &camera1;
-    }
-  }
 };
 
 int main(int argc, char **argv) {

@@ -186,7 +186,8 @@ Frustum::IntersectionResult Frustum::testIntersection(const AABB& box) const {
     // Our frustum is defined with the positive half-space pointing /out/. Hence
     // the opposite return value as in the book.
     if (s - e > 0.f) {
-      result = INSIDE;
+      // Do not overwrite any existing INTERSECTING result!
+      // result = INSIDE;
     } else if (s + e < 0.f) {
       return OUTSIDE;
     } else {

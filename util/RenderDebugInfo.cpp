@@ -11,6 +11,7 @@ void DebugInfo::reset() {
   lines = PrimitiveDebugInfo{.processed=0,.drawn=0,.backfaceCulled=0,.fragmentsDrawn=0,.fragmentsDiscarded=0};
   triangles = PrimitiveDebugInfo{.processed=0,.drawn=0,.backfaceCulled=0,.fragmentsDrawn=0,.fragmentsDiscarded=0};
   screenFillingQuad = PrimitiveDebugInfo{.processed=0,.drawn=0,.backfaceCulled=0,.fragmentsDrawn=0,.fragmentsDiscarded=0};
+  aabbs = PrimitiveDebugInfo{.processed=0,.drawn=0,.backfaceCulled=0,.fragmentsDrawn=0,.fragmentsDiscarded=0};
 }
 
 static void printPrimitiveDebugInfo(const std::string& name, const PrimitiveDebugInfo& info) {
@@ -28,6 +29,7 @@ void DebugInfo::print() const {
   printPrimitiveDebugInfo("Lines", lines);
   printPrimitiveDebugInfo("Triangles", triangles);
   printPrimitiveDebugInfo("ScreenQuad", screenFillingQuad);
+  printPrimitiveDebugInfo("AABBs", aabbs);
 }
 
 }  // namespace util

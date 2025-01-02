@@ -74,7 +74,7 @@ void OrbitCamera::updatePosition() {
 }
 
 FreeCamera::FreeCamera(const glm::vec3& position) : 
-  Camera(defaultProjectionMatrix, position), yaw(0), pitch(0),
+  Camera(defaultProjectionMatrix, position), yaw(0), pitch(90),
     movementSpeed(1), rotationSpeed(20), velocity(0.f), maxSpeed(250.f), speedDecay(0.5f) {};
 
 FreeCamera::FreeCamera(const glm::mat4& projectionMatrix, const glm::vec3& position) : 
