@@ -37,6 +37,7 @@ std::vector<Vertex> makeVertices(const vec3 sidelength = vec3(1.f)) {
   return vertices;
 }
 
+Cube::Cube() {}
 
 Cube Cube::makeSolid(const glm::vec3 &sidelength) {
   Cube cube;
