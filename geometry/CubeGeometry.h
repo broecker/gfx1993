@@ -7,9 +7,10 @@ namespace gfx1993 {
 namespace geometry {
 
 // A three-dimensional cube with solid faces.
-class CubeGeometry : public Geometry {
+class Cube : public Geometry {
 public:
-  explicit CubeGeometry(const glm::vec3 &sideLength);
+  static Cube makeSolid(const glm::vec3& sideLength);
+  static Cube makeLines(const glm::vec3& sideLength);
 };
 
 }  // namespace geometry

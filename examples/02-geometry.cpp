@@ -180,7 +180,7 @@ protected:
       const glm::vec3 minSize(2);
       const glm::vec3 maxSize(20);
 
-      auto cube = std::make_unique<geometry::CubeGeometry>(glm::mix(minSize, maxSize, randf()));
+      auto cube = std::make_unique<geometry::Cube>(std::move(geometry::Cube::makeSolid(glm::mix(minSize, maxSize, randf()))));
 
       cube->transform = makeRandomTransform();
       cube->setRandomFaceColors();

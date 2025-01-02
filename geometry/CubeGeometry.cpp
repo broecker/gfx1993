@@ -7,79 +7,100 @@
 namespace gfx1993 {
 namespace geometry {
 
+using glm::vec3;
 using glm::vec4;
 using render::Vertex;
 
-CubeGeometry::CubeGeometry(const glm::vec3 &sidelength) {
-  // Top four vertices.
-  vertices.push_back(Vertex(vec4(-1,  1,  1, 1)));
-  vertices.push_back(Vertex(vec4(-1,  1, -1, 1)));
-  vertices.push_back(Vertex(vec4( 1,  1, -1, 1)));
-  vertices.push_back(Vertex(vec4( 1,  1,  1, 1)));
-  // Bottom-four.
-  vertices.push_back(Vertex(vec4(-1, -1,  1, 1)));
-  vertices.push_back(Vertex(vec4(-1, -1, -1, 1)));
-  vertices.push_back(Vertex(vec4( 1, -1, -1, 1)));
-  vertices.push_back(Vertex(vec4( 1, -1,  1, 1)));
+std::vector<Vertex> makeVertices(const vec3 sidelength = vec3(1.f)) {
+  std::vector<Vertex> vertices = {
+    // Top four vertices.
+    Vertex(vec4(-1,  1,  1, 1)),
+    Vertex(vec4(-1,  1, -1, 1)),
+    Vertex(vec4( 1,  1, -1, 1)),
+    Vertex(vec4( 1,  1,  1, 1)),
+    // Bottom-four.
+    Vertex(vec4(-1, -1,  1, 1)),
+    Vertex(vec4(-1, -1, -1, 1)),
+    Vertex(vec4( 1, -1, -1, 1)),
+    Vertex(vec4( 1, -1,  1, 1))
+  };
 
   vec4 halfSide = vec4(sidelength * 0.5f, 1.0f);
-
   for (int i = 0; i < 8; ++i) {
     vertices[i].position *= halfSide;
+    vertices[i].normal = glm::normalize(vec3(vertices[i].position));
+
+    // TODO: set texture coords.
+    vertices[i].color = vec4(1);
   }
 
-  for (int i = 0; i < 8; ++i) {
-    float r = (float)std::rand() / RAND_MAX;
-    float g = (float)std::rand() / RAND_MAX;
-    float b = 1.f - (r + g);
-    vertices[i].color.r = r;
-    vertices[i].color.g = g;
-    vertices[i].color.b = b;
-  }
+  return vertices;
+}
+
+
+Cube Cube::makeSolid(const glm::vec3 &sidelength) {
+  Cube cube;
+  cube.vertices = makeVertices(sidelength);
 
   // These are the indices for outside-facing triangle sides.
   // Top +Y
-  indices.push_back(0);
-  indices.push_back(2);
-  indices.push_back(1);
-  indices.push_back(0);
-  indices.push_back(3);
-  indices.push_back(2);
+  cube.indices.push_back(0);
+  cube.indices.push_back(2);
+  cube.indices.push_back(1);
+  cube.indices.push_back(0);
+  cube.indices.push_back(3);
+  cube.indices.push_back(2);
   // -X
-  indices.push_back(1);
-  indices.push_back(6);
-  indices.push_back(5);
-  indices.push_back(1);
-  indices.push_back(2);
-  indices.push_back(6);
+  cube.indices.push_back(1);
+  cube.indices.push_back(6);
+  cube.indices.push_back(5);
+  cube.indices.push_back(1);
+  cube.indices.push_back(2);
+  cube.indices.push_back(6);
   // +Z
-  indices.push_back(2);
-  indices.push_back(7);
-  indices.push_back(6);
-  indices.push_back(2);
-  indices.push_back(3);
-  indices.push_back(7);
+  cube.indices.push_back(2);
+  cube.indices.push_back(7);
+  cube.indices.push_back(6);
+  cube.indices.push_back(2);
+  cube.indices.push_back(3);
+  cube.indices.push_back(7);
   // +X 
-  indices.push_back(3);
-  indices.push_back(4);
-  indices.push_back(7);
-  indices.push_back(3);
-  indices.push_back(0);
-  indices.push_back(4);
+  cube.indices.push_back(3);
+  cube.indices.push_back(4);
+  cube.indices.push_back(7);
+  cube.indices.push_back(3);
+  cube.indices.push_back(0);
+  cube.indices.push_back(4);
   // -Z
-  indices.push_back(0);
-  indices.push_back(5);
-  indices.push_back(4);
-  indices.push_back(0);
-  indices.push_back(1);
-  indices.push_back(5);
-  // // -Y
-  indices.push_back(6);
-  indices.push_back(4);
-  indices.push_back(5);
-  indices.push_back(6);
-  indices.push_back(7);
-  indices.push_back(4);
+  cube.indices.push_back(0);
+  cube.indices.push_back(5);
+  cube.indices.push_back(4);
+  cube.indices.push_back(0);
+  cube.indices.push_back(1);
+  cube.indices.push_back(5);
+  // -Y
+  cube.indices.push_back(6);
+  cube.indices.push_back(4);
+  cube.indices.push_back(5);
+  cube.indices.push_back(6);
+  cube.indices.push_back(7);
+  cube.indices.push_back(4);
+
+  return cube;
+}
+
+Cube Cube::makeLines(const vec3& sideLength) {
+  Cube cube;
+  cube.vertices = makeVertices(sideLength);
+
+  // Line indices for the 8 cube vertices.
+  cube.indices = {
+    0,1, 1,2, 2,3, 3,0, // top
+    4,5, 5,6, 6,7, 7,4, // bottom
+    0,4, 1,5, 2,6, 3,7  // connecting sides.
+  };
+
+  return cube;
 }
 
 }  // namespace geometry

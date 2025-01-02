@@ -122,7 +122,7 @@ public:
 
 class Demo09 : public DemoApp {
 public:
-  Demo09() : DemoApp("Demo 09 - Shading"), cube(vec3(2.5)) {}
+  Demo09() : DemoApp("Demo 09 - Shading"), cube(geometry::Cube::makeSolid(vec3(2.5))) {}
 
 protected:
   void init() override {
@@ -260,7 +260,7 @@ private:
   std::shared_ptr<geometry::Geometry> geometry;
   std::shared_ptr<geometry::Geometry> flatGeometry;
 
-  geometry::CubeGeometry cube;
+  geometry::Cube cube;
 
   std::shared_ptr<render::DefaultVertexTransform> fixedFunctionShader;
   std::shared_ptr<render::FragmentShader> inputColorShader;
