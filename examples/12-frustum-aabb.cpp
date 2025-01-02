@@ -22,7 +22,7 @@ using namespace render;
 using namespace glm;
 
 constexpr int TILE_SIZE = 32;
-constexpr int TILE_COUNT = 5;
+constexpr int TILE_COUNT = 3;
 
 class PointField : public geometry::Geometry {
 public:
@@ -33,8 +33,10 @@ public:
     const vec3 terrainColor(0.4, 0.6, 0.3);
     const vec3 sunDirection = glm::normalize(vec3(0.6, -1, 0.4));
 
-    for (int x = -width/2; x <= width/2; x++) {
-      for (int z = -depth/2; z <= depth/2; z++) {
+    vertices.resize((width+1)*(depth+1));
+
+    for (int x = 0; x <= width; x++) {
+      for (int z = 0; z <= depth; z++) {
         render::Vertex v;
         v.color = glm::vec4(0.4,0.6,0.3,1);
         v.normal = glm::vec3(0);
@@ -58,13 +60,16 @@ public:
         v.normal = glm::normalize(glm::cross(p0 - pos, p1 - pos));
 
         // Static lighting.
-        vec3 color = glm::max(0.f, dot(v.normal, sunDirection)) * terrainColor;
+        float L = glm::max(0.f, dot(v.normal, sunDirection));
+        vec3 color = L * terrainColor;
         v.color = vec4(color, 1.0);
 
-        vertices.push_back(v);
-        indices.push_back(vertices.size()-1);        
+        size_t index = z + x*width;
+        vertices[index] = v;
       }
     }
+
+    makeIndicesForPointCloud();
 
     boundingBox.updateGeometry(bboxGeometry);
 
@@ -167,7 +172,7 @@ protected:
 
     for (const auto& tile : tiles) {
       debugInfo.aabbs.drawn++;
-      if (!tile->visible) {
+      if (!tile->visible && frustumCulling) {
         debugInfo.aabbs.backfaceCulled++;
         continue;
       }
@@ -190,6 +195,10 @@ protected:
   void handleKeyboard(unsigned char key, const glm::ivec2& mouse) override { 
     glm::vec3 delta(0.f);
     switch (key) {
+      case 'c':
+        frustumCulling = !frustumCulling;
+        std::cout << "Cull tiles: " << frustumCulling << std::endl;
+        break;
       case 'w':
         delta.z = 1;
         break;
@@ -226,6 +235,8 @@ protected:
 private:
   // This follows the free camera.
   util::Frustum frustum;
+
+  bool frustumCulling = true;
 
   std::shared_ptr<render::InputColorShader> colorShader;
   std::vector<std::unique_ptr<PointField>>  tiles;
