@@ -44,7 +44,15 @@ public:
 
   bool isInside(const glm::vec3& pt) const;
 
-  bool isInside(const BoundingSphere& sphere) const;
+  enum IntersectionResult {
+    OUTSIDE = 0,
+    INSIDE = 1,
+    INTERSECTING
+  };
+
+  IntersectionResult testIntersection(const BoundingSphere& sphere) const;
+
+  IntersectionResult testIntersection(const AABB& boundingBox) const;
 
 private:
   glm::mat4   projectionMatrix, viewMatrix;

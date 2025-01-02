@@ -159,13 +159,41 @@ bool Frustum::isInside(const glm::vec3& pt) const {
   return true;
 }
 
-bool Frustum::isInside(const BoundingSphere& sphere) const {
+Frustum::IntersectionResult Frustum::testIntersection(const BoundingSphere& sphere) const {
   for (int i = 0; i < PLANES_COUNT; ++i) {
-    if (planes[i].distance(sphere.center) < -sphere.radius) {
-      return false;
+    const float d = planes[i].distance(sphere.center);
+    if (d > sphere.radius) {
+      return OUTSIDE;
+    } else if (d < sphere.radius) {
+      return INTERSECTING;
     }
   }
-  return true;
+  return INSIDE;
+}
+
+Frustum::IntersectionResult Frustum::testIntersection(const AABB& box) const {
+  // Algorithm from Realtime-Rendering, 2nd ed. 16.10.1
+  const vec3 c = (box.max + box.min) / 2.f;
+  const vec3 h = (box.max - box.min) / 2.f;
+
+  IntersectionResult result = INSIDE;
+  for (int i = 0; i < PLANES_COUNT; ++i) {
+    const Plane& p = planes[i];
+
+    float e = h.x*abs(p.normal.x) + h.y*abs(p.normal.y) + h.z*abs(p.normal.z);
+    float s = glm::dot(c, p.normal) + p.d;
+
+    // Our frustum is defined with the positive half-space pointing /out/. Hence
+    // the opposite return value as in the book.
+    if (s - e > 0.f) {
+      result = INSIDE;
+    } else if (s + e < 0.f) {
+      return OUTSIDE;
+    } else {
+      result = INTERSECTING;
+    }
+  }
+  return result;
 }
 
 }  // namespace util
