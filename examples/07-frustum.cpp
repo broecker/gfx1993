@@ -11,6 +11,7 @@
 #include "geometry/Geometry.h"
 #include "base/Pipeline.h"
 #include "rendering/Shader.h"
+#include "rendering/Texture.h"
 #include "util/Camera.h"
 #include "util/Frustum.h"
 
@@ -21,16 +22,20 @@ using namespace glm;
 class PointField : public geometry::Geometry {
 public:
   PointField(int width, int depth) {
-    for (int x = -width/2; x <= width/2; x++) {
-      for (int z = -depth/2; z <= depth/2; z++) {
+    heightmap = HeightMap::perlinNoise(width, depth);
+
+    glm::vec4 offset(-width/2, 0, -depth/2, 0);
+
+    for (int x = 0; x < width; x++) {
+      for (int z = 0; z < depth; z++) {
         render::Vertex v;
         v.color = glm::vec4(1,0,1,1);
         v.normal = glm::vec3(0);
         v.texcoord = glm::vec2(static_cast<float>(x)/width,
                                static_cast<float>(z)/depth);
 
-        float y = glm::perlin(v.texcoord) * 10.f;
-        v.position = glm::vec4(x, y, z, 1);
+        float y = heightmap->getTexel(glm::ivec2(x, z));
+        v.position = glm::vec4(x, y, z, 1) + offset;
 
         vertices.push_back(v);
         indices.push_back(vertices.size()-1);
@@ -44,13 +49,16 @@ public:
   // Assigns each point a color whether it's inside or outside the frustum.
   void updatePoints(const util::Frustum& f) {
     for (render::Vertex& v : vertices) {
-      if (f.isInside(glm::vec3(v.position))) {
+      vec4 worldSpacePosition = transform * v.position;
+      if (f.isInside(glm::vec3(worldSpacePosition))) {
         v.color = glm::vec4(0,1,0,1);
       } else {
         v.color = glm::vec4(1,0,0,1);
       }
     }
   }
+private:
+  std::unique_ptr<render::HeightMap> heightmap;
 };
 
 class Demo07 : public DemoApp {
@@ -101,7 +109,7 @@ protected:
     // Draw some points.
     renderConfig.fragmentShader = colorShader;
     renderConfig.pointSize = 9;
-    dvt->modelMatrix = glm::mat4(1.f);
+    dvt->modelMatrix = points.transform;
     rasterizer->drawPoints(renderConfig, points.getVertices(), points.getIndices());
 
     // Draw the frustum.

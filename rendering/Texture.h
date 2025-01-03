@@ -13,19 +13,76 @@
 namespace gfx1993 {
 namespace render {
 
-class Texture {
+
+template<typename TexelType>
+class TextureInterface {
 public:
-  virtual ~Texture();
+  TextureInterface(unsigned int w, unsigned int h, const std::string& id) : 
+    id(id), width(w), height(h), data(w*h, TexelType()) {}
+
+  virtual ~TextureInterface() = default;
+
+  const std::string& getId() const { return id; }
 
   enum LookupMode {
     CLAMP,
     REPEAT,
   };
 
-  const glm::vec4 &getTexel(const glm::vec2 &texCoords, LookupMode mode=CLAMP) const;
+  // Returns a texel in the uv coordinate range [0..1]
+  const TexelType& getTexel(const glm::vec2& texCoords, LookupMode mode=CLAMP) const {
+    glm::vec2 uv;
+    if (mode == REPEAT) {
+      uv = texCoords - glm::floor(texCoords);
+    }
 
-  const std::string& getId() const { return id; }
+    if (mode == CLAMP) {
+      uv = glm::clamp(texCoords, glm::vec2(0), glm::vec2(1));
+    }
 
+    // The coordinates are offset by 0.5 to lie in the /center/ of each texel. See
+    // Van Verth, Bishop: Essential Mathematics for Games, 2nd Ed, pg 311 
+    glm::vec2 tx = uv * glm::vec2(width-1, height-1) - glm::vec2(0.5);
+
+    unsigned int x = ceil(tx.x);
+    unsigned int y = ceil(tx.y);
+
+    return getTexel(x, y);
+  }
+
+  // Returns a texel im the image coordinate range [0..width/height)
+  const TexelType& getTexel(const glm::ivec2& imgCoords, LookupMode mode=CLAMP) const {
+    glm::ivec2 coord;
+    if (mode == REPEAT) {
+      coord = glm::abs(imgCoords) % glm::ivec2(width, height);
+    }
+    if (mode == CLAMP) {
+      coord = glm::clamp(imgCoords, glm::ivec2(0), glm::ivec2(width-1, height-1));
+    }
+
+    return getTexel(coord.x, coord.y);
+  }
+
+protected:
+  std::string               id;
+  unsigned int              width, height;
+  std::vector<TexelType>    data;
+
+  inline void setTexel(unsigned int x, unsigned int y, const TexelType& c) {
+    assert(x < width);
+    assert(y < height);
+    data[x + y * width] = c;
+  }
+
+  inline const TexelType& getTexel(unsigned int x, unsigned int y) const {
+    assert(x < width);
+    assert(y < height);
+    return data[x + y*width];
+  }
+};
+
+class Texture : public TextureInterface<glm::vec4> {
+public:
   static std::unique_ptr<Texture> makeFlat(unsigned int width, unsigned int height,
                                            const glm::vec4 &fillColor);
 
@@ -46,25 +103,26 @@ public:
                                               const glm::vec2& scale = glm::vec2(1));
 
 private:
-  unsigned int width, height;
-  glm::vec4 *data;
+  Texture(unsigned int width, unsigned int height, const std::string& id) : 
+    TextureInterface<glm::vec4>(width, height, id) {}
+};
 
-  // For debugging purposes.
-  std::string id;
+class HeightMap : public TextureInterface<float> {
+public:
+  static std::unique_ptr<HeightMap> makeFlat(unsigned int x, unsigned int z);
 
-  explicit Texture(unsigned int width, unsigned int height, const std::string& id);
+  static std::unique_ptr<HeightMap> perlinNoise(
+    unsigned int width, unsigned int height,
+    const glm::vec3& scale = glm::vec3(1),
+    const glm::vec3& offset = glm::vec3(0));
 
-  inline const glm::vec4 &getTexel(unsigned int x, unsigned int y) const {
-    assert(x < width);
-    assert(y < height);
-    return data[x + y*width];
+  void setHeight(unsigned int x, unsigned int z, float height) {
+    setTexel(x, z, height);
   }
 
-  inline void setTexel(unsigned int x, unsigned int y, const glm::vec4 &c) {
-    assert(x < width);
-    assert(y < height);
-    data[x + y * width] = c;
-  }
+private:
+  HeightMap(unsigned int width, unsigned int height, const std::string& id) : 
+    TextureInterface<float>(width, height, id) {}
 };
 
 } // namespace render

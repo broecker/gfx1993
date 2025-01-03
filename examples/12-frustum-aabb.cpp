@@ -13,6 +13,7 @@
 #include "geometry/CubeGeometry.h"
 #include "base/Pipeline.h"
 #include "rendering/Shader.h"
+#include "rendering/Texture.h"
 #include "util/BoundingVolumes.h"
 #include "util/Camera.h"
 #include "util/Frustum.h"
@@ -31,12 +32,16 @@ public:
 
     // Static lighting;
     const vec3 terrainColor(0.4, 0.6, 0.3);
-    const vec3 sunDirection = glm::normalize(vec3(0.6, -1, 0.4));
+    const vec3 sunDirection = glm::normalize(vec3(0.3, -1, 0.4));
 
-    vertices.resize((width+1)*(depth+1));
+    vertices.resize((width)*(depth));
+    // Use flat height maps and calculate perlin manually. This enables smooth
+    // normals/shading between tiles.
+    heightmap = render::HeightMap::makeFlat(width, depth);
 
-    for (int x = 0; x <= width; x++) {
-      for (int z = 0; z <= depth; z++) {
+    for (int x = 0; x < width; x++) {
+      for (int z = 0; z < depth; z++) {
+
         render::Vertex v;
         v.color = glm::vec4(0.4,0.6,0.3,1);
         v.normal = glm::vec3(0);
@@ -44,15 +49,16 @@ public:
                                (static_cast<float>(z) + offset.z)/depth);
 
         float y = glm::perlin(v.texcoord) * 10.f;
+        heightmap->setHeight(x, z, y);
         vec3 pos = glm::vec3(x, y, z) + offset;
         boundingBox.extend(pos);
         v.position = glm::vec4(pos, 1);
-        
+
         // Calculate the 'previous' points in the field for dx/dz.
         vec2 t0((static_cast<float>(x-1) + offset.x) / width,
                 (static_cast<float>(z-0) + offset.z) / depth);
         vec3 p0 = vec3(x-1, glm::perlin(t0) * 10.f, z) + offset;
-
+        
         vec2 t1((static_cast<float>(x-0) + offset.x) / width,
                 (static_cast<float>(z-1) + offset.z) / depth);
         vec3 p1 = vec3(x, glm::perlin(t1) * 10.f, z-1) + offset;
@@ -73,7 +79,7 @@ public:
 
     boundingBox.updateGeometry(bboxGeometry);
 
-    std::cout << "Created a [" << width+1 << "x" << depth+1 << "] point field.\n";
+    std::cout << "Created a [" << width << "x" << depth << "] point field.\n";
     assert(indices.size() == vertices.size());
   }
 
@@ -92,6 +98,8 @@ public:
 private:
   util::AABB      boundingBox;
   geometry::Cube  bboxGeometry;
+
+  std::unique_ptr<render::HeightMap> heightmap;
 };
 
 class Demo12 : public DemoApp {

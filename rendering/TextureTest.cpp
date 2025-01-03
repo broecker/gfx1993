@@ -10,6 +10,7 @@
 namespace gfx1993 {
 namespace render {
 
+using glm::ivec2;
 using glm::vec2;
 using glm::vec4;
 
@@ -106,6 +107,14 @@ GTEST("Texture Test") {
     EXPECT(tex->getTexel(vec2(5, 0), Texture::CLAMP) == Y);
   }
 
+  SHOULD("Clamp image coordinates") {
+    auto tex = makeTestTexture();
+    EXPECT(tex->getTexel(ivec2(0), Texture::CLAMP) == R);
+    EXPECT(tex->getTexel(ivec2(-1, 0), Texture::CLAMP) == R);
+    EXPECT(tex->getTexel(ivec2(1, 0), Texture::CLAMP) == Y);
+    EXPECT(tex->getTexel(ivec2(5, 0), Texture::CLAMP) == Y);
+  }
+
   SHOULD("Repeat texture coordinates horizontally") {
     auto tex = makeTestTexture();
     // (0,0) (1,0)
@@ -131,6 +140,28 @@ GTEST("Texture Test") {
     EXPECT(tex->getTexel(vec2(0,1), Texture::REPEAT) == R);
     EXPECT(tex->getTexel(vec2(0,0.6), Texture::REPEAT) == G);
   }
+
+  SHOULD("Repeat image coordinates horizontally") {
+    auto tex = makeTestTexture();
+    EXPECT(tex->getTexel(ivec2(0), Texture::REPEAT) == R);
+    EXPECT(tex->getTexel(ivec2(1,0), Texture::REPEAT) == Y);
+    EXPECT(tex->getTexel(ivec2(2,0), Texture::REPEAT) == R);
+    EXPECT(tex->getTexel(ivec2(3,0), Texture::REPEAT) == Y);
+  }
+
+  SHOULD("Repeat image coordinates vertically") {
+    auto tex = makeTestTexture();
+    // (0,0) (1,0)
+    //   R     Y
+    //   G     B
+    // (0,1)  (1,1)
+
+    EXPECT(tex->getTexel(ivec2(0), Texture::REPEAT) == R);
+    EXPECT(tex->getTexel(ivec2(0,1), Texture::REPEAT) == G);
+    EXPECT(tex->getTexel(ivec2(0,2), Texture::REPEAT) == R);
+    EXPECT(tex->getTexel(ivec2(0,3), Texture::REPEAT) == G);
+  }
+
 
   SHOULD("Perlin noise output is repeatable") {
     auto tex = Texture::perlinNoise(32, 32);
