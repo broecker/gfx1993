@@ -1,7 +1,10 @@
 #ifndef SHADER_INCLUDED
 #define SHADER_INCLUDED
 
+#include <memory>
+
 #include "../base/Pipeline.h"
+#include "Texture.h"
 
 namespace gfx1993 {
 namespace render {
@@ -61,6 +64,50 @@ public:
 
 private:
   glm::vec4 color;
+};
+
+class TextureShader : public FragmentShader {
+public:
+  TextureShader(std::shared_ptr<Texture> texture) : mode(Texture::LookupMode::CLAMP), texture(texture) {}
+
+  Fragment shadeSingle(const ShadingGeometry &in) override;
+
+  inline void setTexture(std::shared_ptr<Texture> tex) {
+    texture = tex;
+  }
+
+  Texture::LookupMode       mode;
+
+protected:
+  std::shared_ptr<Texture>  texture;
+};
+
+// Visualizes u/v (i.e. texture) coordinates.
+class UVShader : public render::FragmentShader {
+public:
+  Fragment shadeSingle(const render::ShadingGeometry &in) override {
+    return Fragment{glm::vec4(in.texcoord, 0.f, 1.f)};
+  }
+};
+
+class SkyboxVertexShader : public VertexShader {
+public:
+  VertexOut transformSingle(const Vertex &in) override;
+
+  // This needs to be updated after every camera update.
+  glm::mat4 inverseViewProjection;
+};
+
+class SkyboxFragmentShader : public FragmentShader {
+public:
+  SkyboxFragmentShader(const glm::vec3& sky,
+                       const glm::vec3& horizon,
+                       const glm::vec3& ground) : sky(sky), horizon(horizon), ground(ground) {}
+
+  render::Fragment shadeSingle(const render::ShadingGeometry& in) override;
+
+private:
+  glm::vec3 sky, horizon, ground;
 };
 
 } // namespace render

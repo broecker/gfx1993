@@ -38,5 +38,47 @@ Fragment SingleColorShader::shadeSingle(const ShadingGeometry &in) {
   return Fragment{color};
 }
 
+Fragment TextureShader::shadeSingle(const ShadingGeometry& in) {
+  return Fragment{texture->getTexel(in.texcoord, mode)};
+}
+
+VertexOut SkyboxVertexShader::transformSingle(const Vertex &in) {
+  VertexOut out;
+  out.clipPosition = vec4(in.position.x, in.position.y, 1.0, 1.0);
+  out.texcoord = in.texcoord;
+  out.color = normalize(in.position);
+
+  vec4 farPlanePos = inverseViewProjection * vec4(in.position.x, in.position.y, 1.f, 1.f);
+  farPlanePos /= farPlanePos.w;
+
+  vec4 cameraPos = inverseViewProjection * vec4(0, 0, 0, 1);
+  cameraPos /= cameraPos.w;
+
+  vec3 viewDir = normalize(vec3(farPlanePos) - vec3(cameraPos));
+  out.varying[0] = vec4(viewDir, 0);
+  out.color = vec4(viewDir, 0);
+  return out;
+}
+
+Fragment SkyboxFragmentShader::shadeSingle(const render::ShadingGeometry& in) {
+    Fragment out;
+
+    vec3 viewDir = in.varying[0];
+    vec3 V = normalize(viewDir);
+
+    vec3 color = V;
+    if (V.y > 0.0) {
+      color = mix(horizon, sky, V.y);
+    }
+    else {
+      color = mix(horizon, ground, -V.y);
+    }
+
+    out.color = vec4(color, 1.0);
+    out.discard = false;
+
+    return out;
+  }
+
 }  // namespace render
 }  // namespace gfx1993

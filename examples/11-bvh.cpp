@@ -1,4 +1,5 @@
 #include <cstdlib>
+#include <deque>
 #include <iostream>
 #include <memory>
 
@@ -7,20 +8,21 @@
 #include <glm/gtx/transform.hpp>
 
 #include "DemoApp.h"
-#include "geometry/GridGeometry.h"
+#include "geometry/CubeGeometry.h"
 #include "geometry/Quad.h"
 #include "geometry/Teapot.h"
 #include "base/Pipeline.h"
 #include "rendering/Shader.h"
+#include "util/BoundingVolumes.h"
 #include "util/Camera.h"
 
 using namespace gfx1993;
 using namespace render;
 using namespace glm;
 
-class Demo10 : public DemoApp {
+class Demo11 : public DemoApp {
 public:
-  Demo10() : DemoApp("Demo 10 - Skybox"), skybox(vec4(1.f)) {}
+  Demo11() : DemoApp("Demo 11 - BVH"), skybox(vec4(1.f)), octTreeBboxes(geometry::Cube::makeLines()) {}
 
 protected:
   void init() override {
@@ -33,10 +35,10 @@ protected:
       vec3(0.8f, 0.8f, 0.9f), 
       vec3(0.3f, 0.3f, 0.4f));
 
-    grid = std::make_unique<geometry::GridGeometry>();
-
     teapot.makeIndicesForPointCloud();
     colorShader = std::make_unique<SingleColorShader>(vec4(1,0,1,1));
+
+    octTree = util::fromPointCloud(teapot.getVertices(), 128);
   }
 
   void renderFrame() override {
@@ -58,15 +60,31 @@ protected:
     fixedFunctionTransform->viewMatrix = camera->getViewMatrix();
     fixedFunctionTransform->projectionMatrix = camera->getProjectionMatrix();
 
-    // Draw the floor grid.
-    renderConfig.depthWrite = true;
-    renderConfig.depthTest = true;
+    // Draw the octree ... and the children recursively.
     renderConfig.vertexShader = fixedFunctionTransform;
     renderConfig.fragmentShader = gridShader;
-    rasterizer->drawLines(renderConfig, grid->getVertices(),
-                          grid->getIndices());
+    std::deque<util::OctTree*> rootQueue;
+    rootQueue.push_back(octTree.get());
 
+    while (!rootQueue.empty()) {
+      util::OctTree* node = rootQueue.front();
+      rootQueue.pop_front();
+      for (auto& c : node->children) {
+        if (c != nullptr) {
+          rootQueue.push_back(c.get());
+        }
+      }
+
+      if (node->isLeafNode()) {
+        node->boundingBox.updateGeometry(octTreeBboxes);
+        rasterizer->drawLines(renderConfig, octTreeBboxes.getVertices(), octTreeBboxes.getIndices());
+      }
+    }
+
+    renderConfig.depthWrite = false;
+    renderConfig.depthTest = false;
     renderConfig.fragmentShader = colorShader;
+    renderConfig.pointSize = 3;
     rasterizer->drawPoints(renderConfig, teapot.getVertices(), teapot.getIndices());
   }
 
@@ -84,8 +102,6 @@ protected:
 
 
 private:
-  std::unique_ptr<geometry::GridGeometry> grid;
-
   std::shared_ptr<render::DefaultVertexTransform> fixedFunctionTransform;
   std::shared_ptr<render::FragmentShader> gridShader;
   std::shared_ptr<render::SingleColorShader> colorShader;
@@ -95,10 +111,14 @@ private:
   geometry::Quad skybox;
 
   geometry::Teapot teapot;
+
+  std::unique_ptr<util::OctTree> octTree;
+  // We can reuse a single cube for all the bounding boxes.
+  geometry::Cube octTreeBboxes;
 };
 
 int main(int argc, char **argv) {
-  Demo10 demo;
+  Demo11 demo;
   demo.run(argc, argv);
 
   return 0;

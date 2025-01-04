@@ -13,58 +13,14 @@
 
 using namespace gfx1993;
 
-class TextureShader : public render::FragmentShader {
-public:
-  TextureShader() : texture(nullptr) {}
-
-  render::Fragment shadeSingle(const render::ShadingGeometry &in) override {
-    render::Fragment fragment;
-    fragment.color = glm::vec4(1,0,1,1);
-
-    if (texture) {
-      fragment.color = texture->getTexel(in.texcoord,  mode);
-    }
-    return fragment;
-  }
-
-  inline void setTexture(std::shared_ptr<render::Texture> texture) {
-    std::cout << "[TexShader] Updating texture to " << texture->getId() << " \n";
-    this->texture = texture;
-  }
-
-  void switchLookup() {
-    if (mode == render::Texture::CLAMP) {
-      mode = render::Texture::REPEAT;
-    } else {
-      mode = render::Texture::CLAMP;
-    }
-
-    std::cout << "[TexShader] Switched lookup to " << mode << std::endl;
-  }
-
-private:
-  std::shared_ptr<render::Texture> texture;
-
-  render::Texture::LookupMode mode = render::Texture::REPEAT;
-};
-
-class TexCoordShader : public render::FragmentShader {
-public:
-  render::Fragment shadeSingle(const render::ShadingGeometry &in) override {
-    render::Fragment fragment;
-    fragment.color = glm::vec4(in.texcoord, 0.f, 1.f);
-    return fragment;
-  }
-};
-
 class Demo06 : public DemoApp {
 public:
   Demo06() : DemoApp("Demo 06 - Textures") {}
 
 protected:
   void init() override {
-    textureShader = std::make_shared<TextureShader>();
-    texCoordShader = std::make_shared<TexCoordShader>();
+    textureShader = std::make_shared<render::TextureShader>(render::Texture::makeCheckerboard(32, 32, 4, glm::vec4(1,0,0,1), glm::vec4(1,1,0,1)));
+    texCoordShader = std::make_shared<render::UVShader>();
     missingTextureShader = std::make_shared<render::SingleColorShader>(glm::vec4(1.0, 0.0, 1.0, 1.0));
 
     renderConfig.vertexShader =
@@ -128,7 +84,11 @@ protected:
     }
 
     if (key == 'm') {
-      textureShader->switchLookup();
+      if (textureShader->mode == render::Texture::LookupMode::CLAMP) {
+        textureShader->mode = render::Texture::LookupMode::REPEAT;
+      } else {
+        textureShader->mode = render::Texture::LookupMode::CLAMP;
+      }
     }
 
     if (key == 'n') {
@@ -138,10 +98,10 @@ protected:
   }
 
 private:
-  std::unique_ptr<geometry::Quad> quad;
-  std::shared_ptr<TextureShader> textureShader;
-  std::shared_ptr<TexCoordShader> texCoordShader;
-  std::shared_ptr<render::SingleColorShader> missingTextureShader;
+  std::unique_ptr<geometry::Quad>             quad;
+  std::shared_ptr<render::TextureShader>      textureShader;
+  std::shared_ptr<render::UVShader>           texCoordShader;
+  std::shared_ptr<render::SingleColorShader>  missingTextureShader;
 
   std::shared_ptr<render::Texture> texture = nullptr;
 
