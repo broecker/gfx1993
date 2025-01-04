@@ -9,6 +9,7 @@
 
 #include "DemoApp.h"
 #include "geometry/Geometry.h"
+#include "geometry/Terrain.h"
 #include "base/Pipeline.h"
 #include "rendering/Shader.h"
 #include "rendering/Texture.h"
@@ -19,55 +20,13 @@ using namespace gfx1993;
 using namespace render;
 using namespace glm;
 
-class PointField : public geometry::Geometry {
-public:
-  PointField(int width, int depth) {
-    heightmap = HeightMap::perlinNoise(width, depth);
-
-    glm::vec4 offset(-width/2, 0, -depth/2, 0);
-
-    for (int x = 0; x < width; x++) {
-      for (int z = 0; z < depth; z++) {
-        render::Vertex v;
-        v.color = glm::vec4(1,0,1,1);
-        v.normal = glm::vec3(0);
-        v.texcoord = glm::vec2(static_cast<float>(x)/width,
-                               static_cast<float>(z)/depth);
-
-        float y = heightmap->getTexel(glm::ivec2(x, z));
-        v.position = glm::vec4(x, y, z, 1) + offset;
-
-        vertices.push_back(v);
-        indices.push_back(vertices.size()-1);
-      }
-    }
-
-    std::cout << "Created a [" << width+1 << "x" << depth+1 << "] point field.\n";
-    assert(indices.size() == vertices.size());
-  }
-
-  // Assigns each point a color whether it's inside or outside the frustum.
-  void updatePoints(const util::Frustum& f) {
-    for (render::Vertex& v : vertices) {
-      vec4 worldSpacePosition = transform * v.position;
-      if (f.isInside(glm::vec3(worldSpacePosition))) {
-        v.color = glm::vec4(0,1,0,1);
-      } else {
-        v.color = glm::vec4(1,0,0,1);
-      }
-    }
-  }
-private:
-  std::unique_ptr<render::HeightMap> heightmap;
-};
-
 class Demo07 : public DemoApp {
 public:
   Demo07() : DemoApp("Demo 07 - Frustum"),
     camera0(glm::perspective(30.f, static_cast<float>(width) / height, 1.f, 100.f), vec3(0, 0, 10), 10),
     camera1(glm::perspective(30.f, static_cast<float>(width) / height, 1.f, 30.f), vec3(10, 2, 0)),
     frustum1(camera1.getProjectionMatrix(), camera1.getViewMatrix()),
-    points(100, 100) {}
+    points(render::HeightMap::perlinNoise(128, 128, glm::vec3(1, 20.f, 1))) {}
 
 protected:
   void init() override {
@@ -170,7 +129,7 @@ private:
   util::Frustum frustum1;
 
   std::shared_ptr<render::InputColorShader> colorShader;
-  PointField points;
+  geometry::PointField points;
 
   int activeCamera = 0;
 
