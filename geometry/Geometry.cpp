@@ -46,6 +46,13 @@ void Geometry::makeFlatShaded() {
   std::cout << "[Geometry] New geometry: " << vertices.size() << " vertices, " << indices.size() << " indices.\n";
 }
 
+vec4 getRandomColor() {
+  float r = static_cast<float>(std::rand()) / RAND_MAX;
+  float g = static_cast<float>(std::rand()) / RAND_MAX;
+  
+  return vec4(r,g, 1.f-r-g,1.0);
+}
+
 void Geometry::setRandomFaceColors() {
   for (size_t i = 0; i < indices.size(); i += 3 ) {
     Vertex& a = vertices[indices[i+0]];
@@ -55,11 +62,17 @@ void Geometry::setRandomFaceColors() {
     float r = static_cast<float>(std::rand()) / RAND_MAX;
     float g = static_cast<float>(std::rand()) / RAND_MAX;
    
-    vec4 randomColor(r,g, 1.f-r-g,1.0);
+    vec4 randomColor = getRandomColor();
 
     a.color = randomColor;
     b.color = randomColor;
     c.color = randomColor;
+  }
+}
+
+void Geometry::setRandomVertexColors() {
+  for (auto& v : vertices) {
+    v.color = getRandomColor();
   }
 }
 

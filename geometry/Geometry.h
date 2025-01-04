@@ -28,6 +28,8 @@ public:
 
   void setRandomFaceColors();
 
+  void setRandomVertexColors();
+
   // Access to transform is public -- no reason to write getter+setter
   // for the most-used member.
   glm::mat4 transform = glm::mat4(1.f);
