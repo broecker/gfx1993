@@ -118,13 +118,14 @@ std::unique_ptr<Texture> Texture::perlinNoise(unsigned int width, unsigned int h
 
 std::unique_ptr<HeightMap> HeightMap::makeFlat(unsigned int x, unsigned int z) {
   std::unique_ptr<HeightMap> heightmap(new HeightMap(x, z, "Flat"));
-  heightmap->data.resize(x*z, 0.f);
+  float fill = 0.f;
+  heightmap->data.resize(x*z, fill);
+  heightmap->maxHeight = heightmap->minHeight = fill;
   return heightmap;
 }
 
 std::unique_ptr<HeightMap> HeightMap::perlinNoise(unsigned int width, unsigned int height, const glm::vec3& scale, const glm::vec3& offset) {
   std::unique_ptr<HeightMap> heightmap(new HeightMap(width, height, "Noise"));
-
   for (unsigned int w = 0; w < width; ++w) {
     for (unsigned int h = 0; h < height; ++h) {
       double x = static_cast<double>(w) / width;
@@ -133,9 +134,12 @@ std::unique_ptr<HeightMap> HeightMap::perlinNoise(unsigned int width, unsigned i
       glm::vec3 pos = glm::vec3(x, 0.f, z) + offset;
       float y = glm::perlin(pos * scale) * scale.y;
 
-      heightmap->setTexel(w, h, y);
+      heightmap->setHeight(w, h, y);
     }
   }
+
+  std::cout << "[Heightmap] Created " << width << "x" << height << " perlin noise heightmap; " << heightmap->minHeight << "-" << heightmap->maxHeight << std::endl;
+
   return heightmap;
 }
 

@@ -4,6 +4,7 @@
 #ifndef GFX1993_TEXTURE_H
 #define GFX1993_TEXTURE_H
 
+#include <limits>
 #include <memory>
 #include <string>
 #include <vector>
@@ -63,6 +64,9 @@ public:
     return getTexel(coord.x, coord.y);
   }
 
+  unsigned int getWidth() const { return width; }
+  unsigned int getHeight() const { return height; }
+
 protected:
   std::string               id;
   unsigned int              width, height;
@@ -118,11 +122,20 @@ public:
 
   void setHeight(unsigned int x, unsigned int z, float height) {
     setTexel(x, z, height);
+    maxHeight = glm::max(maxHeight, height);
+    minHeight = glm::min(minHeight, height);
   }
+
+  float getMinHeight() const { return minHeight; }
+  float getMaxHeight() const { return maxHeight; }
 
 private:
   HeightMap(unsigned int width, unsigned int height, const std::string& id) : 
-    TextureInterface<float>(width, height, id) {}
+    TextureInterface<float>(width, height, id),
+    minHeight(std::numeric_limits<float>::max()),
+    maxHeight(std::numeric_limits<float>::min()) {}
+
+  float minHeight, maxHeight;
 };
 
 } // namespace render
