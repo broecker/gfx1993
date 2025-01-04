@@ -2,37 +2,41 @@
 
 namespace gfx1993 {
 namespace geometry {
-Quad::Quad(const glm::vec4 &color) {
-  using glm::vec2;
-  using glm::vec4;
-  using render::Vertex;
 
-  const glm::vec3 normal(0, 0, 1);
+using glm::vec2;
+using glm::vec3;
+using glm::vec4;
+using render::Vertex;
+
+Quad::Quad(const vec4 &color) {
+
+  const vec3 normal(0, 0, 1);
 
   Vertex va = Vertex(vec4(-1, 1, 0, 1), normal, color, vec2(0, 1));
   Vertex vb = Vertex(vec4(-1, -1, 0, 1), normal, color, vec2(0, 0));
   Vertex vc = Vertex(vec4(1, -1, 0, 1), normal, color, vec2(1, 0));
   Vertex vd = Vertex(vec4(1, 1, 0, 1), normal, color, vec2(1, 1));
 
-  vertices.push_back(va);
-  vertices.push_back(vb);
-  vertices.push_back(vc);
-  vertices.push_back(vd);
+  vertices =  {va, vb, vc, vd};
+  indices = {0,1,2, 2,3,0, 0,2,1, 2,0,3};
+}
 
-  indices.push_back(0);
-  indices.push_back(1);
-  indices.push_back(2);
-  indices.push_back(2);
-  indices.push_back(3);
-  indices.push_back(0);
+Quad Quad::makeXZQuad(const glm::vec2& size) {
+  Quad q(vec4(1.f));
 
-  // And back faces (although normal is wrong ... )
-  indices.push_back(0);
-  indices.push_back(2);
-  indices.push_back(1);
-  indices.push_back(2);
-  indices.push_back(0);
-  indices.push_back(3);
+  const vec2 halfSize = size * 0.5f;
+  q.vertices[0].position = vec4(-halfSize.x, 0, -halfSize.y, 1.f);
+  q.vertices[1].position = vec4(-halfSize.x, 0,  halfSize.y, 1.f);
+  q.vertices[2].position = vec4( halfSize.x, 0,  halfSize.y, 1.f);
+  q.vertices[3].position = vec4( halfSize.x, 0, -halfSize.y, 1.f);
+
+  for (int i = 0; i < 4; ++i) {
+    q.vertices[i].normal = vec3(0,1,0);
+  }
+
+  q.indices = {0,2,1, 2,0,3};
+
+  return q;
 }
 
 }  // namespace geometry
