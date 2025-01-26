@@ -1,5 +1,5 @@
 #include "Clipper.h"
-#include "../base/config.h"
+#include "config.h"
 
 #include <algorithm>
 #include <iostream>

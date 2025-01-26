@@ -1,6 +1,6 @@
 #include "Rasterizer.h"
 
-#include "../base/config.h"
+#include "config.h"
 #include "Depthbuffer.h"
 #include "Framebuffer.h"
 #include "Viewport.h"

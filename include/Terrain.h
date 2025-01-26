@@ -6,8 +6,8 @@
 #include <vector>
 
 #include "Geometry.h"
-#include "../rendering/Texture.h"
-#include "../util/Frustum.h"
+#include "Texture.h"
+#include "Frustum.h"
 
 namespace gfx1993 {
 namespace geometry {

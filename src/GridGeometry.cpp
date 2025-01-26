@@ -1,5 +1,5 @@
 #include "GridGeometry.h"
-#include "../base/Pipeline.h"
+#include "Pipeline.h"
 
 #include <glm/glm.hpp>
 

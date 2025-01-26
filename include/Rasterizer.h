@@ -4,10 +4,10 @@
 #include <memory>
 
 #include "Clipper.h"
-#include "../base/Pipeline.h"
+#include "Pipeline.h"
 #include "RenderConfig.h"
-#include "../util/RenderDebugInfo.h"
-#include "../util/RenderProfileInfo.h"
+#include "RenderDebugInfo.h"
+#include "RenderProfileInfo.h"
 
 namespace gfx1993 {
 namespace render {

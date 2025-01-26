@@ -1,5 +1,5 @@
 #include "RandomTriangleGeometry.h"
-#include "../base/Pipeline.h"
+#include "Pipeline.h"
 
 #include <glm/gtc/random.hpp>
 

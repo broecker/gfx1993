@@ -1,7 +1,7 @@
 #ifndef DEPTHBUFFER_INCLUDED
 #define DEPTHBUFFER_INCLUDED
 
-#include "../base/config.h"
+#include "config.h"
 
 #include <glm/glm.hpp>
 #include <limits>

@@ -1,7 +1,7 @@
 #ifndef GFX1993_UTIL_FRUSTUM_INCLUDED
 #define GFX1993_UTIL_FRUSTUM_INCLUDED
 
-#include "../base/Pipeline.h"
+#include "Pipeline.h"
 #include "BoundingVolumes.h"
 
 #include <glm/glm.hpp>

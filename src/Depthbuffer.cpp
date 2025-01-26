@@ -1,5 +1,5 @@
 #include "Depthbuffer.h"
-#include "../base/config.h"
+#include "config.h"
 
 #include <cassert>
 #include <iostream>

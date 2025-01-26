@@ -6,9 +6,9 @@
 #include <memory>
 
 
-#include "../base/Pipeline.h"
-#include "../geometry/Geometry.h"
-#include "../geometry/CubeGeometry.h"
+#include "Pipeline.h"
+#include "Geometry.h"
+#include "CubeGeometry.h"
 
 namespace gfx1993 {
 namespace util {

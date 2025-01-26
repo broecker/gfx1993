@@ -3,7 +3,7 @@
 
 #include <memory>
 
-#include "../base/Pipeline.h"
+#include "Pipeline.h"
 #include "Texture.h"
 
 namespace gfx1993 {
