@@ -1,9 +1,7 @@
-cmake_minimum_required(VERSION 3.5.0)
-project(gfx1993)
+cmake_minimum_required(VERSION 3.9.0)
+project(gfx1993 VERSION 0.5.0 LANGUAGES CXX)
 
-# The version number.
-set(gfx1993_VERSION_MAJOR 0)
-set(gfx1993_VERSION_MINOR 4)
+set(DEFAULT_BUILD_TYPE "Debug")
 
 # Compile + link setup
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O2 -DGLM_ENABLE_EXPERIMENTAL")
@@ -22,11 +20,75 @@ if (OPENMP_FOUND)
     set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
 endif()
 
-# The libraries
-add_subdirectory(base)
-add_subdirectory(geometry)
-add_subdirectory(rendering)
-add_subdirectory(util)
 
-# The examples
-add_subdirectory(examples)
+set(SOURCE_FILES
+    src/BoundingVolumes.cpp
+    src/Clipper.cpp
+    src/Camera.cpp  
+    src/CubeGeometry.cpp
+    src/Depthbuffer.cpp
+    src/Framebuffer.cpp
+    src/Frustum.cpp
+    src/Geometry.cpp
+    src/GridGeometry.cpp
+    src/Pipeline.cpp
+    src/PlyGeometry.cpp
+    src/Quad.cpp
+    src/RandomTriangleGeometry.cpp
+    src/Rasterizer.cpp
+    src/RenderConfig.cpp
+    src/RenderDebugInfo.cpp
+    src/RenderProfileInfo.cpp
+    src/Shader.cpp
+    src/Sphere.cpp
+    src/Teapot.cpp
+    src/Terrain.cpp
+    src/Texture.cpp
+    src/Viewport.cpp
+)
+add_library(gfx1993
+    src/BoundingVolumes.cpp
+    src/Clipper.cpp
+    src/Camera.cpp  
+    src/CubeGeometry.cpp
+    src/Depthbuffer.cpp
+    src/Framebuffer.cpp
+    src/Frustum.cpp
+    src/Geometry.cpp
+    src/GridGeometry.cpp
+    src/Pipeline.cpp
+    src/PlyGeometry.cpp
+    src/Quad.cpp
+    src/RandomTriangleGeometry.cpp
+    src/Rasterizer.cpp
+    src/RenderConfig.cpp
+    src/RenderDebugInfo.cpp
+    src/RenderProfileInfo.cpp
+    src/Shader.cpp
+    src/Sphere.cpp
+    src/Teapot.cpp
+    src/Terrain.cpp
+    src/Texture.cpp
+    src/Viewport.cpp
+)
+
+target_include_directories(gfx1993 PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+    PRIVATE src)
+
+include(GNUInstallDirs)
+install(TARGETS ${PROJECT_NAME} EXPORT Gfx1993Config  
+    ARCHIVE  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME  DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+
+install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME})
+
+install(EXPORT Gfx1993Config DESTINATION share/gfx1993/cmake)
+
+export(TARGETS ${PROJECT_NAME} FILE Gfx1993Config.cmake)
+
+enable_testing()
+add_subdirectory(tests)

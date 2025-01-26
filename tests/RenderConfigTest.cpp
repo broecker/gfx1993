@@ -8,7 +8,7 @@
 #include "Rasterizer.h"
 #include "Shader.h"
 #include "Viewport.h"
-#include "../base/Pipeline.h"
+#include "Pipeline.h"
 
 namespace gfx1993 {
 namespace render {
