@@ -7,7 +7,6 @@
 #include <vector>
 
 namespace gfx1993 {
-namespace render {
 
 class Clipper {
 public:
@@ -62,7 +61,6 @@ private:
   glm::vec4 debugClipColor = glm::vec4(1,0,1,1);
 };
 
-} // namespace render
 } // namespace gfx1993
 
 #endif // GFX1993_CLIPPER_H

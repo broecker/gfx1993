@@ -10,7 +10,6 @@
 #include <glm/gtc/noise.hpp>
 
 namespace gfx1993 {
-namespace render {
 
 std::unique_ptr<Texture> Texture::makeFlat(unsigned int width, unsigned int height,
                                            const glm::vec4 &fillColor) {
@@ -143,7 +142,4 @@ std::unique_ptr<HeightMap> HeightMap::perlinNoise(unsigned int width, unsigned i
   return heightmap;
 }
 
-
-
-} // namespace render
 } // namespace gfx1993

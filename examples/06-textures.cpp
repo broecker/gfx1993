@@ -19,15 +19,15 @@ public:
 
 protected:
   void init() override {
-    textureShader = std::make_shared<render::TextureShader>(render::Texture::makeCheckerboard(32, 32, 4, glm::vec4(1,0,0,1), glm::vec4(1,1,0,1)));
-    texCoordShader = std::make_shared<render::UVShader>();
-    missingTextureShader = std::make_shared<render::SingleColorShader>(glm::vec4(1.0, 0.0, 1.0, 1.0));
+    textureShader = std::make_shared<TextureShader>(Texture::makeCheckerboard(32, 32, 4, glm::vec4(1,0,0,1), glm::vec4(1,1,0,1)));
+    texCoordShader = std::make_shared<UVShader>();
+    missingTextureShader = std::make_shared<SingleColorShader>(glm::vec4(1.0, 0.0, 1.0, 1.0));
 
     renderConfig.vertexShader =
-        std::make_shared<render::DefaultVertexTransform>();
+        std::make_shared<DefaultVertexTransform>();
     renderConfig.fragmentShader = texCoordShader;
 
-    quad = std::make_unique<geometry::Quad>(glm::vec4(1));
+    quad = std::make_unique<Quad>(glm::vec4(1));
 
     // Put the quad on the floor.
     quad->transform = glm::rotate(glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f));
@@ -45,8 +45,8 @@ protected:
     renderConfig.clearBuffers(glm::vec4(0.7f, 0.7f, 0.9f, 1));
 
     // reset the render matrices
-    render::DefaultVertexTransform *dvt =
-        dynamic_cast<render::DefaultVertexTransform *>(
+    DefaultVertexTransform *dvt =
+        dynamic_cast<DefaultVertexTransform *>(
             renderConfig.vertexShader.get());
 
     dvt->modelMatrix = glm::mat4(1.f);
@@ -66,14 +66,14 @@ protected:
     DemoApp::handleKeyboard(key, mouse);
 
     if (key == 'c') {
-      texture = render::Texture::makeCheckerboard(
+      texture = Texture::makeCheckerboard(
           64, 64, 8, glm::vec4(1.f, 0.f, 0.f, 1.f),
           glm::vec4(1.f, 1.f, 0.f, 1.f));
       updateTexture();
     }
 
     if (key == 'l') {
-      texture = render::Texture::loadPPM("./lenna.ppm");
+      texture = Texture::loadPPM("./lenna.ppm");
       updateTexture();
     }
 
@@ -84,26 +84,26 @@ protected:
     }
 
     if (key == 'm') {
-      if (textureShader->mode == render::Texture::LookupMode::CLAMP) {
-        textureShader->mode = render::Texture::LookupMode::REPEAT;
+      if (textureShader->mode == Texture::LookupMode::CLAMP) {
+        textureShader->mode = Texture::LookupMode::REPEAT;
       } else {
-        textureShader->mode = render::Texture::LookupMode::CLAMP;
+        textureShader->mode = Texture::LookupMode::CLAMP;
       }
     }
 
     if (key == 'n') {
-      texture = render::Texture::perlinNoise(128, 128, glm::vec2(10));
+      texture = Texture::perlinNoise(128, 128, glm::vec2(10));
       updateTexture();
     }
   }
 
 private:
-  std::unique_ptr<geometry::Quad>             quad;
-  std::shared_ptr<render::TextureShader>      textureShader;
-  std::shared_ptr<render::UVShader>           texCoordShader;
-  std::shared_ptr<render::SingleColorShader>  missingTextureShader;
+  std::unique_ptr<Quad>             quad;
+  std::shared_ptr<TextureShader>      textureShader;
+  std::shared_ptr<UVShader>           texCoordShader;
+  std::shared_ptr<SingleColorShader>  missingTextureShader;
 
-  std::shared_ptr<render::Texture> texture = nullptr;
+  std::shared_ptr<Texture> texture = nullptr;
 
 
   void updateTexture() {

@@ -6,7 +6,7 @@ using glm::vec4;
 using glm::mix;
 
 namespace gfx1993 {
-namespace render {
+
 VertexOut lerp(const VertexOut &a, const VertexOut &b, float d) {
   VertexOut result;
   result.clipPosition = glm::mix(a.clipPosition, b.clipPosition, d);
@@ -90,5 +90,4 @@ ShadingGeometry TrianglePrimitive::rasterize(const glm::vec3 &bary) const {
   return sgeo;
 }
 
-}  // namespace render
 }  // namespace gfx1993

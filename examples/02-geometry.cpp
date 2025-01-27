@@ -41,28 +41,28 @@ static glm::mat4 makeRandomTransform() {
   return rotate * glm::translate(randVec(minPos, maxPos));
 }
 
-class Origin : public geometry::Geometry {
+class Origin : public Geometry {
 public:
   Origin() {
-    vertices.push_back(render::Vertex{vec4(0,0,0,1), vec3(0), vec4(1,0,0,1), vec2(0)});
-    vertices.push_back(render::Vertex{vec4(10,0,0,1), vec3(0), vec4(1,0,0,1), vec2(0)});
+    vertices.push_back(Vertex{vec4(0,0,0,1), vec3(0), vec4(1,0,0,1), vec2(0)});
+    vertices.push_back(Vertex{vec4(10,0,0,1), vec3(0), vec4(1,0,0,1), vec2(0)});
 
-    vertices.push_back(render::Vertex{vec4(0,0,0,1), vec3(0), vec4(0,1,0,1), vec2(0)});
-    vertices.push_back(render::Vertex{vec4(0,10,0,1), vec3(0), vec4(0,1,0,1), vec2(0)});
+    vertices.push_back(Vertex{vec4(0,0,0,1), vec3(0), vec4(0,1,0,1), vec2(0)});
+    vertices.push_back(Vertex{vec4(0,10,0,1), vec3(0), vec4(0,1,0,1), vec2(0)});
 
-    vertices.push_back(render::Vertex{vec4(0,0,0,1), vec3(0), vec4(0,0,1,1), vec2(0)});
-    vertices.push_back(render::Vertex{vec4(0,0,10,1), vec3(0), vec4(0,0,1,1), vec2(0)});
+    vertices.push_back(Vertex{vec4(0,0,0,1), vec3(0), vec4(0,0,1,1), vec2(0)});
+    vertices.push_back(Vertex{vec4(0,0,10,1), vec3(0), vec4(0,0,1,1), vec2(0)});
 
     indices = {0,1, 2,3, 4,5};
   }
 };
 
 // Visualize depth complexity.
-class DepthShader : public render::FragmentShader {
+class DepthShader : public FragmentShader {
 public:
-  render::Fragment shadeSingle(const render::ShadingGeometry &in) override {
+  Fragment shadeSingle(const ShadingGeometry &in) override {
 
-    render::Fragment result;
+    Fragment result;
     result.discard = false;
 
     float delta = 0.f;
@@ -82,7 +82,7 @@ public:
 
   bool renderDepthWrites = false;
 
-  std::shared_ptr<render::Depthbuffer> depthBuffer;
+  std::shared_ptr<Depthbuffer> depthBuffer;
 };
 
 
@@ -93,13 +93,13 @@ public:
 protected:
   void init() override {
     renderConfig.vertexShader =
-        std::make_shared<render::DefaultVertexTransform>();
+        std::make_shared<DefaultVertexTransform>();
 
     depthBuffer = renderConfig.depthbuffer;
 
-    normalColorShader = std::make_shared<render::NormalColorShader>();
-    inputColorShader = std::make_shared<render::InputColorShader>();
-    singleColorShader = std::make_shared<render::SingleColorShader>(glm::vec4(1,0,1,1));
+    normalColorShader = std::make_shared<NormalColorShader>();
+    inputColorShader = std::make_shared<InputColorShader>();
+    singleColorShader = std::make_shared<SingleColorShader>(glm::vec4(1,0,1,1));
 
     depthShader = std::make_shared<DepthShader>();
     depthShader->depthBuffer = depthBuffer;
@@ -109,8 +109,8 @@ protected:
 
   void renderFrame() override {
     // reset the render matrices
-    render::DefaultVertexTransform *dvt =
-        dynamic_cast<render::DefaultVertexTransform *>(
+    DefaultVertexTransform *dvt =
+        dynamic_cast<DefaultVertexTransform *>(
             renderConfig.vertexShader.get());
 
     dvt->modelMatrix = glm::mat4(1.f);
@@ -180,7 +180,7 @@ protected:
       const glm::vec3 minSize(2);
       const glm::vec3 maxSize(20);
 
-      auto cube = std::make_unique<geometry::Cube>(std::move(geometry::Cube::makeSolid(glm::mix(minSize, maxSize, randf()))));
+      auto cube = std::make_unique<Cube>(std::move(Cube::makeSolid(glm::mix(minSize, maxSize, randf()))));
 
       cube->transform = makeRandomTransform();
       cube->setRandomFaceColors();
@@ -199,8 +199,8 @@ protected:
     }
 
     if (key == 'g') {
-      std::unique_ptr<geometry::PlyGeometry> bunny =
-          std::make_unique<geometry::PlyGeometry>();
+      std::unique_ptr<PlyGeometry> bunny =
+          std::make_unique<PlyGeometry>();
 
       bunny->loadPly("../models/bunny/reconstruction/bun_zipper_res3.ply");
 
@@ -220,14 +220,14 @@ protected:
     }
 
     if (key == 's') {
-      auto sphere = std::make_unique<geometry::Sphere>(20.f, 18, 36);
+      auto sphere = std::make_unique<Sphere>(20.f, 18, 36);
       // sphere->transform = makeRandomTransform();
       
       pointGeometries.emplace_back(std::move(sphere));
     }
 
     if (key == 't') {
-      auto teapot = std::make_unique<geometry::Teapot>();
+      auto teapot = std::make_unique<Teapot>();
       teapot->setRandomFaceColors();
       teapot->transform = makeRandomTransform();
       cubes.emplace_back(std::move(teapot));
@@ -243,19 +243,19 @@ protected:
   }
 
 private:
-  geometry::GridGeometry grid;
+  GridGeometry grid;
   Origin origin;
-  std::vector<std::unique_ptr<geometry::PlyGeometry>> bunnyList;
-  std::vector<std::unique_ptr<geometry::Geometry>> cubes;
+  std::vector<std::unique_ptr<PlyGeometry>> bunnyList;
+  std::vector<std::unique_ptr<Geometry>> cubes;
 
-  std::vector<std::unique_ptr<geometry::Geometry>> pointGeometries;
+  std::vector<std::unique_ptr<Geometry>> pointGeometries;
 
-  std::shared_ptr<render::FragmentShader> normalColorShader;
-  std::shared_ptr<render::FragmentShader> inputColorShader;
-  std::shared_ptr<render::FragmentShader> singleColorShader;
+  std::shared_ptr<FragmentShader> normalColorShader;
+  std::shared_ptr<FragmentShader> inputColorShader;
+  std::shared_ptr<FragmentShader> singleColorShader;
   std::shared_ptr<DepthShader> depthShader;
 
-  std::shared_ptr<render::Depthbuffer> depthBuffer;
+  std::shared_ptr<Depthbuffer> depthBuffer;
 
   bool drawDepthComplexity = false;
 };

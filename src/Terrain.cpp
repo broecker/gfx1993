@@ -1,16 +1,14 @@
 #include "Terrain.h"
 
-
 namespace gfx1993 {
-namespace geometry {
 
 using glm::vec4;
 
-PointField::PointField(std::shared_ptr<render::HeightMap> heightMap) :
+PointField::PointField(std::shared_ptr<HeightMap> heightMap) :
   heightmap(heightMap) {
     for (int x = 0; x < heightMap->getWidth(); x++) {
       for (int z = 0; z < heightMap->getHeight(); z++) {
-        render::Vertex v;
+        Vertex v;
         v.color = glm::vec4(1,0,1,1);
         v.normal = glm::vec3(0);
         v.texcoord = glm::vec2(static_cast<float>(x)/heightMap->getWidth(),
@@ -27,8 +25,8 @@ PointField::PointField(std::shared_ptr<render::HeightMap> heightMap) :
   }
 
 // Assigns each point a color whether it's inside or outside the frustum.
-void PointField::updatePoints(const util::Frustum& f) {
-  for (render::Vertex& v : vertices) {
+void PointField::updatePoints(const Frustum& f) {
+  for (Vertex& v : vertices) {
     vec4 worldSpacePosition = transform * v.position;
     if (f.isInside(glm::vec3(worldSpacePosition))) {
       v.color = glm::vec4(0,1,0,1);
@@ -38,5 +36,4 @@ void PointField::updatePoints(const util::Frustum& f) {
   }
 }
 
-} // namespace geometry
 } // namespace gfx1993

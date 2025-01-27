@@ -11,7 +11,6 @@
 #include "CubeGeometry.h"
 
 namespace gfx1993 {
-namespace util {
 
 struct BoundingSphere {
   // In world coordinates.
@@ -36,7 +35,7 @@ struct AABB {
 
   // Updates an existing geometry with these dimensions. Ideal for debug
   // drawing.
-  void updateGeometry(geometry::Cube& cube);
+  void updateGeometry(Cube& cube);
 };
 
 // TODO(mbroecker) Extend with templates + generic stored data.
@@ -46,7 +45,7 @@ struct OctTree {
 
   // This currently stores vertices only but can be amended to stored any kind
   // of Geometry or game object. 
-  render::VertexList        vertices;
+  VertexList        vertices;
 
   inline bool isLeafNode() const {
     for (int i = 0; i < 8; ++i) {
@@ -58,17 +57,16 @@ struct OctTree {
   }
 };
 
-BoundingSphere fromGeometry(const geometry::Geometry& geo);
+BoundingSphere fromGeometry(const Geometry& geo);
 
-AABB fromVertices(const render::VertexList& vertices);
+AABB fromVertices(const VertexList& vertices);
 
 // Sample Octree implementation that splits a pointcloud recursively; i.e.
 // builds the octtree top-down.
-std::unique_ptr<OctTree> fromPointCloud(const render::VertexList& points,
+std::unique_ptr<OctTree> fromPointCloud(const VertexList& points,
                                         unsigned int maxVerticesPerNode);
 
 
-} // namespace util 
 } // namespace gfx1993
 
 #endif // GFX1993_UTIL_BOUNDING_VOLUMES_INCLUDED

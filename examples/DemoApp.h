@@ -32,10 +32,10 @@ protected:
   int frames = 0;
 	int totalFrames = 0;
 
-  gfx1993::render::RenderConfig renderConfig;
-  std::unique_ptr<gfx1993::render::Rasterizer> rasterizer;
+  gfx1993::RenderConfig renderConfig;
+  std::unique_ptr<gfx1993::Rasterizer> rasterizer;
 
-  std::unique_ptr<gfx1993::util::Camera> camera;
+  std::unique_ptr<gfx1993::Camera> camera;
 
   glm::ivec2 mousePosition;
 

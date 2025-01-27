@@ -1,12 +1,10 @@
 #include "Quad.h"
 
 namespace gfx1993 {
-namespace geometry {
 
 using glm::vec2;
 using glm::vec3;
 using glm::vec4;
-using render::Vertex;
 
 Quad::Quad(const vec4 &color) {
 
@@ -39,5 +37,4 @@ Quad Quad::makeXZQuad(const glm::vec2& size) {
   return q;
 }
 
-}  // namespace geometry
 }  // namespace gfx1993

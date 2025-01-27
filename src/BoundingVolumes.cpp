@@ -8,7 +8,6 @@
 #include <glm/ext.hpp>
 
 namespace gfx1993 {
-namespace util {
 
 using glm::vec3;
 using glm::vec4;
@@ -18,7 +17,7 @@ void AABB::extend(const glm::vec3& p) {
   max = glm::max(max, p);
 }
 
-void AABB::updateGeometry(geometry::Cube& cube) {
+void AABB::updateGeometry(Cube& cube) {
   cube.getMutableVertexList()[0].position = vec4(max.x, max.y, min.z, 1.f);
   cube.getMutableVertexList()[1].position = vec4(min.x, max.y, min.z, 1.f);
   cube.getMutableVertexList()[2].position = vec4(min.x, max.y, max.z, 1.f);
@@ -30,17 +29,17 @@ void AABB::updateGeometry(geometry::Cube& cube) {
   cube.getMutableVertexList()[7].position = vec4(max.x, min.y, max.z, 1.f);
 }
 
-BoundingSphere fromGeometry(const geometry::Geometry& geo) {
+BoundingSphere fromGeometry(const Geometry& geo) {
   // Calculate center.
   vec3 center(0.f);
-  for (const render::Vertex& v : geo.getVertices()) {
+  for (const Vertex& v : geo.getVertices()) {
     center += vec3(v.position);
   }
   center /= static_cast<float>(geo.getVertices().size());
 
   // Calculate extends.
   float radiusSquared = 0.f;
-  for (const render::Vertex& v : geo.getVertices()) {
+  for (const Vertex& v : geo.getVertices()) {
     vec3 delta = vec3(v.position) - center;
     float dist = dot(delta, delta);
     radiusSquared = glm::max(dist, radiusSquared);    
@@ -49,7 +48,7 @@ BoundingSphere fromGeometry(const geometry::Geometry& geo) {
   return BoundingSphere{center, sqrtf(radiusSquared)};
 }
 
-AABB fromVertices(const render::VertexList& vertices) {
+AABB fromVertices(const VertexList& vertices) {
   AABB bbox;  
   for (const auto& v : vertices) {
     bbox.extend(vec3(v.position));
@@ -140,7 +139,7 @@ void splitOctTreeRecursively(OctTree* root,
 
 }  // namespace
 
-std::unique_ptr<OctTree> fromPointCloud(const render::VertexList& points,
+std::unique_ptr<OctTree> fromPointCloud(const VertexList& points,
                                         unsigned int maxVerticesPerNode) {
   std::unique_ptr<OctTree> root = std::make_unique<OctTree>();
   root->boundingBox = fromVertices(points);
@@ -149,6 +148,4 @@ std::unique_ptr<OctTree> fromPointCloud(const render::VertexList& points,
   return root;  
 }
 
-
-}  // namespace util
 }  // namespace gfx1993

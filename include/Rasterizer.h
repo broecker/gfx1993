@@ -10,7 +10,6 @@
 #include "RenderProfileInfo.h"
 
 namespace gfx1993 {
-namespace render {
 
 // Main class that does the heavy lifting in putting fragments into the
 // framebuffer.
@@ -49,8 +48,8 @@ public:
 
   inline void resetDebugInfo() { debugInfo.reset(); profileInfo.reset(); }
 
-  inline util::RenderProfile& getProfile() { return profileInfo; }
-  inline util::DebugInfo& getDebugInfo() { return debugInfo; }
+  inline RenderProfile& getProfile() { return profileInfo; }
+  inline DebugInfo& getDebugInfo() { return debugInfo; }
 
   const Clipper& getClipper() const { return clipper; }
 
@@ -79,11 +78,10 @@ private:
                          const ShadingGeometry &geometry) const;
 
   Clipper               clipper;
-  mutable util::DebugInfo     debugInfo;
-  mutable util::RenderProfile profileInfo;
+  mutable DebugInfo     debugInfo;
+  mutable RenderProfile profileInfo;
 };
 
-} // namespace render
 } // namespace gfx1993
 
 #endif

@@ -7,7 +7,6 @@
 #include <vector>
 
 namespace gfx1993 {
-namespace render {
 
 // Defines the high-level overview of the render pipeline.
 // The full pipeline looks like this:
@@ -156,6 +155,6 @@ typedef std::vector<VertexOut> VertexOutList;
 typedef std::vector<PointPrimitive> PointPrimitiveList;
 typedef std::vector<LinePrimitive> LinePrimitiveList;
 typedef std::vector<TrianglePrimitive> TrianglePrimitiveList;
-}; // namespace render
+
 } // namespace gfx1993
 #endif // SRENDER_PIPELINE_H

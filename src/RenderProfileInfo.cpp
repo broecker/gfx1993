@@ -6,7 +6,6 @@
 #include <limits>
 
 namespace gfx1993 {
-namespace util {
 
 static uint32_t getMilliseconds() {
   auto now = std::chrono::system_clock::now().time_since_epoch();
@@ -61,5 +60,4 @@ void RenderProfile::print() const {
   } 
 }
 
-}  // namespace util
 }  // namespace gfx1993

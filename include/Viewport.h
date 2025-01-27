@@ -4,7 +4,6 @@
 #include <glm/glm.hpp>
 
 namespace gfx1993 {
-namespace render {
 
 class Viewport {
 public:
@@ -20,7 +19,6 @@ public:
   glm::ivec2 size;
 };
 
-} // namespace render
 } // namespace gfx1993
 
 #endif

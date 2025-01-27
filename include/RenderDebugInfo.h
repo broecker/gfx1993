@@ -4,7 +4,6 @@
 #include <cstdint>
 
 namespace gfx1993 {
-namespace util {
 
 struct PrimitiveDebugInfo {
   uint32_t processed = 0;
@@ -31,7 +30,6 @@ struct DebugInfo {
   void print() const;
 };
 
-}  // namespace util
 }  // namespace gfx1993
 
 #endif // GFX1993_RENDERDEBUGINFO_H

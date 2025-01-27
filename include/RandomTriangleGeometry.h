@@ -8,9 +8,6 @@ struct Vertex;
 }
 
 namespace gfx1993 {
-namespace geometry {
-
-using render::Vertex;
 
 class RandomTriangleGeometry : public Geometry {
 public:
@@ -26,12 +23,11 @@ public:
 private:
   glm::vec3 boundsMin, boundsMax;
 
-  render::Vertex createRandomVertex() const;
+  Vertex createRandomVertex() const;
 
   void addTriangle(const Vertex &a, const Vertex &b, const Vertex &c);
 };
 
-} // namespace geometry
 } // namespace gfx1993
 
 #endif

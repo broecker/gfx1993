@@ -17,7 +17,7 @@
 using namespace gfx1993;
 
 // Creates random geometry within a bounding volume.
-class BoundedGeometry : public geometry::Geometry {
+class BoundedGeometry : public Geometry {
 public:
   BoundedGeometry(const glm::vec3 &min, const glm::vec3 &max)
       : maxBounds(max), minBounds(min) {}
@@ -50,8 +50,8 @@ public:
                       glm::linearRand(minBounds.z, maxBounds.z), 1.f);
     const glm::vec3 zero(0);
 
-    vertices.push_back(render::Vertex(a, zero, getRandomColor(), glm::vec2(0)));
-    vertices.push_back(render::Vertex(b, zero, getRandomColor(), glm::vec2(1)));
+    vertices.push_back(Vertex(a, zero, getRandomColor(), glm::vec2(0)));
+    vertices.push_back(Vertex(b, zero, getRandomColor(), glm::vec2(1)));
     indices.push_back(vertices.size() - 2);
     indices.push_back(vertices.size() - 1);
   }
@@ -73,7 +73,7 @@ public:
                       glm::linearRand(minBounds.z, maxBounds.z), 1.f);
     const glm::vec3 zero(0);
 
-    vertices.push_back(render::Vertex(p, zero, getRandomColor(), glm::vec2(0)));
+    vertices.push_back(Vertex(p, zero, getRandomColor(), glm::vec2(0)));
     indices.push_back(vertices.size() - 1);
   }
 
@@ -99,9 +99,9 @@ public:
     const glm::vec4 grn(0, 1, 0, 1);
     const glm::vec4 blu(0, 0, 1, 1);
 
-    vertices.push_back(render::Vertex(a, zero, red, glm::vec2(0)));
-    vertices.push_back(render::Vertex(b, zero, grn, glm::vec2(1)));
-    vertices.push_back(render::Vertex(c, zero, blu, glm::vec2(1)));
+    vertices.push_back(Vertex(a, zero, red, glm::vec2(0)));
+    vertices.push_back(Vertex(b, zero, grn, glm::vec2(1)));
+    vertices.push_back(Vertex(c, zero, blu, glm::vec2(1)));
 
     indices.push_back(vertices.size() - 3);
     indices.push_back(vertices.size() - 2);
@@ -158,8 +158,8 @@ public:
 protected:
   void init() override {
     renderConfig.vertexShader =
-        std::make_shared<render::DefaultVertexTransform>();
-    renderConfig.fragmentShader = std::make_shared<render::InputColorShader>();
+        std::make_shared<DefaultVertexTransform>();
+    renderConfig.fragmentShader = std::make_shared<InputColorShader>();
 
     lines =
         std::make_unique<RandomLinesGeometry>(glm::vec3(-10), glm::vec3(10));
@@ -167,8 +167,8 @@ protected:
         std::make_unique<RandomPointsGeometry>(glm::vec3(-10), glm::vec3(10));
     triangles =
         std::make_unique<RandomTriangleGeometry>(glm::vec3(-10), glm::vec3(10));
-    grid = std::make_unique<geometry::GridGeometry>();
-    camera = std::make_unique<util::OrbitCamera>(glm::vec3(0, 0, 0),15.0f);
+    grid = std::make_unique<GridGeometry>();
+    camera = std::make_unique<OrbitCamera>(glm::vec3(0, 0, 0),15.0f);
 
     makeLine(glm::vec3(0.f), glm::vec3(20.f, 0, 0), glm::vec4(1, 0, 0, 1));
     makeLine(glm::vec3(0.f), glm::vec3(0, 20.f, 0), glm::vec4(0, 1, 0, 1));
@@ -187,8 +187,8 @@ protected:
     renderConfig.clearBuffers(glm::vec4(0.7f, 0.7f, 0.9f, 1));
 
     // reset the render matrices
-    render::DefaultVertexTransform *dvt =
-        dynamic_cast<render::DefaultVertexTransform *>(
+    DefaultVertexTransform *dvt =
+        dynamic_cast<DefaultVertexTransform *>(
             renderConfig.vertexShader.get());
 
     dvt->modelMatrix = glm::mat4(1.f);
@@ -284,12 +284,12 @@ private:
   std::unique_ptr<RandomLinesGeometry> lines;
   std::unique_ptr<RandomPointsGeometry> points;
   std::unique_ptr<RandomTriangleGeometry> triangles;
-  std::unique_ptr<geometry::GridGeometry> grid;
+  std::unique_ptr<GridGeometry> grid;
 
   std::unique_ptr<ClippingPlane> clippingPlane;
 
-  render::VertexList lineVertices;
-  render::IndexList lineIndices;
+  VertexList lineVertices;
+  IndexList lineIndices;
 
   enum ProjectionMode { PERSPECTIVE, ORTHO } projectionMode = PERSPECTIVE;
 
@@ -297,9 +297,9 @@ private:
 
   void makeLine(const glm::vec3 &a, const glm::vec3 &b,
                 const glm::vec4 &color) {
-    render::Vertex p(glm::vec4(a, 1));
+    Vertex p(glm::vec4(a, 1));
     p.color = color;
-    render::Vertex q(glm::vec4(b, 1));
+    Vertex q(glm::vec4(b, 1));
     q.color = color;
 
     lineVertices.push_back(p);

@@ -14,9 +14,9 @@
 
 using namespace gfx1993;
 
-class StippleShader : public render::FragmentShader {
+class StippleShader : public FragmentShader {
 public:
-  render::Fragment shadeSingle(const render::ShadingGeometry &in) override {
+  Fragment shadeSingle(const ShadingGeometry &in) override {
 
     // Only stipple transparent fragments.
     if (in.color.a < 1 - FLT_EPSILON) {
@@ -33,15 +33,15 @@ public:
       glm::vec4 outColor(in.color);
       outColor.a = 1.f;
 
-      return render::Fragment{outColor};
+      return Fragment{outColor};
     } else {
-      return render::Fragment{in.color};
+      return Fragment{in.color};
     }
   }
 
 private:
-  inline static render::Fragment discard() {
-    return render::Fragment{glm::vec4(), true};
+  inline static Fragment discard() {
+    return Fragment{glm::vec4(), true};
   }
 };
 
@@ -52,9 +52,9 @@ public:
 protected:
   void init() override {
     renderConfig.vertexShader =
-        std::make_shared<render::DefaultVertexTransform>();
+        std::make_shared<DefaultVertexTransform>();
 
-    transparencyShader = std::make_shared<render::InputColorShader>();
+    transparencyShader = std::make_shared<InputColorShader>();
     stippleShader = std::make_shared<StippleShader>();
     renderConfig.fragmentShader = transparencyShader;
 
@@ -62,20 +62,20 @@ protected:
 
     // Create 3 slightly offset quads. The render order becomes fairly important
     // as the center quad (z=0) is added last.
-    auto q = std::make_unique<geometry::Quad>(glm::vec4(0.8f, 0.2f, 0.f, 0.4f));
+    auto q = std::make_unique<Quad>(glm::vec4(0.8f, 0.2f, 0.f, 0.4f));
     q->transform = glm::translate(glm::vec3(-2, 1, 2));
     quads.emplace_back(std::move(q));
 
-    q = std::make_unique<geometry::Quad>(glm::vec4(0.1f, 0.1f, 0.8f, 0.4f));
+    q = std::make_unique<Quad>(glm::vec4(0.1f, 0.1f, 0.8f, 0.4f));
     q->transform = glm::translate(glm::vec3(2, 1, -2));
     quads.emplace_back(std::move(q));
 
-    q = std::make_unique<geometry::Quad>(glm::vec4(0.1f, 0.9f, 0.f, 0.4f));
+    q = std::make_unique<Quad>(glm::vec4(0.1f, 0.9f, 0.f, 0.4f));
     q->transform = glm::translate(glm::vec3(0, 1, 0));
     quads.emplace_back(std::move(q));
 
     // And one large white quad on the floor to show through the stipple.
-    q = std::make_unique<geometry::Quad>(glm::vec4(1));
+    q = std::make_unique<Quad>(glm::vec4(1));
     q->transform = glm::translate(glm::vec3(0, -2, 0)) *
                    glm::scale(glm::vec3(10)) *
                    glm::rotate(glm::radians(90.f), glm::vec3(1, 0, 0));
@@ -88,8 +88,8 @@ protected:
     if (sortByDepth) {
       const glm::mat4 &viewMatrix = camera->getViewMatrix();
       std::sort(quads.begin(), quads.end(),
-                [&viewMatrix](const std::unique_ptr<geometry::Quad> &a,
-                              const std::unique_ptr<geometry::Quad> &b) {
+                [&viewMatrix](const std::unique_ptr<Quad> &a,
+                              const std::unique_ptr<Quad> &b) {
                   // Calculates the quad's position in eye coordinates.
                   const glm::vec4 posA =
                       viewMatrix * a->transform * glm::vec4(0, 0, 0, 1);
@@ -107,8 +107,8 @@ protected:
     renderConfig.clearBuffers(glm::vec4(0.7f, 0.7f, 0.9f, 1));
 
     // reset the render matrices
-    render::DefaultVertexTransform *dvt =
-        dynamic_cast<render::DefaultVertexTransform *>(
+    DefaultVertexTransform *dvt =
+        dynamic_cast<DefaultVertexTransform *>(
             renderConfig.vertexShader.get());
 
     dvt->modelMatrix = glm::mat4(1.f);
@@ -152,10 +152,10 @@ protected:
 protected:
 private:
   bool sortByDepth;
-  std::vector<std::unique_ptr<geometry::Quad>> quads;
+  std::vector<std::unique_ptr<Quad>> quads;
 
-  std::shared_ptr<render::FragmentShader> transparencyShader;
-  std::shared_ptr<render::FragmentShader> stippleShader;
+  std::shared_ptr<FragmentShader> transparencyShader;
+  std::shared_ptr<FragmentShader> stippleShader;
 };
 
 int main(int argc, char **argv) {

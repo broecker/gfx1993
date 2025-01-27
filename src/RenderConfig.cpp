@@ -1,7 +1,6 @@
 #include "RenderConfig.h"
 
 namespace gfx1993 {
-namespace render {
 void RenderConfig::clearBuffers(const glm::vec4 &clearColor) {
   if (framebuffer)
     framebuffer->clear(clearColor);
@@ -38,6 +37,4 @@ bool RenderConfig::isValid() const {
   return hasValidRenderOutput() && hasValidShaderConfiguration() && oddPointSize;
 }
 
-
-} // namespace render
 } // namespace gfx1993

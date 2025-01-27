@@ -8,9 +8,6 @@
 #include <iostream>
 
 namespace gfx1993 {
-namespace geometry {
-
-using render::Vertex;
 
 PlyGeometry::PlyGeometry() : boundingSphereRadius(0) {}
 
@@ -139,5 +136,5 @@ void PlyGeometry::center() {
         std::max(boundingSphereRadius, glm::length(glm::vec3(v.position)));
   }
 }
-}  // namespace geometry
+
 }  // namespace gfx1993

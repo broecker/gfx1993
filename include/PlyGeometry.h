@@ -6,7 +6,6 @@
 #include <string>
 
 namespace gfx1993 {
-namespace geometry {
 
 class PlyGeometry : public Geometry {
 public:
@@ -25,7 +24,6 @@ private:
   float boundingSphereRadius;
 };
 
-} // namespace geometry
 } // namespace gfx1993
 
 #endif

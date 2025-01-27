@@ -4,7 +4,6 @@
 #include "Geometry.h"
 
 namespace gfx1993 {
-namespace geometry {
 
 // The Utah Teapot.
 // See https://users.cs.utah.edu/~dejohnso/models/teapot.html
@@ -13,7 +12,6 @@ public:
   Teapot();
 };
 
-} // namespace geometry
 } // namespace gfx1993
 
 #endif

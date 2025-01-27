@@ -4,7 +4,6 @@
 #include "Geometry.h"
 
 namespace gfx1993 {
-namespace geometry {
 
 // A three-dimensional cube with solid faces.
 class Cube : public Geometry {
@@ -16,6 +15,5 @@ private:
   Cube();
 };
 
-}  // namespace geometry
 }  // namespace gfx1993
 #endif

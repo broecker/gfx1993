@@ -5,7 +5,6 @@
 #include "Pipeline.h"
 
 namespace gfx1993 {
-namespace render {
 
 using glm::ivec2;
 using glm::vec2;
@@ -156,5 +155,4 @@ GTEST("Pipeline Test") {
   }
 };
 
-}  // namespace render
 }  // namespace gfx1993

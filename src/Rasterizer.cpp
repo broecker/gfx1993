@@ -19,7 +19,6 @@ using glm::vec3;
 using glm::vec4;
 
 namespace gfx1993 {
-namespace render {
 
 #if GFX1993_ENABLE_PROFILING
   #if GFX1993_ENABLE_DEBUG_PROFILING
@@ -196,12 +195,12 @@ void Rasterizer::drawLines(const RenderConfig &renderConfig,
 }
 
 void Rasterizer::drawLineStrip(const RenderConfig &renderConfig,
-                               const render::VertexList &vertices,
-                               const render::IndexList &indices) const {
+                               const VertexList &vertices,
+                               const IndexList &indices) const {
   // We can reuse the existing code by expanding the current indices. We expand
   // the indices by doubling the internal vertices; i.e. [0,2,4,6] ->
   // [0,2,2,4,4,6]
-  render::IndexList expandedIndices(indices.size() - 2);
+  IndexList expandedIndices(indices.size() - 2);
 
   for (size_t i = 0; i < indices.size() - 1; ++i) {
     expandedIndices.push_back(indices[i + 0]);
@@ -468,7 +467,7 @@ void Rasterizer::drawTriangle(const RenderConfig &renderConfig,
   }
 }
 
-bool Rasterizer::drawDepthFragment(const render::RenderConfig& renderConfig,
+bool Rasterizer::drawDepthFragment(const RenderConfig& renderConfig,
                                    const ShadingGeometry &geometry) const {
   if (!renderConfig.depthWrite) {
     return false;
@@ -483,7 +482,7 @@ bool Rasterizer::drawDepthFragment(const render::RenderConfig& renderConfig,
   }
 }
 
-bool Rasterizer::drawFragment(const render::RenderConfig &renderConfig,
+bool Rasterizer::drawFragment(const RenderConfig &renderConfig,
                               const ShadingGeometry &geometry) const {
   // No need for shading, write to depth buffer and that's it.
   if (!renderConfig.framebuffer) {
@@ -525,5 +524,4 @@ bool Rasterizer::drawFragment(const render::RenderConfig &renderConfig,
   }
 }
 
-}  // namespace render
 }  // namespace gfx1993

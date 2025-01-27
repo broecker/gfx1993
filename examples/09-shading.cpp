@@ -17,7 +17,6 @@
 using namespace gfx1993;
 using namespace glm;
 
-
 struct PointLight {
   // In world-space coordinates.
   vec3 position;
@@ -74,13 +73,13 @@ vec3 shade(const PointLight& light,
     return color;
 }
 
-class GoraudVertexShader : public render::DefaultVertexTransform {
+class GoraudVertexShader : public DefaultVertexTransform {
 public:
-  render::VertexOut transformSingle(const render::Vertex &in) override {
+  VertexOut transformSingle(const Vertex &in) override {
     assert(profile != nullptr);
     auto p = profile->startTiming("rasterize.tris.shade.goraud");
 
-    render::VertexOut out = DefaultVertexTransform::transformSingle(in);
+    VertexOut out = DefaultVertexTransform::transformSingle(in);
     
     vec3 color = shade(
       light,
@@ -98,13 +97,13 @@ public:
   Material    surface;
   vec3 eyePosition;
 
-  util::RenderProfile* profile = nullptr;
+  RenderProfile* profile = nullptr;
 };
 
-class PhongShader : public render::FragmentShader {
+class PhongShader : public FragmentShader {
 public:
-  render::Fragment shadeSingle(const render::ShadingGeometry& in) override {
-    render::Fragment out;
+  Fragment shadeSingle(const ShadingGeometry& in) override {
+    Fragment out;
     assert(profile != nullptr);
     auto p = profile->startTiming("rasterize.tris.shade.phong");
 
@@ -117,12 +116,12 @@ public:
   Material    surface;
   vec3        eyePosition;
 
-  util::RenderProfile* profile = nullptr;
+  RenderProfile* profile = nullptr;
 };
 
 class Demo09 : public DemoApp {
 public:
-  Demo09() : DemoApp("Demo 09 - Shading"), cube(geometry::Cube::makeSolid(vec3(2.5))) {}
+  Demo09() : DemoApp("Demo 09 - Shading"), cube(Cube::makeSolid(vec3(2.5))) {}
 
 protected:
   void init() override {
@@ -136,8 +135,8 @@ protected:
                       .emission=vec3(0),
                       .specularExponent=2.f};
 
-    fixedFunctionShader = std::make_shared<render::DefaultVertexTransform>();
-    inputColorShader = std::make_shared<render::InputColorShader>();
+    fixedFunctionShader = std::make_shared<DefaultVertexTransform>();
+    inputColorShader = std::make_shared<InputColorShader>();
     phongShader = std::make_shared<PhongShader>(); 
     phongShader->light = light;
     phongShader->surface = surface;
@@ -146,14 +145,14 @@ protected:
     goraudShader->light = light;
     goraudShader->surface = surface;
 
-    colorShader = std::make_shared<render::SingleColorShader>(vec4(1));
+    colorShader = std::make_shared<SingleColorShader>(vec4(1));
     renderConfig.vertexShader =
-        std::make_shared<render::DefaultVertexTransform>();
+        std::make_shared<DefaultVertexTransform>();
     
-    geometry = std::make_shared<geometry::Sphere>(15.f, 9, 
+    geometry = std::make_shared<Sphere>(15.f, 9, 
     18);
     geometry->setRandomFaceColors();
-    flatGeometry = std::make_shared<geometry::Sphere>(15.f, 9, 18);
+    flatGeometry = std::make_shared<Sphere>(15.f, 9, 18);
     flatGeometry->makeFlatShaded();
     flatGeometry->setRandomFaceColors();
   }
@@ -255,17 +254,17 @@ protected:
   }
 
 private:
-  geometry::GridGeometry grid;
+  GridGeometry grid;
 
-  std::shared_ptr<geometry::Geometry> geometry;
-  std::shared_ptr<geometry::Geometry> flatGeometry;
+  std::shared_ptr<Geometry> geometry;
+  std::shared_ptr<Geometry> flatGeometry;
 
-  geometry::Cube cube;
+  Cube cube;
 
-  std::shared_ptr<render::DefaultVertexTransform> fixedFunctionShader;
-  std::shared_ptr<render::FragmentShader> inputColorShader;
+  std::shared_ptr<DefaultVertexTransform> fixedFunctionShader;
+  std::shared_ptr<FragmentShader> inputColorShader;
   std::shared_ptr<PhongShader> phongShader;
-  std::shared_ptr<render::SingleColorShader> colorShader;
+  std::shared_ptr<SingleColorShader> colorShader;
   std::shared_ptr<GoraudVertexShader> goraudShader;
   
   PointLight light;

@@ -10,7 +10,6 @@
 #include "Viewport.h"
 
 namespace gfx1993 {
-namespace render {
 
 class VertexShader;
 class FragmentShader;
@@ -74,7 +73,6 @@ struct RenderConfig {
   bool isValid() const;
 };
 
-} // namespace render
 } // namespace gfx1993
 
 #endif // GFX1993_RENDERCONFIG_H

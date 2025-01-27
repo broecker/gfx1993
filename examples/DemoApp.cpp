@@ -13,12 +13,10 @@
 #endif
 
 using namespace gfx1993;
-using namespace render;
-using namespace util;
 
 DemoApp *DemoApp::appInstance = nullptr;
 DemoApp::DemoApp(const std::string &name)
-    : name(name), width(VGA_WIDTH), height(VGA_HEIGHT),
+    : name(name), width(gfx1993::VGA_WIDTH), height(gfx1993::VGA_HEIGHT),
       logFrameTime(true), mousePosition(0,0) {
   rasterizer = std::make_unique<Rasterizer>();
 

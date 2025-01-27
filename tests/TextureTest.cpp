@@ -8,7 +8,6 @@
 #include "Texture.h"
 
 namespace gfx1993 {
-namespace render {
 
 using glm::ivec2;
 using glm::vec2;
@@ -174,5 +173,4 @@ GTEST("Texture Test") {
   }
 };
 
-}  // namespace render
 }  // namespace gfx1993

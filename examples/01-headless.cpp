@@ -18,14 +18,12 @@ std::string binaryName;
 
 using namespace gfx1993;
 
-render::VertexList vertices;
-render::IndexList indices;
+VertexList vertices;
+IndexList indices;
 
-std::unique_ptr<render::Rasterizer> rasterizer;
-render::RenderConfig renderConfig;
-std::shared_ptr<render::DefaultVertexTransform> vertexShader;
-
-using render::Vertex;
+std::unique_ptr<Rasterizer> rasterizer;
+RenderConfig renderConfig;
+std::shared_ptr<DefaultVertexTransform> vertexShader;
 
 const static int MAX_FRAMES = 36;
 
@@ -82,18 +80,18 @@ int main(int argc, char **argv) {
   srand(time(0));
 
   // Setup the rasterizer and the shaders.
-  rasterizer = std::make_unique<render::Rasterizer>();
+  rasterizer = std::make_unique<Rasterizer>();
   renderConfig.viewport =
-      std::make_shared<render::Viewport>(0, 0, width, height);
+      std::make_shared<Viewport>(0, 0, width, height);
   renderConfig.framebuffer =
-      std::make_shared<render::Framebuffer>(width, height);
+      std::make_shared<Framebuffer>(width, height);
   renderConfig.depthbuffer =
-      std::make_shared<render::Depthbuffer>(width, height);
+      std::make_shared<Depthbuffer>(width, height);
 
   // Keep vertex shader separate so we can easily modify the transformation.
-  vertexShader = std::make_shared<render::DefaultVertexTransform>();
+  vertexShader = std::make_shared<DefaultVertexTransform>();
   renderConfig.vertexShader = vertexShader;
-  renderConfig.fragmentShader = std::make_shared<render::InputColorShader>();
+  renderConfig.fragmentShader = std::make_shared<InputColorShader>();
 
   // Create the triangle geometry
   vertices.push_back(Vertex(glm::vec4(-5, 0, 0, 1), glm::vec3(1, 0, 0),

@@ -11,7 +11,6 @@
 #include "Pipeline.h"
 
 namespace gfx1993 {
-namespace render {
 
 using glm::ivec2;
 
@@ -85,5 +84,4 @@ GTEST("RenderConfiguration Test") {
   }
 }
 
-}  // namespace render
 }  // namespace gfx1993

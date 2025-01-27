@@ -6,7 +6,6 @@
 #include "Camera.h"
 
 namespace gfx1993 {
-namespace util {
 
 using namespace glm;
 
@@ -51,17 +50,17 @@ const static std::vector<unsigned int> frustumIndices = {
   18,19   // bottom
 };
 
-inline vec4 getCenter(const render::Vertex& a,
-                      const render::Vertex& b,
-                      const render::Vertex& c,
-                      const render::Vertex& d) {
+inline vec4 getCenter(const Vertex& a,
+                      const Vertex& b,
+                      const Vertex& c,
+                      const Vertex& d) {
   return (a.position + b.position + c.position + d.position) / 4.f;
 }
 
 Frustum::Frustum(const glm::mat4& projectionMatrix, const glm::mat4& viewMatrix) : 
   projectionMatrix(projectionMatrix), viewMatrix(viewMatrix) {
   for (int i = 0; i < 8; ++i) {
-    render::Vertex v;
+    Vertex v;
     v.position = frustumVertices[i];
     v.normal = vec4(0);
     v.color = vec4(1,0,1,1);
@@ -71,7 +70,7 @@ Frustum::Frustum(const glm::mat4& projectionMatrix, const glm::mat4& viewMatrix)
 
   // Also add 6*2 = 12 vertices to draw one normal per plane.
   for (int i = 0; i < 12; ++i) {
-    render::Vertex v;
+    Vertex v;
     v.position = vec4(0);
     v.normal = vec4(0);
     v.color = vec4(1,0,1,1);
@@ -197,5 +196,4 @@ Frustum::IntersectionResult Frustum::testIntersection(const AABB& box) const {
   return result;
 }
 
-}  // namespace util
 }  // namespace gfx1993

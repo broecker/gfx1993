@@ -9,7 +9,6 @@
 #include <deque>
 
 namespace gfx1993 {
-namespace render {
 
 Clipper::Plane::Plane(const glm::vec3 &a, const glm::vec3 &b,
                       const glm::vec3 &c) {
@@ -78,7 +77,7 @@ Clipper::clipPointsToNdc(const PointPrimitiveList &points) const {
 }
 
 LinePrimitiveList
-Clipper::clipLines(const render::LinePrimitiveList &lines) const {
+Clipper::clipLines(const LinePrimitiveList &lines) const {
   using glm::vec4;
 
   LinePrimitiveList clipped;
@@ -129,7 +128,7 @@ static VertexOut clipEdge(const VertexOut &a, const VertexOut &b,
   return lerp(a, b, t);
 }
 
-static void setColor(render::TrianglePrimitive &triangle,
+static void setColor(TrianglePrimitive &triangle,
                      const glm::vec4 &color) {
   triangle.a.color = color;
   triangle.b.color = color;
@@ -137,7 +136,7 @@ static void setColor(render::TrianglePrimitive &triangle,
 }
 
 TrianglePrimitiveList
-Clipper::clipTriangles(render::TrianglePrimitiveList triangles) const {
+Clipper::clipTriangles(TrianglePrimitiveList triangles) const {
   TrianglePrimitiveList clipped;
   clipped.reserve(triangles.size());
 
@@ -352,5 +351,4 @@ TrianglePrimitiveList Clipper::clipTrianglesToNdc(
   return clipped;
 }
 
-} // namespace render
 } // namespace gfx1993

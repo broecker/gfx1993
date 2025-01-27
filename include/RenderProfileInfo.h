@@ -7,7 +7,6 @@
 #include <vector>
 
 namespace gfx1993 {
-namespace util {
 
 struct Stat {
   std::vector<uint32_t> samples;
@@ -47,7 +46,6 @@ struct RenderProfile {
   void print() const;
 };
 
-}  // namespace util
 }  // namespace gfx1993
 
 #endif // GFX1993_RENDERPROFILE_INCLUDED

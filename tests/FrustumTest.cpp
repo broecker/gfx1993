@@ -10,7 +10,6 @@
 #include "Frustum.h"
 
 namespace gfx1993 {
-namespace util {
 
 using glm::vec3;
 using glm::vec4;
@@ -99,5 +98,4 @@ GTEST("Frustum Test") {
 };
 
 
-}  // namespace util
 }  // namespace gfx1993

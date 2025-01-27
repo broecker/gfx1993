@@ -15,7 +15,6 @@ using glm::vec4;
 using glm::mat4;
 
 namespace gfx1993 {
-namespace util {
 
 // To avoid gimbal lock.
 constexpr float MIN_PITCH = -88.f;
@@ -123,5 +122,4 @@ glm::mat4 FreeCamera::getViewMatrix() const {
   return glm::lookAt(position, position + forward, up);
 }
 
-}  // namespace util
 }  // namespace gfx1993

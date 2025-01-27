@@ -6,7 +6,6 @@
 #include <glm/glm.hpp>
 
 namespace gfx1993 {
-namespace geometry {
 
 class Quad : public Geometry {
 public:
@@ -23,7 +22,6 @@ public:
   static Quad makeXZQuad(const glm::vec2& size);
 };
 
-} // namespace geometry
 } // namespace gfx1993
 
 #endif // GFX1993_QUAD_H

@@ -8,7 +8,6 @@
 #include "Clipper.h"
 
 namespace gfx1993 {
-namespace render {
 
 using glm::vec2;
 using glm::vec3;
@@ -458,5 +457,4 @@ GTEST("Clipper Test") {
   }
 };
 
-}  // namespace render
 }  // namespace gfx1993

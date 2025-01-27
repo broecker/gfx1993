@@ -12,7 +12,7 @@
 
 using namespace gfx1993;
 
-class WireSphere : public geometry::Geometry {
+class WireSphere : public Geometry {
 public:
   WireSphere(float radius) {
     // Circles of latitude (N - S), excluding the poles.
@@ -25,7 +25,7 @@ public:
         glm::vec2 texcoord = glm::vec2(phi, theta) / glm::vec2(90, 360);
         glm::vec4 color = glm::vec4(1);
 
-        render::Vertex v(glm::vec4(pos, 1), normal, color, texcoord);
+        Vertex v(glm::vec4(pos, 1), normal, color, texcoord);
         vertices.push_back(v);
         indices.push_back(vertices.size() - 1);
       }
@@ -41,7 +41,7 @@ public:
         glm::vec2 texcoord = glm::vec2(phi, theta) / glm::vec2(90, 360);
         glm::vec4 color = glm::vec4(1);
 
-        render::Vertex v(glm::vec4(pos, 1), normal, color, texcoord);
+        Vertex v(glm::vec4(pos, 1), normal, color, texcoord);
         vertices.push_back(v);
         indices.push_back(vertices.size() - 1);
       }
@@ -59,12 +59,12 @@ public:
 protected:
   void init() override {
     renderConfig.vertexShader =
-        std::make_shared<render::DefaultVertexTransform>();
+        std::make_shared<DefaultVertexTransform>();
     renderConfig.fragmentShader =
-        std::make_shared<render::SingleColorShader>(glm::vec4(0, 0, 1, 1));
+        std::make_shared<SingleColorShader>(glm::vec4(0, 0, 1, 1));
 
     sphere = std::make_unique<WireSphere>(10.0f);
-    camera = std::make_unique<util::OrbitCamera>(glm::vec3(0, 0, 0), 0.f);
+    camera = std::make_unique<OrbitCamera>(glm::vec3(0, 0, 0), 0.f);
   }
 
   void renderFrame() override {
@@ -72,8 +72,8 @@ protected:
     renderConfig.clearBuffers(glm::vec4(0.7f, 0.7f, 0.9f, 1));
 
     // reset the render matrices
-    render::DefaultVertexTransform *dvt =
-        dynamic_cast<render::DefaultVertexTransform *>(
+    DefaultVertexTransform *dvt =
+        dynamic_cast<DefaultVertexTransform *>(
             renderConfig.vertexShader.get());
 
     dvt->modelMatrix = glm::mat4(1.f);

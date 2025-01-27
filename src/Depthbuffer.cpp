@@ -5,7 +5,6 @@
 #include <iostream>
 
 namespace gfx1993 {
-namespace render {
 
 Depthbuffer::Depthbuffer(unsigned int w, unsigned int h) : width(w), height(h),
   data(width*height) {
@@ -48,5 +47,4 @@ bool Depthbuffer::conditionalPlot(int x, int y, float z) {
     return false;
 }
 
-}  // namespace render
 }  // namespace gfx1993

@@ -17,7 +17,6 @@
 #include "Frustum.h"
 
 using namespace gfx1993;
-using namespace render;
 using namespace glm;
 
 class Demo07 : public DemoApp {
@@ -26,13 +25,13 @@ public:
     camera0(glm::perspective(30.f, static_cast<float>(width) / height, 1.f, 100.f), vec3(0, 0, 10), 10),
     camera1(glm::perspective(30.f, static_cast<float>(width) / height, 1.f, 30.f), vec3(10, 2, 0)),
     frustum1(camera1.getProjectionMatrix(), camera1.getViewMatrix()),
-    points(render::HeightMap::perlinNoise(128, 128, glm::vec3(1, 20.f, 1))) {}
+    points(HeightMap::perlinNoise(128, 128, glm::vec3(1, 20.f, 1))) {}
 
 protected:
   void init() override {
     colorShader = std::make_shared<InputColorShader>();
     renderConfig.vertexShader =
-        std::make_shared<render::DefaultVertexTransform>();
+        std::make_shared<DefaultVertexTransform>();
     renderConfig.fragmentShader = colorShader;
 
     logFrameTime = false;
@@ -54,8 +53,8 @@ protected:
     renderConfig.clearBuffers(glm::vec4(0.7f, 0.7f, 0.9f, 1));
 
     // reset the render matrices
-    render::DefaultVertexTransform *dvt =
-        dynamic_cast<render::DefaultVertexTransform *>(
+    DefaultVertexTransform *dvt =
+        dynamic_cast<DefaultVertexTransform *>(
             renderConfig.vertexShader.get());
 
     dvt->modelMatrix = glm::mat4(1.f);
@@ -122,18 +121,18 @@ protected:
   }
 
 private:
-  util::OrbitCamera camera0;
-  util::FreeCamera camera1;
+  OrbitCamera camera0;
+  FreeCamera camera1;
 
   // This follows the free camera.
-  util::Frustum frustum1;
+  Frustum frustum1;
 
-  std::shared_ptr<render::InputColorShader> colorShader;
-  geometry::PointField points;
+  std::shared_ptr<InputColorShader> colorShader;
+  PointField points;
 
   int activeCamera = 0;
 
-  util::Camera* getActiveCamera() {
+  Camera* getActiveCamera() {
     if (activeCamera == 0) {
       return &camera0;
     } else {

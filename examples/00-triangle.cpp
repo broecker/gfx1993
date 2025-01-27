@@ -9,7 +9,6 @@
 #include "Shader.h"
 
 using namespace gfx1993;
-using namespace render;
 
 class Demo00 : public DemoApp {
 public:
@@ -17,8 +16,6 @@ public:
 
 protected:
   void init() override {
-    using gfx1993::render::Vertex;
-
     // Keep a separate reference to the vertex shader so we can change the
     // transform easily.
     vertexShader = std::make_shared<DefaultVertexTransform>();

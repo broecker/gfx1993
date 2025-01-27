@@ -19,15 +19,14 @@
 #include "Frustum.h"
 
 using namespace gfx1993;
-using namespace render;
 using namespace glm;
 
 constexpr int TILE_SIZE = 32;
 constexpr int TILE_COUNT = 3;
 
-class PointField : public geometry::Geometry {
+class PointField : public Geometry {
 public:
-  PointField(int width, int depth, const glm::vec3& offset) : bboxGeometry(geometry::Cube::makeLines()) {
+  PointField(int width, int depth, const glm::vec3& offset) : bboxGeometry(Cube::makeLines()) {
     boundingBox.max = boundingBox.min = offset;
 
     // Static lighting;
@@ -37,12 +36,12 @@ public:
     vertices.resize((width)*(depth));
     // Use flat height maps and calculate perlin manually. This enables smooth
     // normals/shading between tiles.
-    heightmap = render::HeightMap::makeFlat(width, depth);
+    heightmap = HeightMap::makeFlat(width, depth);
 
     for (int x = 0; x < width; x++) {
       for (int z = 0; z < depth; z++) {
 
-        render::Vertex v;
+        Vertex v;
         v.color = glm::vec4(0.4,0.6,0.3,1);
         v.normal = glm::vec3(0);
         v.texcoord = glm::vec2((static_cast<float>(x) + offset.x)/width,
@@ -89,27 +88,27 @@ public:
     }
   }
 
-  const util::AABB& getBoundingBox() const { return boundingBox; }
+  const AABB& getBoundingBox() const { return boundingBox; }
 
-  const geometry::Cube& getBoundingBoxGeo() const { return bboxGeometry; }
+  const Cube& getBoundingBoxGeo() const { return bboxGeometry; }
 
   bool            visible;
 
 private:
-  util::AABB      boundingBox;
-  geometry::Cube  bboxGeometry;
+  AABB      boundingBox;
+  Cube  bboxGeometry;
 
-  std::unique_ptr<render::HeightMap> heightmap;
+  std::unique_ptr<HeightMap> heightmap;
 };
 
 class Demo12 : public DemoApp {
 public:
   Demo12() : DemoApp("Demo 12 - Frustum / AABB Culling"), frustum(mat4(1.f), mat4(1.f)) {
-      camera = std::make_unique<util::FreeCamera>(
+      camera = std::make_unique<FreeCamera>(
           glm::perspective(30.f, static_cast<float>(width) / height, 1.f, 200.f), 
           vec3(0, 2, 10));
 
-      frustum = util::Frustum(camera->getProjectionMatrix(), camera->getViewMatrix());
+      frustum = Frustum(camera->getProjectionMatrix(), camera->getViewMatrix());
 
     }
 
@@ -117,7 +116,7 @@ protected:
   void init() override {
     colorShader = std::make_shared<InputColorShader>();
     renderConfig.vertexShader =
-        std::make_shared<render::DefaultVertexTransform>();
+        std::make_shared<DefaultVertexTransform>();
     renderConfig.fragmentShader = colorShader;
 
     for (int x = -TILE_COUNT/2; x <= TILE_COUNT/2; ++x) {
@@ -135,19 +134,19 @@ protected:
     frustum.update(camera->getViewMatrix());
 
     for (const auto& tile : tiles) {
-      util::Frustum::IntersectionResult result = frustum.testIntersection(tile->getBoundingBox());
+      Frustum::IntersectionResult result = frustum.testIntersection(tile->getBoundingBox());
 
-      if (result == util::Frustum::INSIDE) {
+      if (result == Frustum::INSIDE) {
         tile->visible = true;
         tile->setBoundingBoxColor(vec3(0,1,0));
       }
 
-      if (result == util::Frustum::INTERSECTING) {
+      if (result == Frustum::INTERSECTING) {
         tile->visible = true;
         tile->setBoundingBoxColor(vec3(1,1,0));
       }
 
-      if (result == util::Frustum::OUTSIDE) {
+      if (result == Frustum::OUTSIDE) {
         tile->visible = false;
         tile->setBoundingBoxColor(vec3(1,0,0));
       }
@@ -159,8 +158,8 @@ protected:
     renderConfig.clearBuffers(glm::vec4(0.7f, 0.7f, 0.9f, 1));
 
     // reset the render matrices
-    render::DefaultVertexTransform *dvt =
-        dynamic_cast<render::DefaultVertexTransform *>(
+    DefaultVertexTransform *dvt =
+        dynamic_cast<DefaultVertexTransform *>(
             renderConfig.vertexShader.get());
 
     dvt->modelMatrix = glm::mat4(1.f);
@@ -242,11 +241,11 @@ protected:
 
 private:
   // This follows the free camera.
-  util::Frustum frustum;
+  Frustum frustum;
 
   bool frustumCulling = true;
 
-  std::shared_ptr<render::InputColorShader> colorShader;
+  std::shared_ptr<InputColorShader> colorShader;
   std::vector<std::unique_ptr<PointField>>  tiles;
 };
 

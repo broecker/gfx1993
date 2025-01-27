@@ -7,9 +7,7 @@ namespace gfx1993 {
 
 using glm::vec3;
 using glm::vec4;
-using render::Vertex;
 
-namespace geometry {
 
 GridGeometry::GridGeometry() {
   static const int LENGTH = 100;
@@ -58,5 +56,5 @@ GridGeometry::GridGeometry() {
     v.color = vec4(1, 1, 1, 1);
   }
 }
-} // namespace geometry
+
 } // namespace gfx1993

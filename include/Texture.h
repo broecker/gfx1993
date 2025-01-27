@@ -12,8 +12,6 @@
 #include <glm/glm.hpp>
 
 namespace gfx1993 {
-namespace render {
-
 
 template<typename TexelType>
 class TextureInterface {
@@ -138,7 +136,6 @@ private:
   float minHeight, maxHeight;
 };
 
-} // namespace render
 } // namespace gfx1993
 
 #endif // GFX1993_TEXTURE_H

@@ -4,7 +4,6 @@
 #include <string>
 
 namespace gfx1993 {
-namespace util {
 
 void DebugInfo::reset() {
   points = PrimitiveDebugInfo{.processed=0,.drawn=0,.backfaceCulled=0,.fragmentsDrawn=0,.fragmentsDiscarded=0};
@@ -32,5 +31,4 @@ void DebugInfo::print() const {
   printPrimitiveDebugInfo("AABBs", aabbs);
 }
 
-}  // namespace util
 }  // namespace gfx1993

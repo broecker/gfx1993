@@ -14,13 +14,12 @@
 
 using namespace gfx1993;
 
-
-class VisualizeDepthBufferFragShader : public render::FragmentShader {
+class VisualizeDepthBufferFragShader : public FragmentShader {
 public:
-  render::Fragment shadeSingle(const render::ShadingGeometry &in) override {
+  Fragment shadeSingle(const ShadingGeometry &in) override {
     assert(renderDepth != nullptr);
 
-    render::Fragment result;
+    Fragment result;
     result.discard = false;
 
     float depth = renderDepth->getDepth(in.windowCoord.x, in.windowCoord.y);
@@ -30,13 +29,13 @@ public:
     return result;
   };
 
-  std::shared_ptr<render::Depthbuffer> renderDepth;
+  std::shared_ptr<Depthbuffer> renderDepth;
 };
 
 
 // Creates a number of line vertices from a geometry containing triangles.
-static render::IndexList extractLineIndices(const render::IndexList& indices) {
-  render::IndexList result;
+static IndexList extractLineIndices(const IndexList& indices) {
+  IndexList result;
   if (indices.size() % 3 != 0) {
     std::cout << "Warning, geometry does not contain well-formed triangles.\n";
   }
@@ -60,30 +59,30 @@ public:
 
 protected:
   void init() override {
-    gridShader = std::make_shared<render::InputColorShader>();
-    bunnyShader = std::make_shared<render::SingleColorShader>(glm::vec4(0.7, 0.0, 0.0, 1.0));
+    gridShader = std::make_shared<InputColorShader>();
+    bunnyShader = std::make_shared<SingleColorShader>(glm::vec4(0.7, 0.0, 0.0, 1.0));
     depthBufferShader = std::make_shared<VisualizeDepthBufferFragShader>();
 
     renderConfig.vertexShader =
-        std::make_shared<render::DefaultVertexTransform>();
-    renderConfig.fragmentShader = std::make_shared<render::NormalColorShader>();
+        std::make_shared<DefaultVertexTransform>();
+    renderConfig.fragmentShader = std::make_shared<NormalColorShader>();
 
     assert(bunny.loadPly("../models/bunny/reconstruction/bun_zipper_res3.ply"));
     bunny.transform = glm::scale(glm::vec3(125.f));
     bunny.center();
 
-    dynamic_cast<util::OrbitCamera*>(camera.get())->setTarget(bunny.getCenter());
+    dynamic_cast<OrbitCamera*>(camera.get())->setTarget(bunny.getCenter());
 
     // Filled-in by DemoApp. We'll save it so we can swap it out.
     renderTarget = renderConfig.framebuffer;
     depthBuffer = renderConfig.depthbuffer;
-    visualizeBackbufferTarget = std::make_shared<render::Framebuffer>(renderTarget->getWidth(), renderTarget->getHeight());
+    visualizeBackbufferTarget = std::make_shared<Framebuffer>(renderTarget->getWidth(), renderTarget->getHeight());
   }
 
   void renderFrame() override {
     // reset the render matrices
-    render::DefaultVertexTransform *dvt =
-        dynamic_cast<render::DefaultVertexTransform *>(
+    DefaultVertexTransform *dvt =
+        dynamic_cast<DefaultVertexTransform *>(
             renderConfig.vertexShader.get());
     dvt->modelMatrix = glm::mat4(1.f);
     dvt->viewMatrix = camera->getViewMatrix();
@@ -153,17 +152,17 @@ protected:
   }
 
 private:
-  geometry::GridGeometry grid;
-  geometry::PlyGeometry bunny;
+  GridGeometry grid;
+  PlyGeometry bunny;
 
-  std::shared_ptr<render::FragmentShader> gridShader;
-  std::shared_ptr<render::SingleColorShader> lineShader;
-  std::shared_ptr<render::SingleColorShader> bunnyShader;
+  std::shared_ptr<FragmentShader> gridShader;
+  std::shared_ptr<SingleColorShader> lineShader;
+  std::shared_ptr<SingleColorShader> bunnyShader;
   std::shared_ptr<VisualizeDepthBufferFragShader> depthBufferShader;
 
-  std::shared_ptr<render::Framebuffer> renderTarget;
-  std::shared_ptr<render::Depthbuffer> depthBuffer;
-  std::shared_ptr<render::Framebuffer> visualizeBackbufferTarget;
+  std::shared_ptr<Framebuffer> renderTarget;
+  std::shared_ptr<Depthbuffer> depthBuffer;
+  std::shared_ptr<Framebuffer> visualizeBackbufferTarget;
 
   bool drawBackBuffer = false;
   bool drawGrid = true;

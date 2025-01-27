@@ -15,7 +15,6 @@
 #include "Camera.h"
 
 using namespace gfx1993;
-using namespace render;
 using namespace glm;
 
 class Demo10 : public DemoApp {
@@ -24,16 +23,16 @@ public:
 
 protected:
   void init() override {
-    fixedFunctionTransform = std::make_shared<render::DefaultVertexTransform>();
+    fixedFunctionTransform = std::make_shared<DefaultVertexTransform>();
     gridShader = std::make_shared<InputColorShader>();
 
-    skyboxVertShader = std::make_shared<render::SkyboxVertexShader>();
-    skyboxFragShader = std::make_shared<render::SkyboxFragmentShader>(
+    skyboxVertShader = std::make_shared<SkyboxVertexShader>();
+    skyboxFragShader = std::make_shared<SkyboxFragmentShader>(
       vec3(0.7f, 0.7f, 1.f), 
       vec3(0.8f, 0.8f, 0.9f), 
       vec3(0.3f, 0.3f, 0.4f));
 
-    grid = std::make_unique<geometry::GridGeometry>();
+    grid = std::make_unique<GridGeometry>();
 
     teapot.makeIndicesForPointCloud();
     colorShader = std::make_unique<SingleColorShader>(vec4(1,0,1,1));
@@ -84,17 +83,17 @@ protected:
 
 
 private:
-  std::unique_ptr<geometry::GridGeometry> grid;
+  std::unique_ptr<GridGeometry> grid;
 
-  std::shared_ptr<render::DefaultVertexTransform> fixedFunctionTransform;
-  std::shared_ptr<render::FragmentShader> gridShader;
-  std::shared_ptr<render::SingleColorShader> colorShader;
+  std::shared_ptr<DefaultVertexTransform> fixedFunctionTransform;
+  std::shared_ptr<FragmentShader> gridShader;
+  std::shared_ptr<SingleColorShader> colorShader;
 
-  std::shared_ptr<render::SkyboxVertexShader>   skyboxVertShader;
-  std::shared_ptr<render::SkyboxFragmentShader> skyboxFragShader;
-  geometry::Quad skybox;
+  std::shared_ptr<SkyboxVertexShader>   skyboxVertShader;
+  std::shared_ptr<SkyboxFragmentShader> skyboxFragShader;
+  Quad skybox;
 
-  geometry::Teapot teapot;
+  Teapot teapot;
 };
 
 int main(int argc, char **argv) {

@@ -5,11 +5,9 @@
 #include <random>
 
 namespace gfx1993 {
-namespace geometry {
 
 using glm::vec3;
 using glm::vec4;
-using render::Vertex;
 
 std::vector<Vertex> makeVertices(const vec3 sidelength = vec3(1.f)) {
   std::vector<Vertex> vertices = {
@@ -104,5 +102,4 @@ Cube Cube::makeLines(const vec3& sideLength) {
   return cube;
 }
 
-}  // namespace geometry
 }  // namespace gfx1993

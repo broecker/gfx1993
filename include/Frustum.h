@@ -8,11 +8,6 @@
 
 namespace gfx1993 {
 
-using render::IndexList;
-using render::VertexList;
-
-namespace util {
-
 // A frustum, for example for camera debugging and view culling.
 // The 'geometry' should be drawn as lines. It has 8 vertices
 // and 12 edges.
@@ -85,7 +80,6 @@ private:
   VertexList  vertices;
 };
 
-}  // namespace util
 }  // namespace gfx1993
 
 

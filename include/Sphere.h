@@ -4,14 +4,12 @@
 #include "Geometry.h"
 
 namespace gfx1993 {
-namespace geometry {
 
 class Sphere : public Geometry {
 public:
   Sphere(float radius, unsigned int latitudes, unsigned int longitudes);
 };
 
-} // namespace geometry
 } // namespace gfx1993
 
 

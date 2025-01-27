@@ -4,10 +4,6 @@
 #include "Pipeline.h"
 
 namespace gfx1993 {
-namespace geometry {
-
-using render::IndexList;
-using render::VertexList;
 
 class Geometry {
 public:
@@ -40,6 +36,5 @@ protected:
   IndexList indices;
 };
 
-} // namespace geometry
 } // namespace gfx1993
 #endif

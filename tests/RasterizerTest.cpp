@@ -12,7 +12,6 @@
 #include "Pipeline.h"
 
 namespace gfx1993 {
-namespace render {
 namespace {
 
 using glm::ivec2;
@@ -281,7 +280,7 @@ GTEST("Rasterizer Test") {
     config.framebuffer = frameBuffer;
     config.depthbuffer = depthBuffer;
     // A 1x1 px viewport.
-    config.viewport = std::make_shared<render::Viewport>(2, 2, 1, 1);
+    config.viewport = std::make_shared<Viewport>(2, 2, 1, 1);
 
     const vec4 red = vec4(1,0,0,1);
 
@@ -323,5 +322,4 @@ GTEST("Rasterizer Test") {
   }
 }
 
-}  // namespace render
 }  // namespace gfx1993

@@ -7,7 +7,6 @@
 #include "Texture.h"
 
 namespace gfx1993 {
-namespace render {
 
 // Base class for vertex transformations. This is called on all given vertices
 // for a draw operation.
@@ -83,9 +82,9 @@ protected:
 };
 
 // Visualizes u/v (i.e. texture) coordinates.
-class UVShader : public render::FragmentShader {
+class UVShader : public FragmentShader {
 public:
-  Fragment shadeSingle(const render::ShadingGeometry &in) override {
+  Fragment shadeSingle(const ShadingGeometry &in) override {
     return Fragment{glm::vec4(in.texcoord, 0.f, 1.f)};
   }
 };
@@ -104,12 +103,11 @@ public:
                        const glm::vec3& horizon,
                        const glm::vec3& ground) : sky(sky), horizon(horizon), ground(ground) {}
 
-  render::Fragment shadeSingle(const render::ShadingGeometry& in) override;
+  Fragment shadeSingle(const ShadingGeometry& in) override;
 
 private:
   glm::vec3 sky, horizon, ground;
 };
 
-} // namespace render
 } // namespace gfx1993
 #endif

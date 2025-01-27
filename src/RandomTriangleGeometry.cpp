@@ -8,7 +8,6 @@
 using glm::vec3;
 
 namespace gfx1993 {
-namespace geometry {
 
 RandomTriangleGeometry::RandomTriangleGeometry(const vec3 &min, const vec3 &max)
     : boundsMin(min), boundsMax(max) {}
@@ -61,5 +60,4 @@ Vertex RandomTriangleGeometry::createRandomVertex() const {
   return Vertex(glm::vec4(pos, 1.f), normal, glm::vec4(r, g, b, 1.f), texcoord);
 }
 
-}  // namespace geometry
 }  // namespace gfx1993

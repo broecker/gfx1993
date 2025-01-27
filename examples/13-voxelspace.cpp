@@ -20,7 +20,6 @@
 #include "Frustum.h"
 
 using namespace gfx1993;
-using namespace render;
 using namespace glm;
 
 constexpr unsigned int heightmapRes = 128;
@@ -49,25 +48,25 @@ private:
 
 class Demo13 : public DemoApp {
 public:
-  Demo13() : DemoApp("Demo 13 - Voxelspace"), frustum(mat4(1.f), mat4(1.f)), quad(geometry::Quad::makeXZQuad(glm::vec2(heightmapRes, heightmapRes))) {
-      camera = std::make_unique<util::FreeCamera>(
+  Demo13() : DemoApp("Demo 13 - Voxelspace"), frustum(mat4(1.f), mat4(1.f)), quad(Quad::makeXZQuad(glm::vec2(heightmapRes, heightmapRes))) {
+      camera = std::make_unique<FreeCamera>(
           glm::perspective(30.f, static_cast<float>(width) / height, 1.f, 200.f), 
           vec3(0, -2, 10));(vec2(20.f, 0.f));
 
-      frustum = util::Frustum(camera->getProjectionMatrix(), camera->getViewMatrix());
+      frustum = Frustum(camera->getProjectionMatrix(), camera->getViewMatrix());
   }
 
 protected:
   void init() override {
     inputShader = std::make_shared<InputColorShader>();
     renderConfig.vertexShader =
-        std::make_shared<render::DefaultVertexTransform>();
+        std::make_shared<DefaultVertexTransform>();
     renderConfig.fragmentShader = colorShader;
 
-    colorShader = std::make_shared<render::SingleColorShader>(glm::vec4(1,0,1,1));
+    colorShader = std::make_shared<SingleColorShader>(glm::vec4(1,0,1,1));
 
-    heightMap = render::HeightMap::perlinNoise(256, 256, vec3(1, 20.f, 1));
-    points = std::make_unique<geometry::PointField>(heightMap);
+    heightMap = HeightMap::perlinNoise(256, 256, vec3(1, 20.f, 1));
+    points = std::make_unique<PointField>(heightMap);
 
     hmShader = std::make_shared<HeightmapShader>(heightMap);
 
@@ -84,8 +83,8 @@ protected:
 
   void renderOverhead() {
     // reset the render matrices
-    render::DefaultVertexTransform *dvt =
-        dynamic_cast<render::DefaultVertexTransform *>(
+    DefaultVertexTransform *dvt =
+        dynamic_cast<DefaultVertexTransform *>(
             renderConfig.vertexShader.get());
 
     dvt->viewMatrix = glm::lookAt(vec3(0,1,0), vec3(0), vec3(0,0,-1));
@@ -166,8 +165,8 @@ protected:
 
   void renderScene() {
     // reset the render matrices
-    render::DefaultVertexTransform *dvt =
-        dynamic_cast<render::DefaultVertexTransform *>(
+    DefaultVertexTransform *dvt =
+        dynamic_cast<DefaultVertexTransform *>(
             renderConfig.vertexShader.get());
 
     dvt->projectionMatrix = camera->getProjectionMatrix();
@@ -255,21 +254,21 @@ protected:
 
 private:
   // This follows the free camera.
-  util::Frustum frustum;
+  Frustum frustum;
 
   bool frustumCulling = true;
 
   bool drawOverhead = false;
 
   std::shared_ptr<HeightmapShader>            hmShader;
-  std::shared_ptr<render::InputColorShader>   inputShader;
-  std::shared_ptr<render::SingleColorShader>  colorShader;
+  std::shared_ptr<InputColorShader>   inputShader;
+  std::shared_ptr<SingleColorShader>  colorShader;
 
-  std::shared_ptr<render::HeightMap>          heightMap;
-  std::unique_ptr<geometry::PointField>       points;
+  std::shared_ptr<HeightMap>          heightMap;
+  std::unique_ptr<PointField>       points;
 
-  geometry::GridGeometry                      grid;
-  geometry::Quad                              quad;
+  GridGeometry                      grid;
+  Quad                              quad;
 
 };
 

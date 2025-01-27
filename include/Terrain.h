@@ -10,21 +10,19 @@
 #include "Frustum.h"
 
 namespace gfx1993 {
-namespace geometry {
 
 // Creates a simple pointfield based on a height map.
-class PointField : public geometry::Geometry {
+class PointField : public Geometry {
 public:
   PointField(unsigned int width, unsigned int height);
-  PointField(std::shared_ptr<render::HeightMap> heightMap);
+  PointField(std::shared_ptr<HeightMap> heightMap);
 
   // Assigns each point a color whether it's inside or outside the frustum.
-  void updatePoints(const util::Frustum& f);
+  void updatePoints(const Frustum& f);
 private:
-  std::shared_ptr<render::HeightMap> heightmap;
+  std::shared_ptr<HeightMap> heightmap;
 };
 
-} // namespace geometry
 } // namespace gfx1993
 
 #endif

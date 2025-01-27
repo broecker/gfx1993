@@ -8,7 +8,6 @@
 #include <vector>
 
 namespace gfx1993 {
-namespace render {
 
 class Depthbuffer {
 public:
@@ -93,7 +92,6 @@ protected:
   mutable std::vector<unsigned short> depthWrites;
 };
 
-} // namespace render
 } // namespace gfx1993
 
 #endif

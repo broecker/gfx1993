@@ -6,11 +6,9 @@
 #include <random>
 
 namespace gfx1993 {
-namespace geometry {
 
 using glm::vec3;
 using glm::vec4;
-using render::Vertex;
 
 void Geometry::makeFlatShaded() {
   if (indices.size() % 3 != 0) {
@@ -84,8 +82,4 @@ void Geometry::makeIndicesForPointCloud() {
   indices = newIndices;
 }
 
-
-
-
-}  // namespace geometry
 }  // namespace gfx1993

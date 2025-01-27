@@ -4,7 +4,6 @@
 #include <glm/glm.hpp>
 
 namespace gfx1993 {
-namespace util {
 
 class Camera {
 public:
@@ -93,7 +92,6 @@ private:
   }
 };
 
-}  // namespace util
 }  // namespace gfx1993
 
 #endif

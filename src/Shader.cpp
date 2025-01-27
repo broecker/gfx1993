@@ -6,7 +6,6 @@ using glm::vec3;
 using glm::vec4;
 
 namespace gfx1993 {
-namespace render {
 
 VertexOut DefaultVertexTransform::transformSingle(const Vertex &in) {
   mat4 modelViewProjectionMatrix = projectionMatrix * viewMatrix * modelMatrix;
@@ -60,7 +59,7 @@ VertexOut SkyboxVertexShader::transformSingle(const Vertex &in) {
   return out;
 }
 
-Fragment SkyboxFragmentShader::shadeSingle(const render::ShadingGeometry& in) {
+Fragment SkyboxFragmentShader::shadeSingle(const ShadingGeometry& in) {
     Fragment out;
 
     vec3 viewDir = in.varying[0];
@@ -80,5 +79,4 @@ Fragment SkyboxFragmentShader::shadeSingle(const render::ShadingGeometry& in) {
     return out;
   }
 
-}  // namespace render
 }  // namespace gfx1993

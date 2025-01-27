@@ -7,10 +7,6 @@
 #include <iostream>
 
 namespace gfx1993 {
-namespace geometry {
-
-
-using render::Vertex;
 
 constexpr char teapotFile[] = "../models/teapot_5144.tris";
 
@@ -52,19 +48,19 @@ Teapot::Teapot() {
     if (counter == 6) {
       counter = 0;
       
-      render::Vertex v0;
+      Vertex v0;
       v0.position = glm::vec4(vecBuffer[0], 1.f);
       v0.normal = glm::normalize(vecBuffer[1]);
       vertices.push_back(v0);
       indices.push_back(vertices.size()-1);
 
-      render::Vertex v1;
+      Vertex v1;
       v1.position = glm::vec4(vecBuffer[2], 1.f);
       v1.normal = glm::normalize(vecBuffer[3]);
       vertices.push_back(v1);
       indices.push_back(vertices.size()-1);
 
-      render::Vertex v2;
+      Vertex v2;
       v2.position = glm::vec4(vecBuffer[4], 1.f);
       v2.normal = glm::normalize(vecBuffer[5]);
       vertices.push_back(v2);
@@ -73,5 +69,4 @@ Teapot::Teapot() {
   }
 }
 
-}  // namespace geometry
 }  // namespace gfx1993

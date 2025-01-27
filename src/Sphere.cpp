@@ -8,12 +8,10 @@
 #include <random>
 
 namespace gfx1993 {
-namespace geometry {
 
 using glm::vec2;
 using glm::vec3;
 using glm::vec4;
-using render::Vertex;
 
 // How close we want to get to the +/-90.0f poles.
 constexpr float MAX_LATITUDE = 5.f;
@@ -28,7 +26,7 @@ static Vertex makeSphereVertex(float phi, float theta, float radius) {
   glm::vec2 texcoord = glm::vec2(phi, theta) / glm::vec2(90, 360);
   glm::vec4 color = glm::vec4(1);
 
-  return render::Vertex(glm::vec4(pos, 1), normal, color, texcoord);
+  return Vertex(glm::vec4(pos, 1), normal, color, texcoord);
 }
 
 Sphere::Sphere(float radius, unsigned int latitudes, unsigned int longitudes) {
@@ -101,5 +99,4 @@ Sphere::Sphere(float radius, unsigned int latitudes, unsigned int longitudes) {
   }
 }
 
-} // namespace geometry
 } // namespace gfx1993
