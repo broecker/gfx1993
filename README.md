@@ -18,6 +18,19 @@ MIT Open-Source license; see LICENSE in this root folder.
 The project's build file can be created using cmake. Tested on Ubuntu without
 problems but YMMV. 
 
+To build run:
+```sh
+cmake -B build -S . -DCMAKE_INSTALL_PREFIX:PATH=${HOME}
+cd build
+make -j
+
+# Optionally:
+make install
+```
+
+Unit tests can be found under `tests/` and run with `ctest`. Example binaries
+are found in `examples/` and can be ruindividually.
+
 Dependencies: 
 - libglm
 - SDL2
