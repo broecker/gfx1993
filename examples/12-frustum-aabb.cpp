@@ -10,7 +10,6 @@
 
 #include "DemoApp.h"
 #include "Geometry.h"
-#include "CubeGeometry.h"
 #include "Pipeline.h"
 #include "Shader.h"
 #include "Texture.h"

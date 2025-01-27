@@ -8,7 +8,6 @@
 
 #include "Pipeline.h"
 #include "Geometry.h"
-#include "CubeGeometry.h"
 
 namespace gfx1993 {
 

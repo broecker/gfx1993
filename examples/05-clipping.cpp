@@ -11,7 +11,6 @@
 #include "Pipeline.h"
 #include "Camera.h"
 #include "Geometry.h"
-#include "GridGeometry.h"
 #include "Shader.h"
 
 using namespace gfx1993;

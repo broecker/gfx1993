@@ -25,22 +25,18 @@ add_library(gfx1993
     src/BoundingVolumes.cpp
     src/Clipper.cpp
     src/Camera.cpp  
-    src/CubeGeometry.cpp
     src/Depthbuffer.cpp
     src/Framebuffer.cpp
     src/Frustum.cpp
     src/Geometry.cpp
-    src/GridGeometry.cpp
     src/Pipeline.cpp
     src/PlyGeometry.cpp
-    src/Quad.cpp
     src/RandomTriangleGeometry.cpp
     src/Rasterizer.cpp
     src/RenderConfig.cpp
     src/RenderDebugInfo.cpp
     src/RenderProfileInfo.cpp
     src/Shader.cpp
-    src/Sphere.cpp
     src/Teapot.cpp
     src/Terrain.cpp
     src/Texture.cpp

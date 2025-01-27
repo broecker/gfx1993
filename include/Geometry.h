@@ -36,5 +36,44 @@ protected:
   IndexList indices;
 };
 
+// A 2D grid on the XZ plane.
+class GridGeometry : public Geometry {
+public:
+  GridGeometry();
+};
+
+// A three-dimensional cube with solid faces.
+class Cube : public Geometry {
+public:
+  static Cube makeSolid(const glm::vec3& sideLength = glm::vec3(1.f));
+  static Cube makeLines(const glm::vec3& sideLength = glm::vec3(1.f));
+
+private:
+  Cube();
+};
+
+class Quad : public Geometry {
+public:
+  // Constructs a quad from 4 vertices. Assumes the following geometry:
+  // a +---+ d
+  //   | \ |
+  // b +---+ c
+  // The size will be [-1..1] along the XY axis and 0 on the z axis. It can be
+  // used for screen-space rendering.
+  // The quad is double-sided.
+  explicit Quad(const glm::vec4 &color);
+
+  // Single-size quad with the given size. The center point will be at (0,0,0).
+  static Quad makeXZQuad(const glm::vec2& size);
+};
+
+class Sphere : public Geometry {
+public:
+  Sphere(float radius, unsigned int latitudes, unsigned int longitudes);
+};
+
+
+
+
 } // namespace gfx1993
 #endif

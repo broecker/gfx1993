@@ -7,7 +7,7 @@
 #include "DemoApp.h"
 #include "Pipeline.h"
 #include "Camera.h"
-#include "GridGeometry.h"
+#include "Geometry.h"
 #include "Shader.h"
 
 using namespace gfx1993;

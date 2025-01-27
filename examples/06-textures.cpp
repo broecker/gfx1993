@@ -6,7 +6,7 @@
 #include <glm/glm.hpp>
 
 #include "DemoApp.h"
-#include "Quad.h"
+#include "Geometry.h"
 #include "Pipeline.h"
 #include "Shader.h"
 #include "Texture.h"

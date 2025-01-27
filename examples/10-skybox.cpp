@@ -7,8 +7,7 @@
 #include <glm/gtx/transform.hpp>
 
 #include "DemoApp.h"
-#include "GridGeometry.h"
-#include "Quad.h"
+#include "Geometry.h"
 #include "Teapot.h"
 #include "Pipeline.h"
 #include "Shader.h"
