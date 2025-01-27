@@ -6,14 +6,14 @@
 
 #include <SDL2/SDL.h>
 
-#include "base/Pipeline.h"
-#include "util/Camera.h"
-#include "rendering/Depthbuffer.h"
-#include "rendering/Framebuffer.h"
-#include "rendering/RenderConfig.h"
-#include "rendering/Rasterizer.h"
-#include "rendering/Shader.h"
-#include "rendering/Viewport.h"
+#include "Pipeline.h"
+#include "Camera.h"
+#include "Depthbuffer.h"
+#include "Framebuffer.h"
+#include "RenderConfig.h"
+#include "Rasterizer.h"
+#include "Shader.h"
+#include "Viewport.h"
 
 class DemoApp {
 public:

@@ -6,10 +6,10 @@
 #include <glm/glm.hpp>
 
 #include "DemoApp.h"
-#include "geometry/Quad.h"
-#include "base/Pipeline.h"
-#include "rendering/Shader.h"
-#include "rendering/Texture.h"
+#include "Quad.h"
+#include "Pipeline.h"
+#include "Shader.h"
+#include "Texture.h"
 
 using namespace gfx1993;
 

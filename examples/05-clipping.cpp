@@ -8,11 +8,11 @@
 
 
 #include "DemoApp.h"
-#include "base/Pipeline.h"
-#include "util/Camera.h"
-#include "geometry/Geometry.h"
-#include "geometry/GridGeometry.h"
-#include "rendering/Shader.h"
+#include "Pipeline.h"
+#include "Camera.h"
+#include "Geometry.h"
+#include "GridGeometry.h"
+#include "Shader.h"
 
 using namespace gfx1993;
 

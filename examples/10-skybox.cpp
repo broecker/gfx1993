@@ -7,12 +7,12 @@
 #include <glm/gtx/transform.hpp>
 
 #include "DemoApp.h"
-#include "geometry/GridGeometry.h"
-#include "geometry/Quad.h"
-#include "geometry/Teapot.h"
-#include "base/Pipeline.h"
-#include "rendering/Shader.h"
-#include "util/Camera.h"
+#include "GridGeometry.h"
+#include "Quad.h"
+#include "Teapot.h"
+#include "Pipeline.h"
+#include "Shader.h"
+#include "Camera.h"
 
 using namespace gfx1993;
 using namespace render;

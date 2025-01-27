@@ -8,13 +8,13 @@
 #include <glm/gtc/random.hpp>
 
 #include "DemoApp.h"
-#include "geometry/Geometry.h"
-#include "geometry/Terrain.h"
-#include "base/Pipeline.h"
-#include "rendering/Shader.h"
-#include "rendering/Texture.h"
-#include "util/Camera.h"
-#include "util/Frustum.h"
+#include "Geometry.h"
+#include "Terrain.h"
+#include "Pipeline.h"
+#include "Shader.h"
+#include "Texture.h"
+#include "Camera.h"
+#include "Frustum.h"
 
 using namespace gfx1993;
 using namespace render;

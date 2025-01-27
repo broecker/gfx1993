@@ -5,8 +5,8 @@
 #include <glm/glm.hpp>
 
 #include "DemoApp.h"
-#include "../base/Pipeline.h"
-#include "../rendering/Shader.h"
+#include "Pipeline.h"
+#include "Shader.h"
 
 using namespace gfx1993;
 using namespace render;

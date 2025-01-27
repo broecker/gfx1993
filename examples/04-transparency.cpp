@@ -7,9 +7,9 @@
 #include <glm/gtx/io.hpp>
 #include <glm/gtx/transform.hpp>
 
-#include "base/Pipeline.h"
-#include "geometry/Quad.h"
-#include "rendering/Shader.h"
+#include "Pipeline.h"
+#include "Quad.h"
+#include "Shader.h"
 #include "DemoApp.h"
 
 using namespace gfx1993;

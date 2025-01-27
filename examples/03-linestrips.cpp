@@ -5,10 +5,10 @@
 #include <glm/gtx/polar_coordinates.hpp>
 
 #include "DemoApp.h"
-#include "base/Pipeline.h"
-#include "util/Camera.h"
-#include "geometry/GridGeometry.h"
-#include "rendering/Shader.h"
+#include "Pipeline.h"
+#include "Camera.h"
+#include "GridGeometry.h"
+#include "Shader.h"
 
 using namespace gfx1993;
 

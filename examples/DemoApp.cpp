@@ -1,6 +1,6 @@
 #include "DemoApp.h"
 
-#include "../base/config.h"
+#include "config.h"
 
 #include <cstdlib>
 #include <iostream>

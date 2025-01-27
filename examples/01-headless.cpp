@@ -6,12 +6,12 @@
 #include <glm/gtc/constants.hpp>
 #include <glm/gtx/transform2.hpp>
 
-#include "base/Pipeline.h"
-#include "rendering/Depthbuffer.h"
-#include "rendering/Framebuffer.h"
-#include "rendering/Rasterizer.h"
-#include "rendering/Shader.h"
-#include "rendering/Viewport.h"
+#include "Pipeline.h"
+#include "Depthbuffer.h"
+#include "Framebuffer.h"
+#include "Rasterizer.h"
+#include "Shader.h"
+#include "Viewport.h"
 
 unsigned int width = 640, height = 480;
 std::string binaryName;

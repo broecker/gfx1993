@@ -1,4 +1,6 @@
-cmake_minimum_required(VERSION 3.5.0)
+cmake_minimum_required(VERSION 3.9.0)
+project(gfx1993-demos)
+
 
 # Compile + link setup
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLM_ENABLE_EXPERIMENTAL -O0 -fopenmp")
@@ -6,10 +8,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLM_ENABLE_EXPERIMENTAL -O0 -fopenmp")
 cmake_policy(SET CMP0015 NEW)
 
 # Local dependencies.
-include_directories(..)
-link_directories(../common)
-link_directories(../geometry)
-link_directories(../rendering)
+include_directories(../include)
 
 find_package(SDL2 REQUIRED)
 include_directories(${SDL2_INCLUDE_DIRS})
@@ -17,10 +16,7 @@ find_package(glm REQUIRED)
 
 # Library and demo app harness
 add_library(gfx93-demo-app STATIC DemoApp.cpp)
-target_link_libraries(gfx93-demo-app gfx93-util gfx93-geometry gfx93-rendering)
-target_link_libraries(gfx93-demo-app ${SDL2_LIBRARIES} )
-target_link_libraries(gfx93-demo-app glm::glm)
-
+target_link_libraries(gfx93-demo-app PRIVATE gfx1993 ${SDL2_LIBRARIES} glm::glm)
 
 # A simple rotating triangle
 add_executable(00-triangle 00-triangle.cpp)
@@ -28,7 +24,7 @@ target_link_libraries(00-triangle gfx93-demo-app)
 
 # A simple rotating triangle, this time without OpenGL
 add_executable(01-headless 01-headless.cpp)
-target_link_libraries(01-headless gfx93-util gfx93-geometry gfx93-rendering)
+target_link_libraries(01-headless gfx1993 glm::glm)
 
 # Basic camera controls and geometry loading
 add_executable(02-geometry 02-geometry.cpp)

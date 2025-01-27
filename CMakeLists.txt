@@ -1,15 +1,16 @@
 cmake_minimum_required(VERSION 3.9.0)
 project(gfx1993 VERSION 0.5.0 LANGUAGES CXX)
 
-set(DEFAULT_BUILD_TYPE "Debug")
+set(DEFAULT_BUILD_TYPE "Debug")  
+
+option(BUILD_SHARED_LIBS "Build using shared libraries" OFF)
 
 # Compile + link setup
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O2 -DGLM_ENABLE_EXPERIMENTAL")
 set(CMAKE_CXX_STANDARD 14)
 
 # Requirements
-find_package(SDL2 REQUIRED)
-include_directories(${SDL2_INCLUDE_DIRS})
+
 find_package(glm REQUIRED)
 find_package(absl CONFIG REQUIRED)
 
@@ -89,6 +90,8 @@ install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAM
 install(EXPORT Gfx1993Config DESTINATION share/gfx1993/cmake)
 
 export(TARGETS ${PROJECT_NAME} FILE Gfx1993Config.cmake)
+
+add_subdirectory(examples)
 
 enable_testing()
 add_subdirectory(tests)

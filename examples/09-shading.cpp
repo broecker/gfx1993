@@ -6,13 +6,13 @@
 #include <glm/glm.hpp>
 
 #include "DemoApp.h"
-#include "geometry/CubeGeometry.h"
-#include "geometry/GridGeometry.h"
-#include "geometry/PlyGeometry.h"
-#include "geometry/Quad.h"
-#include "geometry/Sphere.h"
-#include "base/Pipeline.h"
-#include "rendering/Shader.h"
+#include "CubeGeometry.h"
+#include "GridGeometry.h"
+#include "PlyGeometry.h"
+#include "Quad.h"
+#include "Sphere.h"
+#include "Pipeline.h"
+#include "Shader.h"
 
 using namespace gfx1993;
 using namespace glm;
