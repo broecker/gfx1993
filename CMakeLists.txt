@@ -22,31 +22,31 @@ if (OPENMP_FOUND)
 endif()
 
 
-set(SOURCE_FILES
-    src/BoundingVolumes.cpp
-    src/Clipper.cpp
-    src/Camera.cpp  
-    src/CubeGeometry.cpp
-    src/Depthbuffer.cpp
-    src/Framebuffer.cpp
-    src/Frustum.cpp
-    src/Geometry.cpp
-    src/GridGeometry.cpp
-    src/Pipeline.cpp
-    src/PlyGeometry.cpp
-    src/Quad.cpp
-    src/RandomTriangleGeometry.cpp
-    src/Rasterizer.cpp
-    src/RenderConfig.cpp
-    src/RenderDebugInfo.cpp
-    src/RenderProfileInfo.cpp
-    src/Shader.cpp
-    src/Sphere.cpp
-    src/Teapot.cpp
-    src/Terrain.cpp
-    src/Texture.cpp
-    src/Viewport.cpp
-)
+# set(SOURCE_FILES
+#     src/BoundingVolumes.cpp
+#     src/Clipper.cpp
+#     src/Camera.cpp  
+#     src/CubeGeometry.cpp
+#     src/Depthbuffer.cpp
+#     src/Framebuffer.cpp
+#     src/Frustum.cpp
+#     src/Geometry.cpp
+#     src/GridGeometry.cpp
+#     src/Pipeline.cpp
+#     src/PlyGeometry.cpp
+#     src/Quad.cpp
+#     src/RandomTriangleGeometry.cpp
+#     src/Rasterizer.cpp
+#     src/RenderConfig.cpp
+#     src/RenderDebugInfo.cpp
+#     src/RenderProfileInfo.cpp
+#     src/Shader.cpp
+#     src/Sphere.cpp
+#     src/Teapot.cpp
+#     src/Terrain.cpp
+#     src/Texture.cpp
+#     src/Viewport.cpp
+# )
 add_library(gfx1993
     src/BoundingVolumes.cpp
     src/Clipper.cpp
@@ -79,7 +79,7 @@ target_include_directories(gfx1993 PUBLIC
     PRIVATE src)
 
 include(GNUInstallDirs)
-install(TARGETS ${PROJECT_NAME} EXPORT Gfx1993Config  
+install(TARGETS ${PROJECT_NAME} EXPORT gfx1993-config  
     ARCHIVE  DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY  DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME  DESTINATION ${CMAKE_INSTALL_BINDIR})
@@ -87,9 +87,9 @@ install(TARGETS ${PROJECT_NAME} EXPORT Gfx1993Config
 
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME})
 
-install(EXPORT Gfx1993Config DESTINATION share/gfx1993/cmake)
+install(EXPORT gfx1993-config DESTINATION share/gfx1993/cmake)
 
-export(TARGETS ${PROJECT_NAME} FILE Gfx1993Config.cmake)
+export(TARGETS ${PROJECT_NAME} FILE gfx1993-config.cmake)
 
 add_subdirectory(examples)
 
