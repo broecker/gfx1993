@@ -6,9 +6,9 @@
 #include <glm/glm.hpp>
 
 #include "DemoApp.h"
+#include "DemoUtils.h"
 #include "Geometry.h"
 #include "PlyGeometry.h"
-#include "Teapot.h"
 #include "Pipeline.h"
 #include "Shader.h"
 

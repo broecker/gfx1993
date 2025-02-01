@@ -8,8 +8,8 @@
 #include <glm/gtx/transform.hpp>
 
 #include "DemoApp.h"
+#include "DemoUtils.h"
 #include "Geometry.h"
-#include "Teapot.h"
 #include "Pipeline.h"
 #include "Shader.h"
 #include "BoundingVolumes.h"

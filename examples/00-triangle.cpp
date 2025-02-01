@@ -13,7 +13,9 @@ using glm::vec4;
 
 class Demo00 : public DemoApp {
 public:
-  Demo00() : DemoApp("Demo 00 - Hello Triangle"), rotationAngle(0) {}
+  Demo00() : DemoApp("Demo 00 - Hello Triangle"), rotationAngle(0) {
+    
+  }
 
 protected:
   void init() override {
