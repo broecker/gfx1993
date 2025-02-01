@@ -1,11 +1,9 @@
-#ifndef RANDOM_TRIANGLE_GEOMETRY_INCLUDED
-#define RANDOM_TRIANGLE_GEOMETRY_INCLUDED
+#ifndef GFX1993_DEMOUTILS_INCLUDED
+#define GFX1993_DEMOUTILS_INCLUDED
 
 #include "Geometry.h"
 
-namespace render {
-struct Vertex;
-}
+#include <glm/glm.hpp>
 
 namespace gfx1993 {
 
@@ -28,6 +26,6 @@ private:
   void addTriangle(const Vertex &a, const Vertex &b, const Vertex &c);
 };
 
-} // namespace gfx1993
+}  // namespace gfx1993
 
-#endif
+#endif GFX1993_DEMOUTILS_INCLUDED

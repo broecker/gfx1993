@@ -1,4 +1,4 @@
-#include "RandomTriangleGeometry.h"
+#include "DemoUtils.h"
 #include "Pipeline.h"
 
 #include <glm/gtc/random.hpp>

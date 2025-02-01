@@ -31,7 +31,6 @@ add_library(gfx1993
     src/Geometry.cpp
     src/Pipeline.cpp
     src/PlyGeometry.cpp
-    src/RandomTriangleGeometry.cpp
     src/Rasterizer.cpp
     src/RenderConfig.cpp
     src/RenderDebugInfo.cpp
