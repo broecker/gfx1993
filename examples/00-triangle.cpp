@@ -9,6 +9,7 @@
 #include "Shader.h"
 
 using namespace gfx1993;
+using glm::vec4;
 
 class Demo00 : public DemoApp {
 public:
@@ -23,12 +24,9 @@ protected:
     renderConfig.fragmentShader = std::make_shared<InputColorShader>();
 
     // Create the triangle geometry
-    vertices.push_back(Vertex(glm::vec4(-5, 0, 0, 1), glm::vec3(1, 0, 0),
-                              glm::vec4(0, 0, 1, 1), glm::vec2(0, 0)));
-    vertices.push_back(Vertex(glm::vec4(0, 5, 0, 1), glm::vec3(1, 0, 0),
-                              glm::vec4(1, 0, 0, 1), glm::vec2(0, 0)));
-    vertices.push_back(Vertex(glm::vec4(5, 0, 0, 1), glm::vec3(1, 0, 0),
-                              glm::vec4(0, 1, 0, 1), glm::vec2(0, 0)));
+    vertices.push_back(Vertex(vec4( 0,  5, 0, 1), vec4(0, 0, 1, 1)));
+    vertices.push_back(Vertex(vec4(-5, -5, 0, 1), vec4(1, 0, 0, 1)));
+    vertices.push_back(Vertex(vec4( 5, -5, 0, 1), vec4(0, 1, 0, 1)));
 
     indices.push_back(0);
     indices.push_back(2);
@@ -45,7 +43,7 @@ protected:
 
   void renderFrame() override {
     // clear the buffers
-    renderConfig.clearBuffers(glm::vec4(0, 0, 0.2f, 1));
+    renderConfig.clearBuffers(vec4(0, 0, 0.2f, 1));
 
     // reset the render matrices
     vertexShader->modelMatrix = glm::rotate(rotationAngle, glm::vec3(0, 1, 0));

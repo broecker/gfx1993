@@ -44,6 +44,12 @@ struct Vertex {
         color(0, 0, 0, 1),
         texcoord(0.f) {}
 
+  inline explicit Vertex(const glm::vec4 &pos, const glm::vec4& col)
+      : position(pos),
+        normal(0.f),
+        color(col),
+        texcoord(0.f) {}
+
   inline Vertex(const glm::vec4 &pos, const glm::vec3 &n, const glm::vec4 &col,
                 const glm::vec2 &tc)
       : position(pos),
