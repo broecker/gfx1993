@@ -95,11 +95,9 @@ void DemoApp::blitSurface() {
   // Resample buffer and switch to BGRA format.
   {
     const auto resampleProf = rasterizer->getProfile().startTiming("app.blit.resample");
-    #if GFX1993_DEMO_USE_OPENMP
     #pragma omp parallel for
-    #endif
-    for (unsigned int w = 0; w < width; ++w) {
-      for (unsigned int h = 0; h < height; ++h) {
+    for (unsigned int h = 0; h < height; ++h) {
+      for (unsigned int w = 0; w < width; ++w) {
         glm::vec2 coord(static_cast<float>(w) / width,
                         static_cast<float>(h) / height);
 
