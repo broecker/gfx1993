@@ -37,7 +37,6 @@ add_library(gfx1993
     src/RenderProfileInfo.cpp
     src/Shader.cpp
     src/Teapot.cpp
-    src/Terrain.cpp
     src/Texture.cpp
     src/Viewport.cpp
 )
