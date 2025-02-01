@@ -53,14 +53,18 @@ void DemoApp::run(int argc, char **argv) {
   running = true;
 
   const int64_t startTicks = SDL_GetTicks64();
-	int64_t lastSecond = startTicks;
+	int64_t lastTicks = startTicks;
+  int64_t lastSecond = startTicks;
 
   while (running) {
     // Performance measurements.
 		frames++;
 		totalFrames++;
 		const int64_t nowTicks = SDL_GetTicks64();
-		const float dt = static_cast<float>(nowTicks) / lastSecond / 1000.0;
+
+    const int64_t ticks = nowTicks - lastTicks;
+    float dt = static_cast<float>(ticks) / 1000.f;
+    lastTicks = nowTicks;
 
     handleEvents();
 
@@ -80,6 +84,8 @@ void DemoApp::run(int argc, char **argv) {
 			frames = 0;
 			lastSecond = nowTicks;
 		}
+
+    SDL_Delay(0);
   }  
 
   SDL_DestroyWindow(window);
@@ -118,16 +124,6 @@ void DemoApp::blitSurface() {
     auto copyProf = rasterizer->getProfile().startTiming("app.blit.copy");
     memcpy(surface->pixels, &pixels[0], pixels.size());
   }
-
-  // Does not work.
-  // SDL_ConvertPixels(renderConfig.framebuffer->getWidth(),
-  //                   renderConfig.framebuffer->getHeight(),
-  //                   SDL_PIXELFORMAT_RGBA32,
-  //                   &pixels[0],
-  //                   renderConfig.framebuffer->getWidth(),
-  //                   surface->format->format,
-  //                   surface->pixels,
-  //                   surface->pitch);
 
   SDL_UnlockSurface(surface);
 }
