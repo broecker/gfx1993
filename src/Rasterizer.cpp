@@ -454,7 +454,7 @@ void Rasterizer::drawTriangle(const RenderConfig &renderConfig,
         float z =
             lambda.x * posA_win.z + lambda.y * posB_win.z + lambda.z * posC_win.z;
 
-        if (w0 >= 0 && w1 >= 0 && w2 >= 0) {
+        if (w0 <= 0 && w1 <= 0 && w2 <= 0) {
           ShadingGeometry sgeo = t.rasterize(lambda);
           sgeo.windowCoord = p;
           sgeo.depth = z;

@@ -109,7 +109,7 @@ void DemoApp::blitSurface() {
 
         const glm::vec4& pixel = renderConfig.framebuffer->getPixel(coord);
         // Also flip the y-axis.
-        SDL_Color& c = pixels[w + (height-h)*width];
+        SDL_Color& c = pixels[w + h*width];
 
         // Also switch to BGRA.
         c.r = static_cast<Uint8>(pixel.b * 255);

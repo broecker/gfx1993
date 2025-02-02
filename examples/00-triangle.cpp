@@ -24,15 +24,15 @@ protected:
     renderConfig.fragmentShader = std::make_shared<InputColorShader>();
 
     // Create the triangle geometry
-    vertices.push_back(Vertex(vec4( 0,  5, 0, 1), vec4(0, 0, 1, 1)));
-    vertices.push_back(Vertex(vec4(-5, -5, 0, 1), vec4(1, 0, 0, 1)));
-    vertices.push_back(Vertex(vec4( 5, -5, 0, 1), vec4(0, 1, 0, 1)));
+    vertices.push_back(Vertex(vec4( 0,  1, 0, 1), vec4(0, 0, 1, 1)));
+    vertices.push_back(Vertex(vec4(-1, -1, 0, 1), vec4(1, 0, 0, 1)));
+    vertices.push_back(Vertex(vec4( 1, -1, 0, 1), vec4(0, 1, 0, 1)));
 
     indices.push_back(0);
-    indices.push_back(2);
     indices.push_back(1);
     indices.push_back(2);
     indices.push_back(0);
+    indices.push_back(2);
     indices.push_back(1);
   }
 

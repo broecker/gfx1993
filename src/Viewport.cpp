@@ -1,28 +1,38 @@
 #include "Viewport.h"
 
+using glm::ivec2;
+using glm::vec3;
+using glm::vec4;
+using glm::mat4;
+
 namespace gfx1993 {
 
 Viewport::Viewport(unsigned int x, unsigned int y, unsigned int w,
                    unsigned int h)
     : origin(x, y), size(w, h) {}
 
-Viewport::Viewport(const glm::ivec2& origin, const glm::ivec2& size)
+Viewport::Viewport(const ivec2& origin, const ivec2& size)
   : origin(origin), size(size) {}
 
-glm::vec3 Viewport::calculateWindowCoordinates(const glm::vec3 &ndc) const {
-  const float rangeFar = 1.f;
-  const float rangeNear = 0.f;
+vec3 Viewport::calculateWindowCoordinates(const vec4 &ndc) const {
+  const float vr = origin.x + size.x;
+  const float vl = origin.x;
+  const float vt = origin.y;
+  // This defines the window origin as top-left, with y coordinates increasing
+  // to the bottom of the viewport / window.
+  const float vb = origin.y + size.y;
 
-  glm::vec2 pos = glm::vec2(ndc.x, ndc.y) * glm::vec2(size) / 2.f +
-                  glm::vec2(origin + size / 2);
-  float z =
-      ((rangeFar - rangeNear) / 2.f) * ndc.z + (rangeFar + rangeNear) / 2.f;
+  const mat4 viewportTransform(
+    vec4((vr-vl) / 2.f, 0.f, 0.f, 0.f),
+    vec4(0.f, (vt-vb) / 2.f, 0.f, 0.f),
+    vec4(0.f, 0.f, 0.5f, 0.f),
+    vec4((vr+vl)/2.f, (vt+vb)/2.f, 0.5f, 1.f));
 
-  return glm::vec3(pos.x, pos.y, z);
+  return vec3(viewportTransform * ndc);
 }
 
-bool Viewport::isInside(const glm::ivec2 &p) const {
-  glm::ivec2 t = p - origin;
+bool Viewport::isInside(const ivec2 &p) const {
+  ivec2 t = p - origin;
   return (t.x >= 0 && t.y >=0 && t.x < size.x && t.y < size.y);
 }
 

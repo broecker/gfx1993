@@ -13,7 +13,10 @@ public:
 
   bool isInside(const glm::ivec2 &p) const;
 
-  glm::vec3 calculateWindowCoordinates(const glm::vec3 &ndc) const;
+  // Transforms the given NDC vertex coordinates in [-1..1] into window
+  // coordinates based on this viewport. The viewport is defined with a top-left
+  // origin.
+  glm::vec3 calculateWindowCoordinates(const glm::vec4 &ndc) const;
 
   glm::ivec2 origin;
   glm::ivec2 size;
