@@ -200,7 +200,7 @@ void Rasterizer::drawLineStrip(const RenderConfig &renderConfig,
   // We can reuse the existing code by expanding the current indices. We expand
   // the indices by doubling the internal vertices; i.e. [0,2,4,6] ->
   // [0,2,2,4,4,6]
-  IndexList expandedIndices(indices.size() - 2);
+  IndexList expandedIndices;
 
   for (size_t i = 0; i < indices.size() - 1; ++i) {
     expandedIndices.push_back(indices[i + 0]);
