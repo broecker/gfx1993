@@ -101,14 +101,17 @@ struct LinePrimitive {
 struct TrianglePrimitive {
   VertexOut a, b, c;
   glm::vec3 surfaceNormal;
+  uint64_t  primitiveId;
 
   inline TrianglePrimitive(const VertexOut &a_,
                            const VertexOut &b_,
-                           const VertexOut &c_)
+                           const VertexOut &c_,
+                           uint64_t primId = 0)
       : a(a_), b(b_), c(c_),
         surfaceNormal(glm::normalize(
           glm::cross(b_.worldPosition - a_.worldPosition, 
-                       c_.worldPosition - a_.worldPosition))) {}
+                       c_.worldPosition - a_.worldPosition))),
+        primitiveId(primId) {}
 
   ShadingGeometry rasterize(const glm::vec3 &bary) const;
 

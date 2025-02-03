@@ -16,7 +16,7 @@ using glm::epsilonEqual;
 
 template<class glm_type>
 inline bool equal(const glm_type& a, const glm_type& b) { 
-  return glm::epsilonEqual(a, b, std::numeric_limits<float>::min());
+  return epsilonEqual(a, b, std::numeric_limits<float>::min());
 }
 
 PointPrimitive makePoint(const vec3 &p) {
@@ -77,7 +77,7 @@ GTEST("Clipper Plane Test") {
     EXPECT(plane.distance(vec3(0, -1, 0)) == -1);
   }
 
-  SHOULD("Check frontspace") {
+  SHOULD("Check coplanar frontspace") {
     // Origin plane, with normal pointing up.
     Clipper::Plane plane(vec3(0, 1, 0), 0);
 
@@ -93,16 +93,14 @@ GTEST("Clipper Plane Test") {
     EXPECT(!plane.inFrontSpace(vec3(0, -2, 0)));
   }
 
-  SHOULD("Check frontspace 2") {
+  SHOULD("Check frontspace") {
     // Origin plane, with normal pointing up.
     Clipper::Plane plane(vec3(0, 1, 0), 0);
 
     // Point 2 units above plane along the normal -- in front space.
     EXPECT(plane.inFrontSpace(vec3(0, 2, 0)));
   }
-};
 
-GTEST("Clipper Test") {
   SHOULD("Create Ndc planes") {
     Clipper clipper;
 
@@ -121,7 +119,9 @@ GTEST("Clipper Test") {
     EXPECT(equal(clipped[2].a.clipPosition, vec4(0, 0, -1, 1)));
     EXPECT(equal(clipped[2].b.clipPosition, vec4(0, 0, 1, 1)));
   }
+};
 
+GTEST("Clipper Point Test") {
   SHOULD("Clip points against single plane") {
     // Origin plane, with normal pointing up.
     Clipper clipper(Clipper::Plane(vec3(0, 1, 0), 0));
@@ -176,7 +176,8 @@ GTEST("Clipper Test") {
     EXPECT(equal(clipped[0].p.clipPosition, vec4(0, 0.5, 0, 1)));
     EXPECT(equal(clipped[1].p.clipPosition, vec4(0, 0, 0, 1)));
   }
-
+}
+GTEST("Clipper Line Test") {
   SHOULD("Clip single line") {
     // Origin plane, with normal pointing up.
     Clipper clipper(Clipper::Plane(vec3(0, 1, 0), 0));
@@ -276,8 +277,6 @@ GTEST("Clipper Test") {
 
     LinePrimitiveList clipped = clipper.clipLines(lines);
 
-    std::clog << "Clipped " << clipped.size() << std::endl;
-
     ASSERT(clipped.size() == 1);
     EXPECT(equal(clipped[0].a.clipPosition, vec4(0, 0, 0, 1)));
     EXPECT(equal(clipped[0].b.clipPosition, vec4(2, 2, 0, 1)));
@@ -299,7 +298,9 @@ GTEST("Clipper Test") {
     EXPECT(equal(clipped[0].b.clipPosition, vec4(-5, 0, 2, 1)));
     EXPECT(equal(clipped[0].b.texcoord, vec2(1)));
   }
+}
 
+GTEST("Clipper Triangle Test") {
   SHOULD("Not clip triangle in frontspace") {
     // YZ plane at origin with normal at +Y
     Clipper clipper(Clipper::Plane(vec3(0, 1, 0), 0));
@@ -409,22 +410,62 @@ GTEST("Clipper Test") {
 
     TrianglePrimitiveList triangles;
     triangles.push_back(
-        makeTriangle(vec3(2, -1, 0), vec3(-2, -1, 0), vec3(0, 1, 0)));
+        makeTriangle(vec3(0, 1, 0), vec3(-2, -1, 0), vec3(2, 1, 0)));
 
     auto clipped = clipper.clipTriangles(triangles);
 
-    ASSERT(clipped.size() == 2);
+    ASSERT(clipped.size() == 1);
     // Top position;
     EXPECT(equal(clipped[0].a.clipPosition, vec4(2, -1, 0, 1)));
     // Bottom left unchanged.
     EXPECT(equal(clipped[0].b.clipPosition, vec4(-2, -1, 0, 1))); 
     // Right position newly interpolated.
     EXPECT(equal(clipped[0].c.clipPosition, vec4(1, 0, 0, 1)));
+  }
 
-    // Newly created triangle
-    EXPECT(equal(clipped[1].a.clipPosition, vec4(1, 0, 0, 1)));
-    EXPECT(equal(clipped[1].b.clipPosition, vec4(-2, -1, 0, 1)));
-    EXPECT(equal(clipped[1].c.clipPosition, vec4(-1, 0, 0, 1)));
+
+  SHOULD("Clip triangle against vertical plane") {
+    auto planes = std::vector<Clipper::Plane>{
+      Clipper::Plane(vec3(1,0,0), 0)
+    };
+
+    auto triangles = TrianglePrimitiveList{
+      makeTriangle(vec3(0,2,0), vec3(-4,-2,0), vec3(4,-2,0))
+    };
+
+    Clipper clipper(planes);
+
+    auto clipped = clipper.clipTriangles(triangles);
+
+    // Do not create new triangles.
+    ASSERT(clipped.size() == 1);
+
+    // Keep the 'right' triangle.
+    EXPECT(equal(clipped[0].a.clipPosition, vec4(0,2,0,1)));
+    EXPECT(equal(clipped[0].a.clipPosition, vec4(0,-2,0,1)));
+    EXPECT(equal(clipped[0].a.clipPosition, vec4(4,-2,0,1)));
+  }
+
+  SHOULD("Clip triangle against vertical plane 2") {
+    auto planes = std::vector<Clipper::Plane>{
+      Clipper::Plane(vec3(-1,0,0), 0)
+    };
+
+    auto triangles = TrianglePrimitiveList{
+      makeTriangle(vec3(0,2,0), vec3(-4,-2,0), vec3(4,-2,0))
+    };
+
+    Clipper clipper(planes);
+
+    auto clipped = clipper.clipTriangles(triangles);
+
+    // Do not create new triangles.
+    ASSERT(clipped.size() == 1);
+
+    // Keep the 'left' triangle.
+    EXPECT(equal(clipped[0].a.clipPosition, vec4(0,2,0,1)));
+    EXPECT(equal(clipped[0].a.clipPosition, vec4(-4,-2,0,1)));
+    EXPECT(equal(clipped[0].a.clipPosition, vec4(0,-2,0,1)));
   }
 
   SHOULD("Clip triangle against multiple planes") {
@@ -435,25 +476,16 @@ GTEST("Clipper Test") {
     };
     Clipper clipper(planes);
 
-    TrianglePrimitiveList triangles;
-    triangles.push_back(
-        makeTriangle(vec3(4, -2, 0), vec3(-4, -2, 0), vec3(0, 2, 0)));
+    TrianglePrimitiveList triangles { 
+      makeTriangle(vec3(0, 2, 0), vec3(-4, -2, 0), vec3(4, -2, 0)) };
 
     auto clipped = clipper.clipTriangles(triangles);
 
-    ASSERT(clipped.size() == 2);
-
     // Triangle is clipped by the vertical and horizontal planes.
-    EXPECT(equal(clipped[0].a.clipPosition, vec4(2, 0, 0, 1)));
+    ASSERT(clipped.size() == 1);
+    EXPECT(equal(clipped[0].a.clipPosition, vec4(0, 2, 0, 1)));
     EXPECT(equal(clipped[0].b.clipPosition, vec4(0, 0, 0, 1)));
-    EXPECT(equal(clipped[0].c.clipPosition, vec4(0, 2, 0, 1)));
-
-    // This creates a degenerate triangle.
-    // TODO(mbroecker): Fix?
-    EXPECT(equal(clipped[1].a.clipPosition, vec4(0, 0, 0, 1)));
-    EXPECT(equal(clipped[1].b.clipPosition, vec4(0, 2, 0, 1)));
-    EXPECT(equal(clipped[1].c.clipPosition, vec4(0, 2, 0, 1)));
-
+    EXPECT(equal(clipped[0].c.clipPosition, vec4(2, 0, 0, 1)));
   }
 };
 

@@ -4,7 +4,10 @@
 #include <algorithm>
 #include <iostream>
 #include <map>
+
+#if GFX1993_PARALLEL_CLIP
 #include <omp.h>
+#endif
 
 #include <deque>
 
@@ -137,23 +140,27 @@ static void setColor(TrianglePrimitive &triangle,
 
 TrianglePrimitiveList
 Clipper::clipTriangles(TrianglePrimitiveList triangles) const {
+  // TODO: Copying the values in is wasteful. Maybe keep a 'second-pass' list
+  // of triangles instead and iterate over them after we dealt with the original
+  // list of triangles. Need to measure this though.
   TrianglePrimitiveList clipped;
   clipped.reserve(triangles.size());
 
-  #if GFX1993_PARALLEL_CLIP
-    #pragma omp parallel for shared(clipped)
-  #endif
   for (size_t i = 0; i < triangles.size(); ++i) {
     // Triangles might change during iteration, as new triangles are created by
     // clipping.
     TrianglePrimitive triangle = triangles[i];
 
+    if (triangle.primitiveId == 0) {
+      triangle.primitiveId = i;
+    }
+
+    /*
     std::vector<glm::vec4> clipPositions;
     clipPositions.push_back(triangle.a.clipPosition);
     clipPositions.push_back(triangle.b.clipPosition);
     clipPositions.push_back(triangle.c.clipPosition);
 
-    /*
     if (std::all_of(clipPositions.begin(), clipPositions.end(),
                     [](const glm::vec4 &v) { return v.w <= 0.f; })) {
       // All behind the w=0 axis -- discard;
@@ -162,7 +169,7 @@ Clipper::clipTriangles(TrianglePrimitiveList triangles) const {
     */
 
     bool keep = true;
-    for (const Plane &plane : planes) {
+    for (const Plane &plane : planes) {     
       bool aInFrontSpace = plane.inFrontSpace(triangle.a.clipPosition);
       bool bInFrontSpace = plane.inFrontSpace(triangle.b.clipPosition);
       bool cInFrontSpace = plane.inFrontSpace(triangle.c.clipPosition);
@@ -212,10 +219,14 @@ Clipper::clipTriangles(TrianglePrimitiveList triangles) const {
         triangle.c = p;
 
         TrianglePrimitive t(p, triangle.b, q);
+        t.primitiveId = triangle.primitiveId * 100 + 1;
         if (debugColorClips) {
           setColor(t, debugClipColor);
         }
+        // TODO: Instead of creating a new triangle, we could also just move the
+        // one point outside.
         triangles.push_back(t);
+        keep = false;
         continue;
       }
 
@@ -225,10 +236,15 @@ Clipper::clipTriangles(TrianglePrimitiveList triangles) const {
         triangle.b = p;
 
         TrianglePrimitive t(p, q, triangle.c);
+        t.primitiveId = triangle.primitiveId * 100 + 2;
+
         if (debugColorClips) {
           setColor(t, debugClipColor);
         }
+        // TODO: Instead of creating a new triangle, we could also just move the
+        // one point outside.
         triangles.push_back(t);
+        keep = false;
         continue;
       }
 
@@ -238,16 +254,18 @@ Clipper::clipTriangles(TrianglePrimitiveList triangles) const {
         triangle.a = p;
 
         TrianglePrimitive t(p, triangle.c, q);
+        t.primitiveId = triangle.primitiveId * 100 + 3;
+
         if (debugColorClips) {
           setColor(t, debugClipColor);
         }
         triangles.push_back(t);
+        keep = false;
         continue;
       }
     }
-
+  
     if (keep) {
-      #pragma omp critical
       clipped.push_back(triangle);
     }
   }
@@ -272,7 +290,7 @@ static const VertexOut &getTriangleEdgePoint(const TrianglePrimitive &triangle,
 
   default:
     // This is bad.
-    std::cerr << "Bad triangle edge selection." << std::endl;
+    std::cerr << "[Clipper] Bad triangle edge selection." << std::endl;
     return emptyVertex;
   }
 }
