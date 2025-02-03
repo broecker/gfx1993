@@ -155,18 +155,12 @@ Clipper::clipTriangles(TrianglePrimitiveList triangles) const {
       triangle.primitiveId = i;
     }
 
-    /*
-    std::vector<glm::vec4> clipPositions;
-    clipPositions.push_back(triangle.a.clipPosition);
-    clipPositions.push_back(triangle.b.clipPosition);
-    clipPositions.push_back(triangle.c.clipPosition);
-
-    if (std::all_of(clipPositions.begin(), clipPositions.end(),
-                    [](const glm::vec4 &v) { return v.w <= 0.f; })) {
-      // All behind the w=0 axis -- discard;
+    // All behind the w=0 axis -- discard;
+    if (triangle.a.clipPosition.w <= 0.f &&
+        triangle.b.clipPosition.w <= 0.f &&
+        triangle.c.clipPosition.w <= 0.f) {
       continue;
     }
-    */
 
     bool keep = true;
     for (const Plane &plane : planes) {     

@@ -487,6 +487,22 @@ GTEST("Clipper Triangle Test") {
     EXPECT(equal(clipped[0].b.clipPosition, vec4(0, 0, 0, 1)));
     EXPECT(equal(clipped[0].c.clipPosition, vec4(2, 0, 0, 1)));
   }
+
+  SHOULD("Discard triangle if behind w=0 plane") {
+    TrianglePrimitiveList triangle{
+      TrianglePrimitive{
+        VertexOut{.clipPosition=vec4( 0,2,0, -1)},
+        VertexOut{.clipPosition=vec4(-2,0,0, -1)},
+        VertexOut{.clipPosition=vec4( 2,2,0, -1)},
+      }
+    };
+
+    Clipper clipper;
+
+    auto clipped = clipper.clipTriangles(triangle);
+
+    EXPECT(clipped.empty());
+  }
 };
 
 }  // namespace gfx1993
