@@ -49,4 +49,4 @@ public:
 
 }  // namespace gfx1993
 
-#endif GFX1993_DEMOUTILS_INCLUDED
+#endif // GFX1993_DEMOUTILS_INCLUDED
