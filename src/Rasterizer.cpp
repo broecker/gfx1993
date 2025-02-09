@@ -12,6 +12,7 @@
 #include <glm/gtx/transform.hpp>
 #include <iostream>
 #include <list>
+#include <omp.h>
 
 using glm::ivec2;
 using glm::vec2;
@@ -299,7 +300,7 @@ void Rasterizer::drawScreenFillingQuad(const RenderConfig& renderConfig) {
   debugInfo.screenFillingQuad.processed++;
   debugInfo.screenFillingQuad.drawn++;
 
-#if GFX1993_PARALLEL_SHADE
+#if GFX1993_PARALLEL_SHADE_SCREENQUAD
   #pragma omp parallel for
   for (int y = 0; y < renderConfig.viewport->size.y; ++y) {
 #else
@@ -315,7 +316,11 @@ void Rasterizer::drawScreenFillingQuad(const RenderConfig& renderConfig) {
       sgeo.position = vec3(pos, 0.0);
       sgeo.texcoord = pos;
 
-      SAVE_COUNTER(drawFragment(renderConfig, sgeo), debugInfo.screenFillingQuad);
+      bool drawn = drawFragment(renderConfig, sgeo);
+      {
+        #pragma omp critcal
+        SAVE_COUNTER(drawn, debugInfo.screenFillingQuad);
+      }
     }
   }
 }
@@ -446,7 +451,12 @@ void Rasterizer::drawTriangle(const RenderConfig &renderConfig,
   // Rasterize -- loop over the screen-space bounding box.
   {
     START_PROFILE("rasterize.tris.shade.fill");
+#if GFX1993_PARALLEL_SHADE_TRIANGLE
+    #pragma omp parallel for
     for (int y = min.y; y <= max.y; ++y) {
+#else
+    for (int y = min.y; y <= max.y; ++y) {
+#endif
       for (int x = min.x; x <= max.x; ++x) {
         // position
         ivec2 p(x, y);
@@ -472,10 +482,15 @@ void Rasterizer::drawTriangle(const RenderConfig &renderConfig,
           sgeo.windowCoord = p;
           sgeo.depth = z;
 
-          SAVE_COUNTER(drawFragment(renderConfig, sgeo), debugInfo.triangles);
+          bool drawn = drawFragment(renderConfig, sgeo);
+          {
+            #pragma criticial
+            SAVE_COUNTER(drawn, debugInfo.triangles);
+          }
         }
       }
     }
+    #pragma omp atomic
     debugInfo.triangles.drawn++;
   }
 }
