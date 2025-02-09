@@ -121,10 +121,18 @@ VertexOutList Rasterizer::transformVertices(
     std::shared_ptr<VertexShader> vertexShader) const {
   assert(vertexShader);
   VertexOutList out(vertices.size());
+
+#if GFX1993_PARALLEL_TRANSFORM
+  #pragma omp parallel for
+  for (int i = 0; i < vertices.size(); ++i) {
+    out[i] = vertexShader->transformSingle(vertices[i]);
+  }
+#else
   std::transform(vertices.begin(), vertices.end(), out.begin(),
                  [vertexShader](const auto &v) {
                    return vertexShader->transformSingle(v);
                  });
+#endif
   return out;
 }
 
