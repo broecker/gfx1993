@@ -452,6 +452,8 @@ void Rasterizer::drawTriangle(const RenderConfig &renderConfig,
   {
     START_PROFILE("rasterize.tris.shade.fill");
 #if GFX1993_PARALLEL_SHADE_TRIANGLE
+    // TODO(mbroecker): Maybe an additional metric would be the size of the
+    // bounding box and whether one dimension is much larger than the other.
     #pragma omp parallel for
     for (int y = min.y; y <= max.y; ++y) {
 #else

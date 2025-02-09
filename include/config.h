@@ -35,7 +35,7 @@
 // If set, uses OpenMP parallel lops to shade screen triangles. This is only
 // useful for large (in screen-space coverage) triangles. For smaller ones,
 // the additional setup cost outweighs the performance gains.
-#define GFX1993_PARALLEL_SHADE_TRIANGLE 1
+#define GFX1993_PARALLEL_SHADE_TRIANGLE 0
 
 // If enabled, adds another layer to the depth buffer that measures writes to
 // each pixel.
