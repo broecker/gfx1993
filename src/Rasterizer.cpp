@@ -299,8 +299,13 @@ void Rasterizer::drawScreenFillingQuad(const RenderConfig& renderConfig) {
   debugInfo.screenFillingQuad.processed++;
   debugInfo.screenFillingQuad.drawn++;
 
-  for (int x = 0; x < renderConfig.viewport->size.x; ++x) {
-    for (int y = 0; y < renderConfig.viewport->size.y; ++y) {
+#if GFX1993_PARALLEL_SHADE
+  #pragma omp parallel for
+  for (int y = 0; y < renderConfig.viewport->size.y; ++y) {
+#else
+  for (int y = 0; y < renderConfig.viewport->size.y; ++y) {
+#endif
+    for (int x = 0; x < renderConfig.viewport->size.x; ++x) {
       ShadingGeometry sgeo;
       sgeo.color = vec4(1);
       sgeo.normal = vec3(0);
