@@ -73,7 +73,6 @@ public:
 };
 
 
-
-
 } // namespace gfx1993
-#endif
+
+#endif  // GEOMETRY2_INCLUDED
