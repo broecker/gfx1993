@@ -66,9 +66,7 @@ struct RenderConfig {
   bool hasValidRenderOutput() const;
 
   // We need both a vertex and frament shader for rendering.
-  inline bool hasValidShaderConfiguration() const {
-    return vertexShader && fragmentShader;
-  }
+  bool hasValidShaderConfiguration() const;
 
   bool isValid() const;
 };

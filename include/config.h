@@ -9,6 +9,9 @@
 // very helpful during debugging. 
 #define GFX1993_ENABLE_DEBUG_PROFILING 0
 
+// If set, prints error messages to stdout on invalid configurations.
+#define GFX1993_VERBOSE_RENDER_CONFIG 1
+
 // TODO: add base types, such as Framebuffer and Depthbuffer or
 // Indexlist data types.
 
