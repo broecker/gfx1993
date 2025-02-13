@@ -13,3 +13,6 @@ https://andrewkchan.dev/posts/perspective-interpolation.html
 
 # VoxelSpace algorithm
 https://github.com/s-macke/VoxelSpace
+
+# Casual Effects OBJ library
+https://casual-effects.com/data/index.html
