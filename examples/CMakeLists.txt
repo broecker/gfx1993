@@ -3,7 +3,7 @@ project(gfx1993-demos)
 
 
 # Compile + link setup
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLM_ENABLE_EXPERIMENTAL -O0 -fopenmp")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGLM_ENABLE_EXPERIMENTAL -O3 -fopenmp")
 
 cmake_policy(SET CMP0015 NEW)
 
@@ -69,3 +69,7 @@ target_link_libraries(11-bvh gfx93-demo-app)
 # Frustum / AABB culling
 add_executable(12-frustum-aabb 12-frustum-aabb.cpp)
 target_link_libraries(12-frustum-aabb gfx93-demo-app)
+
+# Headless performance benchmark (True headless - no SDL dependency)
+add_executable(headless_benchmark headless_benchmark.cpp)
+target_link_libraries(headless_benchmark gfx1993 glm::glm)
