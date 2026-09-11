@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.9.0)
+cmake_minimum_required(VERSION 3.12.0)
 project(gfx1993 VERSION 0.5.0 LANGUAGES CXX)
 
 set(DEFAULT_BUILD_TYPE "Debug")  
@@ -62,3 +62,44 @@ add_subdirectory(examples)
 
 enable_testing()
 add_subdirectory(tests)
+
+# --- Benchmark Automation & Dependency Verification ---
+
+# The comparison script requires Python 3 and Git.
+find_package(Python3 COMPONENTS Interpreter)
+find_program(GIT_EXECUTABLE NAMES git)
+
+# Optional: Check for memory profiling dependencies (tcmalloc and pprof)
+find_library(TCMALLOC_LIB NAMES tcmalloc)
+find_program(PPROF_EXECUTABLE NAMES pprof)
+find_program(XVFB_RUN NAMES xvfb-run)
+
+if(Python3_Interpreter_FOUND AND GIT_EXECUTABLE)
+    # Standard performance comparison
+    add_custom_target(compare-benchmarks
+        COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/scripts/compare_benchmarks.py"
+        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+        COMMENT "Running automated benchmark comparison (Current vs HEAD~1)"
+        USES_TERMINAL
+    )
+
+    # Memory profiling comparison
+    add_custom_target(compare-benchmarks-pprof
+        COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/scripts/compare_benchmarks.py" --pprof
+        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+        COMMENT "Running automated benchmark with memory profiling (requires tcmalloc and pprof)"
+        USES_TERMINAL
+    )
+
+    if(NOT TCMALLOC_LIB OR NOT PPROF_EXECUTABLE)
+        message(STATUS "Note: tcmalloc or pprof not found. Memory profiling targets may have limited functionality.")
+    endif()
+
+    if(NOT XVFB_RUN)
+        message(STATUS "Note: xvfb-run not found. Interactive demos cannot run headless, but headless_benchmark will work fine.")
+    endif()
+else()
+    message(STATUS "Python3_EXECUTABLE: ${Python3_EXECUTABLE}")
+    message(STATUS "GIT_EXECUTABLE: ${GIT_EXECUTABLE}")
+    message(WARNING "Required tools (Python3 or Git) missing. Automated benchmark targets were NOT created.")
+endif()
