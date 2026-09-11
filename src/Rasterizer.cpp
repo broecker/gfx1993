@@ -285,6 +285,7 @@ void Rasterizer::drawTriangles(const RenderConfig &renderConfig,
 
   // Rasterization.
   for (size_t i = 0; i < trianglesToDraw.size(); ++i) {
+    debugInfo.triangles.drawn++;
     drawTriangle(renderConfig, clipped[trianglesToDraw[i]]);
   }
 }
@@ -317,9 +318,12 @@ void Rasterizer::drawScreenFillingQuad(const RenderConfig& renderConfig) {
       sgeo.texcoord = pos;
 
       bool drawn = drawFragment(renderConfig, sgeo);
-      {
-        #pragma omp critcal
-        SAVE_COUNTER(drawn, debugInfo.screenFillingQuad);
+      if (drawn) {
+        #pragma omp atomic
+        debugInfo.screenFillingQuad.fragmentsDrawn++;
+      } else {
+        #pragma omp atomic
+        debugInfo.screenFillingQuad.fragmentsDiscarded++;
       }
     }
   }
@@ -485,15 +489,16 @@ void Rasterizer::drawTriangle(const RenderConfig &renderConfig,
           sgeo.depth = z;
 
           bool drawn = drawFragment(renderConfig, sgeo);
-          {
-            #pragma criticial
-            SAVE_COUNTER(drawn, debugInfo.triangles);
+          if (drawn) {
+            #pragma omp atomic
+            debugInfo.triangles.fragmentsDrawn++;
+          } else {
+            #pragma omp atomic
+            debugInfo.triangles.fragmentsDiscarded++;
           }
         }
       }
     }
-    #pragma omp atomic
-    debugInfo.triangles.drawn++;
   }
 }
 
