@@ -14,9 +14,22 @@ using glm::vec3;
 using glm::vec4;
 using glm::epsilonEqual;
 
+// Deliberately not named `equal` -- unqualified `equal(vec, vec)` is
+// ambiguous with (and, per partial ordering, loses to) glm::equal(vec, vec),
+// which returns a component-wise vec<L,bool> instead of a bool. That
+// silently turns EXPECT(equal(a, b)) into a no-op assertion that always
+// reports success, since GUnit's EXPECT never gets a genuine bool.
+//
+// The epsilon also matters: std::numeric_limits<float>::min() (~1.175e-38,
+// the smallest positive normal float) demands near-bit-exact equality --
+// too tight for values produced by a chain of lerps/divisions, which
+// routinely differ from a hand-computed expected value by ~1 ULP
+// (~1.19e-7 at this scale).
+constexpr float kTestEpsilon = 1e-4f;
+
 template<class glm_type>
-inline bool equal(const glm_type& a, const glm_type& b) { 
-  return epsilonEqual(a, b, std::numeric_limits<float>::min());
+inline bool approxEqual(const glm_type& a, const glm_type& b) {
+  return glm::all(epsilonEqual(a, b, kTestEpsilon));
 }
 
 PointPrimitive makePoint(const vec3 &p) {
@@ -112,12 +125,12 @@ GTEST("Clipper Plane Test") {
     LinePrimitiveList clipped = clipper.clipLines(lines);
 
     ASSERT(clipped.size() == 3);
-    EXPECT(equal(clipped[0].a.clipPosition, vec4(-1, 0, 0, 1)));
-    EXPECT(equal(clipped[0].b.clipPosition, vec4(1, 0, 0, 1)));
-    EXPECT(equal(clipped[1].a.clipPosition, vec4(0, -1, 0, 1)));
-    EXPECT(equal(clipped[1].b.clipPosition, vec4(0, 1, 0, 1)));
-    EXPECT(equal(clipped[2].a.clipPosition, vec4(0, 0, -1, 1)));
-    EXPECT(equal(clipped[2].b.clipPosition, vec4(0, 0, 1, 1)));
+    EXPECT(approxEqual(clipped[0].a.clipPosition, vec4(-1, 0, 0, 1)));
+    EXPECT(approxEqual(clipped[0].b.clipPosition, vec4(1, 0, 0, 1)));
+    EXPECT(approxEqual(clipped[1].a.clipPosition, vec4(0, -1, 0, 1)));
+    EXPECT(approxEqual(clipped[1].b.clipPosition, vec4(0, 1, 0, 1)));
+    EXPECT(approxEqual(clipped[2].a.clipPosition, vec4(0, 0, -1, 1)));
+    EXPECT(approxEqual(clipped[2].b.clipPosition, vec4(0, 0, 1, 1)));
   }
 };
 
@@ -134,7 +147,7 @@ GTEST("Clipper Point Test") {
 
     EXPECT(clipped.size() == 1);
     // Keep the front space point.
-    EXPECT(equal(clipped[0].p.clipPosition, vec4(0, 2, 0, 1)));
+    EXPECT(approxEqual(clipped[0].p.clipPosition, vec4(0, 2, 0, 1)));
   }
 
   SHOULD("Clip points against single plane 2") {
@@ -173,8 +186,8 @@ GTEST("Clipper Point Test") {
     PointPrimitiveList clipped = clipper.clipPoints(points);
 
     ASSERT(clipped.size() == 2);
-    EXPECT(equal(clipped[0].p.clipPosition, vec4(0, 0.5, 0, 1)));
-    EXPECT(equal(clipped[1].p.clipPosition, vec4(0, 0, 0, 1)));
+    EXPECT(approxEqual(clipped[0].p.clipPosition, vec4(0, 0.5, 0, 1)));
+    EXPECT(approxEqual(clipped[1].p.clipPosition, vec4(0, 0, 0, 1)));
   }
 }
 GTEST("Clipper Line Test") {
@@ -254,14 +267,14 @@ GTEST("Clipper Line Test") {
     LinePrimitiveList clipped = clipper.clipLines(lines);
 
     ASSERT(clipped.size() == 2);
-    EXPECT(equal(clipped[0].a.texcoord, vec2(0.25)));
-    EXPECT(equal(clipped[0].b.clipPosition, vec4(0, -1, 0, 1)));
-    EXPECT(equal(clipped[0].b.texcoord, vec2(0.75)));
+    EXPECT(approxEqual(clipped[0].a.texcoord, vec2(0.25)));
+    EXPECT(approxEqual(clipped[0].b.clipPosition, vec4(0, -1, 0, 1)));
+    EXPECT(approxEqual(clipped[0].b.texcoord, vec2(0.75)));
 
-    EXPECT(equal(clipped[1].a.clipPosition, vec4(0, -1, 0, 1)));
-    EXPECT(equal(clipped[1].a.texcoord, vec2(0.25)));
-    EXPECT(equal(clipped[1].b.clipPosition, vec4(0, 1, 0, 1)));
-    EXPECT(equal(clipped[1].b.texcoord, vec2(0.75)));
+    EXPECT(approxEqual(clipped[1].a.clipPosition, vec4(0, -1, 0, 1)));
+    EXPECT(approxEqual(clipped[1].a.texcoord, vec2(0.25)));
+    EXPECT(approxEqual(clipped[1].b.clipPosition, vec4(0, 1, 0, 1)));
+    EXPECT(approxEqual(clipped[1].b.texcoord, vec2(0.75)));
   }
 
   SHOULD("Clip line against multiple planes 2") {
@@ -278,8 +291,8 @@ GTEST("Clipper Line Test") {
     LinePrimitiveList clipped = clipper.clipLines(lines);
 
     ASSERT(clipped.size() == 1);
-    EXPECT(equal(clipped[0].a.clipPosition, vec4(0, 0, 0, 1)));
-    EXPECT(equal(clipped[0].b.clipPosition, vec4(2, 2, 0, 1)));
+    EXPECT(approxEqual(clipped[0].a.clipPosition, vec4(0, 0, 0, 1)));
+    EXPECT(approxEqual(clipped[0].b.clipPosition, vec4(2, 2, 0, 1)));
   }
 
   SHOULD("Clip line against coplanar planes") {
@@ -293,10 +306,10 @@ GTEST("Clipper Line Test") {
 
     ASSERT(clipped.size() == 1);
     // Both endpoints are unchanged.
-    EXPECT(equal(clipped[0].a.clipPosition, vec4(5, 0, 3, 1)));
-    EXPECT(equal(clipped[0].a.texcoord, vec2(0)));
-    EXPECT(equal(clipped[0].b.clipPosition, vec4(-5, 0, 2, 1)));
-    EXPECT(equal(clipped[0].b.texcoord, vec2(1)));
+    EXPECT(approxEqual(clipped[0].a.clipPosition, vec4(5, 0, 3, 1)));
+    EXPECT(approxEqual(clipped[0].a.texcoord, vec2(0)));
+    EXPECT(approxEqual(clipped[0].b.clipPosition, vec4(-5, 0, 2, 1)));
+    EXPECT(approxEqual(clipped[0].b.texcoord, vec2(1)));
   }
 }
 
@@ -312,9 +325,9 @@ GTEST("Clipper Triangle Test") {
     TrianglePrimitiveList clipped = clipper.clipTriangles(triangles);
 
     ASSERT(clipped.size() == 1);
-    EXPECT(equal(clipped[0].a.clipPosition, vec4(0, 3, 0, 1)));
-    EXPECT(equal(clipped[0].b.clipPosition, vec4(-2, 1, 0, 1)));
-    EXPECT(equal(clipped[0].c.clipPosition, vec4(2, 1, 0, 1)));
+    EXPECT(approxEqual(clipped[0].a.clipPosition, vec4(0, 3, 0, 1)));
+    EXPECT(approxEqual(clipped[0].b.clipPosition, vec4(-2, 1, 0, 1)));
+    EXPECT(approxEqual(clipped[0].c.clipPosition, vec4(2, 1, 0, 1)));
   }
 
   SHOULD("Discard triangle in backspace") {
@@ -342,9 +355,9 @@ GTEST("Clipper Triangle Test") {
     TrianglePrimitiveList clipped = clipper.clipTriangles(triangles);
 
     ASSERT(clipped.size() == 1);
-    EXPECT(equal(clipped[0].a.clipPosition, vec4(0, 3, 0, 1)));
-    EXPECT(equal(clipped[0].b.clipPosition, vec4(-2, 1, 0, 1)));
-    EXPECT(equal(clipped[0].c.clipPosition, vec4(2, 1, 0, 1)));
+    EXPECT(approxEqual(clipped[0].a.clipPosition, vec4(0, 3, 0, 1)));
+    EXPECT(approxEqual(clipped[0].b.clipPosition, vec4(-2, 1, 0, 1)));
+    EXPECT(approxEqual(clipped[0].c.clipPosition, vec4(2, 1, 0, 1)));
   }
 
   SHOULD("Clip triangle with a single point inside") {
@@ -359,11 +372,11 @@ GTEST("Clipper Triangle Test") {
     TrianglePrimitiveList clipped = clipper.clipTriangles(triangles);
 
     ASSERT(clipped.size() == 1);
-    EXPECT(equal(clipped[0].a.clipPosition,
+    EXPECT(approxEqual(clipped[0].a.clipPosition,
           vec4(0, 4, 0, 1))); // Top vertex is unchanged.
-    EXPECT(equal(clipped[0].b.clipPosition,
+    EXPECT(approxEqual(clipped[0].b.clipPosition,
           vec4(-2, 2, 0, 1))); // Bottom left got moved.
-    EXPECT(equal(clipped[0].c.clipPosition,
+    EXPECT(approxEqual(clipped[0].c.clipPosition,
           vec4(2, 2, 0, 1))); // Bottom right got moved.
   }
 
@@ -378,11 +391,11 @@ GTEST("Clipper Triangle Test") {
     TrianglePrimitiveList clipped = clipper.clipTriangles(triangles);
 
     ASSERT(clipped.size() == 1);
-    EXPECT(equal(clipped[0].a.clipPosition,
+    EXPECT(approxEqual(clipped[0].a.clipPosition,
           vec4(-2, 2, 0, 1))); // Top vertex got moved.
-    EXPECT(equal(clipped[0].b.clipPosition,
+    EXPECT(approxEqual(clipped[0].b.clipPosition,
           vec4(-4, 0, 0, 1))); // Bottom left is unchanged.
-    EXPECT(equal(clipped[0].c.clipPosition,
+    EXPECT(approxEqual(clipped[0].c.clipPosition,
           vec4(-2, 0, 0, 1))); // Bottom right got moved.
   }
 
@@ -397,11 +410,11 @@ GTEST("Clipper Triangle Test") {
     TrianglePrimitiveList clipped = clipper.clipTriangles(triangles);
 
     ASSERT(clipped.size() == 1);
-    EXPECT(equal(clipped[0].a.clipPosition,
+    EXPECT(approxEqual(clipped[0].a.clipPosition,
           vec4(2, 2, 0, 1))); // Top vertex got moved.
-    EXPECT(equal(clipped[0].b.clipPosition,
+    EXPECT(approxEqual(clipped[0].b.clipPosition,
           vec4(2, 0, 0, 1))); // Bottom left got moved.
-    EXPECT(equal(clipped[0].c.clipPosition,
+    EXPECT(approxEqual(clipped[0].c.clipPosition,
           vec4(4, 0, 0, 1))); // Bottom right is unchanged.
   }
 
@@ -415,12 +428,12 @@ GTEST("Clipper Triangle Test") {
     auto clipped = clipper.clipTriangles(triangles);
 
     ASSERT(clipped.size() == 1);
-    // Top position;
-    EXPECT(equal(clipped[0].a.clipPosition, vec4(2, -1, 0, 1)));
+    // Top position, newly interpolated at the midpoint of the a-b edge.
+    EXPECT(approxEqual(clipped[0].a.clipPosition, vec4(-1, 0, 0, 1)));
     // Bottom left unchanged.
-    EXPECT(equal(clipped[0].b.clipPosition, vec4(-2, -1, 0, 1))); 
-    // Right position newly interpolated.
-    EXPECT(equal(clipped[0].c.clipPosition, vec4(1, 0, 0, 1)));
+    EXPECT(approxEqual(clipped[0].b.clipPosition, vec4(-2, -1, 0, 1)));
+    // Right position newly interpolated, at the midpoint of the c-b edge.
+    EXPECT(approxEqual(clipped[0].c.clipPosition, vec4(0, 0, 0, 1)));
   }
 
 
@@ -441,9 +454,9 @@ GTEST("Clipper Triangle Test") {
     ASSERT(clipped.size() == 1);
 
     // Keep the 'right' triangle.
-    EXPECT(equal(clipped[0].a.clipPosition, vec4(0,2,0,1)));
-    EXPECT(equal(clipped[0].a.clipPosition, vec4(0,-2,0,1)));
-    EXPECT(equal(clipped[0].a.clipPosition, vec4(4,-2,0,1)));
+    EXPECT(approxEqual(clipped[0].a.clipPosition, vec4(0,2,0,1)));
+    EXPECT(approxEqual(clipped[0].b.clipPosition, vec4(0,-2,0,1)));
+    EXPECT(approxEqual(clipped[0].c.clipPosition, vec4(4,-2,0,1)));
   }
 
   SHOULD("Clip triangle against vertical plane 2") {
@@ -463,9 +476,9 @@ GTEST("Clipper Triangle Test") {
     ASSERT(clipped.size() == 1);
 
     // Keep the 'left' triangle.
-    EXPECT(equal(clipped[0].a.clipPosition, vec4(0,2,0,1)));
-    EXPECT(equal(clipped[0].a.clipPosition, vec4(-4,-2,0,1)));
-    EXPECT(equal(clipped[0].a.clipPosition, vec4(0,-2,0,1)));
+    EXPECT(approxEqual(clipped[0].a.clipPosition, vec4(0,2,0,1)));
+    EXPECT(approxEqual(clipped[0].b.clipPosition, vec4(-4,-2,0,1)));
+    EXPECT(approxEqual(clipped[0].c.clipPosition, vec4(0,-2,0,1)));
   }
 
   SHOULD("Clip triangle against multiple planes") {
@@ -483,9 +496,9 @@ GTEST("Clipper Triangle Test") {
 
     // Triangle is clipped by the vertical and horizontal planes.
     ASSERT(clipped.size() == 1);
-    EXPECT(equal(clipped[0].a.clipPosition, vec4(0, 2, 0, 1)));
-    EXPECT(equal(clipped[0].b.clipPosition, vec4(0, 0, 0, 1)));
-    EXPECT(equal(clipped[0].c.clipPosition, vec4(2, 0, 0, 1)));
+    EXPECT(approxEqual(clipped[0].a.clipPosition, vec4(0, 2, 0, 1)));
+    EXPECT(approxEqual(clipped[0].b.clipPosition, vec4(0, 0, 0, 1)));
+    EXPECT(approxEqual(clipped[0].c.clipPosition, vec4(2, 0, 0, 1)));
   }
 
   SHOULD("Discard triangle if behind w=0 plane") {
