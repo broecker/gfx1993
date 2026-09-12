@@ -17,6 +17,7 @@
 #include "Profiler.h"
 #include "Shader.h"
 #include "Camera.h"
+#include "StarField.h"
 #include "Texture.h"
 
 using namespace gfx1993;
@@ -53,6 +54,11 @@ namespace {
   constexpr unsigned int kSkyLatLongWidth = 128;
   constexpr unsigned int kSkyLatLongHeight = kSkyLatLongWidth / 2; // equirectangular, 2:1
   constexpr unsigned int kSkyBakeEveryNFrames = 8;
+
+  // Stars are real world-space points, so they must stay within the
+  // camera's projection far plane (see Camera.cpp's default projection,
+  // far=100) or they get clipped away entirely.
+  constexpr float kStarDistance = 50.f;
 }
 
 // The physics itself, factored into free functions that take every input
@@ -380,16 +386,24 @@ protected:
     bunny.center();
     dynamic_cast<OrbitCamera*>(camera.get())->setTarget(bunny.getCenter());
 
+    starVertexTransform = std::make_shared<DefaultVertexTransform>();
+    if (!stars.loadCatalog("../models/stars/bright_stars.csv")) {
+      std::cerr << "Failed to load the star catalog." << std::endl;
+    }
+
     // Bake once synchronously so the first frame isn't blank.
     vec3 initialSunDir = sunDirectionForDayTime(dayTime);
     bakeSkyTexture(initialSunDir);
     latLongSkyShader->texture = pendingSkyTexture;
     reflectiveShader->texture = pendingSkyTexture;
+    stars.updateVisibleStars(dayTime * glm::two_pi<float>(), glm::radians(observerLatitudeDeg),
+                             kStarDistance, starVisibilityForDayTime(dayTime));
 
     std::cout << "Press 'n' to toggle between the baked lat/long atmosphere and "
                  "the live per-pixel raymarch, "
                  "'p' to pause/resume the day/night cycle, "
-                 "'[' / ']' to scrub time of day while paused."
+                 "'[' / ']' to scrub time of day while paused, "
+                 "',' / '.' to adjust observer latitude."
               << std::endl;
   }
 
@@ -417,6 +431,12 @@ protected:
         bakeSkyTexture(sunDir);
         bakeInFlight = false;
       });
+
+      // Stars are cheap (1000 trig evaluations) compared to the sky
+      // raymarch, so this runs synchronously on the same cadence rather
+      // than needing its own background thread.
+      stars.updateVisibleStars(dayTime * glm::two_pi<float>(), glm::radians(observerLatitudeDeg),
+                               kStarDistance, starVisibilityForDayTime(dayTime));
     }
 
     // Publish whatever the most recently finished bake produced. Cheap:
@@ -445,6 +465,22 @@ protected:
         ? std::static_pointer_cast<FragmentShader>(atmosphereFragShader)
         : std::static_pointer_cast<FragmentShader>(latLongSkyShader);
     rasterizer->drawTriangles(renderConfig, skybox.getVertices(), skybox.getIndices());
+
+    // Draw the starfield, still under the depthbuffer=nullptr regime set
+    // above for the skybox -- stars are the most distant thing in the
+    // scene, so painting them right after the sky and before everything
+    // else keeps them a pure background layer. A rotation-only view matrix
+    // keeps them from shifting with camera translation (they're at
+    // infinity); gridShader is a stateless InputColorShader, reused here
+    // since each star's final display color is already baked into its
+    // vertex color by StarField::updateVisibleStars.
+    starVertexTransform->modelMatrix = glm::mat4(1.f);
+    starVertexTransform->viewMatrix = glm::mat4(glm::mat3(camera->getViewMatrix()));
+    starVertexTransform->projectionMatrix = camera->getProjectionMatrix();
+    renderConfig.vertexShader = starVertexTransform;
+    renderConfig.fragmentShader = gridShader;
+    renderConfig.pointSize = 1;
+    rasterizer->drawPoints(renderConfig, stars.getVertices(), stars.getIndices());
 
     // Reset the render matrices.
     fixedFunctionTransform->modelMatrix = glm::mat4(1.f);
@@ -489,13 +525,33 @@ protected:
       dayTime += 0.01f;
       dayTime -= floorf(dayTime);
     }
+
+    if (key == ',') {
+      observerLatitudeDeg = glm::clamp(observerLatitudeDeg - 5.f, -90.f, 90.f);
+      std::cout << "Observer latitude: " << observerLatitudeDeg << " deg" << std::endl;
+    }
+    if (key == '.') {
+      observerLatitudeDeg = glm::clamp(observerLatitudeDeg + 5.f, -90.f, 90.f);
+      std::cout << "Observer latitude: " << observerLatitudeDeg << " deg" << std::endl;
+    }
   }
 
 private:
   // dayTime: 0 = midnight, 0.25 = sunrise, 0.5 = noon, 0.75 = sunset.
+  float sunElevationForDayTime(float t) const {
+    return sinf(glm::two_pi<float>() * (t - 0.25f)) * glm::half_pi<float>();
+  }
+
   vec3 sunDirectionForDayTime(float t) const {
-    float elevation = sinf(glm::two_pi<float>() * (t - 0.25f)) * glm::half_pi<float>();
+    float elevation = sunElevationForDayTime(t);
     return vec3(sinf(sunAzimuth) * cosf(elevation), sinf(elevation), cosf(sunAzimuth) * cosf(elevation));
+  }
+
+  // Stars fade in once the sun dips below the horizon, reaching full
+  // brightness at the end of astronomical twilight (-18 degrees).
+  float starVisibilityForDayTime(float t) const {
+    float elevationDeg = glm::degrees(sunElevationForDayTime(t));
+    return glm::clamp((-2.f - elevationDeg) / (18.f - 2.f), 0.f, 1.f);
   }
 
   // Bakes the sky into a kSkyLatLongWidth x kSkyLatLongHeight equirectangular
@@ -527,8 +583,11 @@ private:
 
   std::unique_ptr<GridGeometry> grid;
   PlyGeometry bunny;
+  StarField stars;
+  float observerLatitudeDeg = 45.f; // northern hemisphere default
 
   std::shared_ptr<DefaultVertexTransform> fixedFunctionTransform;
+  std::shared_ptr<DefaultVertexTransform> starVertexTransform;
   std::shared_ptr<FragmentShader> gridShader;
 
   std::shared_ptr<SkyboxVertexShader> skyboxVertShader;
