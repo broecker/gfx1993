@@ -1,14 +1,10 @@
 #include "Clipper.h"
 #include "config.h"
+#include "Profiler.h"
 
 #include <algorithm>
 #include <iostream>
 #include <map>
-
-#if GFX1993_PARALLEL_CLIP
-#include <omp.h>
-#endif
-
 #include <deque>
 
 namespace gfx1993 {
@@ -340,25 +336,41 @@ static TrianglePrimitiveList clipTriangle(const TrianglePrimitive &triangle,
 
 TrianglePrimitiveList Clipper::clipTrianglesToNdc(
     const TrianglePrimitiveList &clipspaceTriangles) const {
+  GFX1993_ZONE_N("rasterize.tris.clip.ndc");
   TrianglePrimitiveList clipped = clipspaceTriangles;
+
+  // Each worker accumulates into its own buffer -- no locking while the
+  // actual clipping work happens. Buffers are reused across planes to avoid
+  // reallocating every pass.
+  std::vector<TrianglePrimitiveList> perWorker(threadPool.getThreadCount());
+
   for (const auto &plane : planes) {
-    TrianglePrimitiveList temp;
-
-    #if GFX1993_PARALLEL_CLIP
-      #pragma omp parallel for shared(temp)
-      for (size_t i = 0; i < clipped.size(); ++i) {
-        const auto& t = clipped[i];
-    #else
-      for (const auto &t : clipped) {
-    #endif
-      auto result = clipTriangle(t, plane, debugColorClips, debugClipColor);
-
-      {
-        #pragma omp critical
-        temp.insert(temp.end(), result.begin(), result.end());
-      }
+    for (auto &local : perWorker) {
+      local.clear();
     }
-    clipped = temp;
+
+    threadPool.parallelFor(
+        clipped.size(),
+        [&](size_t worker, size_t begin, size_t end) {
+          TrianglePrimitiveList &local = perWorker[worker];
+          for (size_t i = begin; i < end; ++i) {
+            auto result =
+                clipTriangle(clipped[i], plane, debugColorClips, debugClipColor);
+            local.insert(local.end(), result.begin(), result.end());
+          }
+        });
+
+    size_t total = 0;
+    for (const auto &local : perWorker) {
+      total += local.size();
+    }
+
+    TrianglePrimitiveList temp;
+    temp.reserve(total);
+    for (auto &local : perWorker) {
+      temp.insert(temp.end(), local.begin(), local.end());
+    }
+    clipped = std::move(temp);
   }
   return clipped;
 }

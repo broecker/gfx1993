@@ -50,6 +50,7 @@ add_library(gfx1993
     src/RenderDebugInfo.cpp
     src/Shader.cpp
     src/Texture.cpp
+    src/ThreadPool.cpp
     src/Viewport.cpp
 )
 

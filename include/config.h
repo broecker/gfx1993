@@ -27,9 +27,10 @@
 // i.e. it runs the Vertex Shader in parallel.
 #define GFX1993_PARALLEL_TRANSFORM 1
 
-// If set, uses OpenMP parallel loops to clip triangles. Points and lines are
-// still processed serially; testing showed no performance increase.
-#define GFX1993_PARALLEL_CLIP 1
+// Note: triangle-vs-plane clipping (Clipper::clipTrianglesToNdc) always
+// parallelizes via its own gfx1993::ThreadPool, independent of these OpenMP
+// flags. Points and lines are still processed serially; testing showed no
+// performance increase.
 
 #define GFX1993_PARALLEL_SHADE_SCREENQUAD 1
 

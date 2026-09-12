@@ -2,6 +2,7 @@
 #define GFX1993_CLIPPER_H
 
 #include "Pipeline.h"
+#include "ThreadPool.h"
 
 #include <glm/glm.hpp>
 #include <vector>
@@ -59,6 +60,11 @@ private:
   // If set, colors created triangles in yellow;
   mutable bool debugColorClips = false;
   glm::vec4 debugClipColor = glm::vec4(1,0,1,1);
+
+  // Used by clipTrianglesToNdc() to parallelize triangle clipping across
+  // planes. Persistent (rather than spun up per call) since a Clipper
+  // typically lives for the lifetime of its owning Rasterizer.
+  mutable ThreadPool threadPool;
 };
 
 } // namespace gfx1993
