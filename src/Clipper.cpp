@@ -5,8 +5,10 @@
 
 #include <algorithm>
 #include <iostream>
+#include <iterator>
 #include <map>
 #include <deque>
+#include <utility>
 
 namespace gfx1993 {
 
@@ -293,8 +295,10 @@ static TrianglePrimitiveList clipTriangle(const TrianglePrimitive &triangle,
                                           const Clipper::Plane &plane,
                                           bool debugColorClips,
                                           const glm::vec4& debugColor) {
-  // Contains clipped coordinates.
+  // Contains clipped coordinates. Clipping a triangle against a single plane
+  // produces at most 4 vertices.
   std::vector<VertexOut> clipped;
+  clipped.reserve(4);
   for (int i = 0; i < 3; ++i) {
     const VertexOut &v1 = getTriangleEdgePoint(triangle, i);
     const VertexOut &v2 = getTriangleEdgePoint(triangle, i + 1);
@@ -336,9 +340,9 @@ static TrianglePrimitiveList clipTriangle(const TrianglePrimitive &triangle,
 }
 
 TrianglePrimitiveList Clipper::clipTrianglesToNdc(
-    const TrianglePrimitiveList &clipspaceTriangles, ThreadPool &pool) const {
+    TrianglePrimitiveList clipspaceTriangles, ThreadPool &pool) const {
   GFX1993_ZONE_N("rasterize.tris.clip.ndc");
-  TrianglePrimitiveList clipped = clipspaceTriangles;
+  TrianglePrimitiveList clipped = std::move(clipspaceTriangles);
 
   // Each worker accumulates into its own buffer -- no locking while the
   // actual clipping work happens. Buffers are reused across planes to avoid
@@ -357,7 +361,8 @@ TrianglePrimitiveList Clipper::clipTrianglesToNdc(
           for (size_t i = begin; i < end; ++i) {
             auto result =
                 clipTriangle(clipped[i], plane, debugColorClips, debugClipColor);
-            local.insert(local.end(), result.begin(), result.end());
+            local.insert(local.end(), std::make_move_iterator(result.begin()),
+                        std::make_move_iterator(result.end()));
           }
         });
 
@@ -369,7 +374,8 @@ TrianglePrimitiveList Clipper::clipTrianglesToNdc(
     TrianglePrimitiveList temp;
     temp.reserve(total);
     for (auto &local : perWorker) {
-      temp.insert(temp.end(), local.begin(), local.end());
+      temp.insert(temp.end(), std::make_move_iterator(local.begin()),
+                 std::make_move_iterator(local.end()));
     }
     clipped = std::move(temp);
   }

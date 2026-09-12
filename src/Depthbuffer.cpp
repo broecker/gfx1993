@@ -12,6 +12,7 @@ Depthbuffer::Depthbuffer(unsigned int w, unsigned int h) : width(w), height(h),
 }
 
 void Depthbuffer::clear(float depth) {
+  #pragma omp parallel for
   for (unsigned int i = 0; i < width * height; ++i) {
     data[i] = depth;
 #if GFX1993_DEPTHBUFFER_LOG_WRITES

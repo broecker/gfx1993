@@ -111,7 +111,7 @@ void Rasterizer::drawPoints(const RenderConfig &renderConfig,
 
 VertexOutList Rasterizer::transformVertices(
     const VertexList &vertices,
-    std::shared_ptr<VertexShader> vertexShader) const {
+    const std::shared_ptr<VertexShader> &vertexShader) const {
   assert(vertexShader);
   VertexOutList out(vertices.size());
 
@@ -126,7 +126,7 @@ VertexOutList Rasterizer::transformVertices(
       });
 #else
   std::transform(vertices.begin(), vertices.end(), out.begin(),
-                 [vertexShader](const auto &v) {
+                 [&vertexShader](const auto &v) {
                    return vertexShader->transformSingle(v);
                  });
 #endif
@@ -353,7 +353,7 @@ void Rasterizer::drawTriangles(const RenderConfig &renderConfig,
   IndexList trianglesToDraw;
   {
     GFX1993_ZONE_N("rasterize.tris.clip");
-    clipped = clipper.clipTrianglesToNdc(triangles, threadPool);
+    clipped = clipper.clipTrianglesToNdc(std::move(triangles), threadPool);
 
     // Perspective divide
     for (size_t i = 0; i < clipped.size(); ++i) {

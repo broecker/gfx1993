@@ -55,7 +55,7 @@ public:
   // single shared ThreadPool) so that all of a Rasterizer's parallel work
   // shares one set of worker threads.
   TrianglePrimitiveList
-  clipTrianglesToNdc(const TrianglePrimitiveList &triangles,
+  clipTrianglesToNdc(TrianglePrimitiveList triangles,
                      ThreadPool &pool) const;
 
   void toggleDebug() const { debugColorClips = !debugColorClips; }

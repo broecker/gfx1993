@@ -64,7 +64,7 @@ private:
   // Vertex transform of the input vertices
   VertexOutList
   transformVertices(const VertexList &verticesIn,
-                    std::shared_ptr<VertexShader> vertexShader) const;
+                    const std::shared_ptr<VertexShader> &vertexShader) const;
 
   // Rasterizes a single fragment to the buffer after performing depth test and
   // alpha blending. This is called from both the drawTriangle and drawLine
