@@ -132,7 +132,10 @@ Teapot::Teapot() {
       continue;
 
     glm::vec3 v;
-    assert(sscanf(buffer.c_str(), "%f %f %f", &v.x, &v.y, &v.z) == 3);
+    if(!sscanf(buffer.c_str(), "%f %f %f", &v.x, &v.y, &v.z) == 3) {
+      std::cerr << "[Teapot] Unable to parse line: " << buffer;
+      return;
+    }
 
     vecBuffer[counter++] = v;
     if (counter == 6) {
