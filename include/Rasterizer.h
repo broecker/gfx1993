@@ -7,7 +7,6 @@
 #include "Pipeline.h"
 #include "RenderConfig.h"
 #include "RenderDebugInfo.h"
-#include "RenderProfileInfo.h"
 
 namespace gfx1993 {
 
@@ -46,9 +45,8 @@ public:
   // Because no actual vertices are drawn, no vertex shader is used.
   void drawScreenFillingQuad(const RenderConfig &renderConfig);
 
-  inline void resetDebugInfo() { debugInfo.reset(); profileInfo.reset(); }
+  inline void resetDebugInfo() { debugInfo.reset(); }
 
-  inline RenderProfile& getProfile() { return profileInfo; }
   inline DebugInfo& getDebugInfo() { return debugInfo; }
 
   const Clipper& getClipper() const { return clipper; }
@@ -77,9 +75,8 @@ private:
   bool drawDepthFragment(const RenderConfig &renderConfig,
                          const ShadingGeometry &geometry) const;
 
-  Clipper               clipper;
-  mutable DebugInfo     debugInfo;
-  mutable RenderProfile profileInfo;
+  Clipper           clipper;
+  mutable DebugInfo debugInfo;
 };
 
 } // namespace gfx1993

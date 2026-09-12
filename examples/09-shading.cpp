@@ -9,6 +9,7 @@
 #include "Geometry.h"
 #include "PlyGeometry.h"
 #include "Pipeline.h"
+#include "Profiler.h"
 #include "Shader.h"
 
 using namespace gfx1993;
@@ -73,8 +74,7 @@ vec3 shade(const PointLight& light,
 class GoraudVertexShader : public DefaultVertexTransform {
 public:
   VertexOut transformSingle(const Vertex &in) override {
-    assert(profile != nullptr);
-    auto p = profile->startTiming("rasterize.tris.shade.goraud");
+    GFX1993_ZONE_N("rasterize.tris.shade.goraud");
 
     VertexOut out = DefaultVertexTransform::transformSingle(in);
     
@@ -93,16 +93,13 @@ public:
   PointLight  light;
   Material    surface;
   vec3 eyePosition;
-
-  RenderProfile* profile = nullptr;
 };
 
 class PhongShader : public FragmentShader {
 public:
   Fragment shadeSingle(const ShadingGeometry& in) override {
+    GFX1993_ZONE_N("rasterize.tris.shade.phong");
     Fragment out;
-    assert(profile != nullptr);
-    auto p = profile->startTiming("rasterize.tris.shade.phong");
 
     out.color = vec4(shade(light, surface, in.position, in.normal, eyePosition), 1.0);
 
@@ -112,8 +109,6 @@ public:
   PointLight  light;
   Material    surface;
   vec3        eyePosition;
-
-  RenderProfile* profile = nullptr;
 };
 
 class Demo09 : public DemoApp {
@@ -184,9 +179,7 @@ protected:
     // Set up shader uniforms.
     glm::vec4 eyePosition = inverse(fixedFunctionShader->viewMatrix) * vec4(0,0,0,1);
     phongShader->eyePosition = eyePosition;
-    phongShader->profile = &rasterizer->getProfile();
     goraudShader->eyePosition = eyePosition;
-    goraudShader->profile = &rasterizer->getProfile();
 
     // Here is the difference in shading: 
     // The Phong shading model is per fragment; we use the default vertex 

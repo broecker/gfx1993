@@ -16,7 +16,7 @@ find_package(glm REQUIRED)
 
 # Library and demo app harness
 add_library(gfx93-demo-app STATIC DemoApp.cpp DemoUtils.cpp)
-target_link_libraries(gfx93-demo-app PRIVATE gfx1993 ${SDL2_LIBRARIES} glm::glm)
+target_link_libraries(gfx93-demo-app PUBLIC gfx1993 PRIVATE ${SDL2_LIBRARIES} glm::glm)
 
 # A simple rotating triangle
 add_executable(00-triangle 00-triangle.cpp)

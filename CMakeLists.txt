@@ -7,12 +7,26 @@ option(BUILD_SHARED_LIBS "Build using shared libraries" OFF)
 
 # Compile + link setup
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O2 -DGLM_ENABLE_EXPERIMENTAL")
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 # Requirements
 
 find_package(glm REQUIRED)
 find_package(absl CONFIG REQUIRED)
+
+# Tracy profiler client. Zones are instrumented via include/Profiler.h;
+# actual capture only happens once a Tracy profiler GUI connects.
+option(GFX1993_ENABLE_TRACY "Build with the Tracy profiler client" ON)
+if(GFX1993_ENABLE_TRACY)
+    include(FetchContent)
+    set(TRACY_ENABLE ON CACHE BOOL "" FORCE)
+    FetchContent_Declare(
+        tracy
+        GIT_REPOSITORY https://github.com/wolfpld/tracy.git
+        GIT_TAG        v0.11.1
+    )
+    FetchContent_MakeAvailable(tracy)
+endif()
 
 find_package(OpenMP)
 if (OPENMP_FOUND)
@@ -34,7 +48,6 @@ add_library(gfx1993
     src/Rasterizer.cpp
     src/RenderConfig.cpp
     src/RenderDebugInfo.cpp
-    src/RenderProfileInfo.cpp
     src/Shader.cpp
     src/Texture.cpp
     src/Viewport.cpp
@@ -44,6 +57,10 @@ target_include_directories(gfx1993 PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
     PRIVATE src)
+
+if(GFX1993_ENABLE_TRACY)
+    target_link_libraries(gfx1993 PUBLIC TracyClient)
+endif()
 
 include(GNUInstallDirs)
 install(TARGETS ${PROJECT_NAME} EXPORT gfx1993-config  
@@ -62,44 +79,3 @@ add_subdirectory(examples)
 
 enable_testing()
 add_subdirectory(tests)
-
-# --- Benchmark Automation & Dependency Verification ---
-
-# The comparison script requires Python 3 and Git.
-find_package(Python3 COMPONENTS Interpreter)
-find_program(GIT_EXECUTABLE NAMES git)
-
-# Optional: Check for memory profiling dependencies (tcmalloc and pprof)
-find_library(TCMALLOC_LIB NAMES tcmalloc)
-find_program(PPROF_EXECUTABLE NAMES pprof)
-find_program(XVFB_RUN NAMES xvfb-run)
-
-if(Python3_Interpreter_FOUND AND GIT_EXECUTABLE)
-    # Standard performance comparison
-    add_custom_target(compare-benchmarks
-        COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/scripts/compare_benchmarks.py"
-        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-        COMMENT "Running automated benchmark comparison (Current vs HEAD~1)"
-        USES_TERMINAL
-    )
-
-    # Memory profiling comparison
-    add_custom_target(compare-benchmarks-pprof
-        COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/scripts/compare_benchmarks.py" --pprof
-        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-        COMMENT "Running automated benchmark with memory profiling (requires tcmalloc and pprof)"
-        USES_TERMINAL
-    )
-
-    if(NOT TCMALLOC_LIB OR NOT PPROF_EXECUTABLE)
-        message(STATUS "Note: tcmalloc or pprof not found. Memory profiling targets may have limited functionality.")
-    endif()
-
-    if(NOT XVFB_RUN)
-        message(STATUS "Note: xvfb-run not found. Interactive demos cannot run headless, but headless_benchmark will work fine.")
-    endif()
-else()
-    message(STATUS "Python3_EXECUTABLE: ${Python3_EXECUTABLE}")
-    message(STATUS "GIT_EXECUTABLE: ${GIT_EXECUTABLE}")
-    message(WARNING "Required tools (Python3 or Git) missing. Automated benchmark targets were NOT created.")
-endif()

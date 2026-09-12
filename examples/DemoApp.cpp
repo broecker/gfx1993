@@ -1,6 +1,7 @@
 #include "DemoApp.h"
 
 #include "config.h"
+#include "Profiler.h"
 
 #include <cstdlib>
 #include <iostream>
@@ -73,11 +74,11 @@ void DemoApp::run(int argc, char **argv) {
 
     blitSurface();
     SDL_UpdateWindowSurface(window);
+    GFX1993_FRAME_MARK();
 
 		if ((nowTicks - lastSecond) > 1000) {
       if (appInstance->logFrameTime) {
 			  std::cout << "FPS: " << std::setw(3) << frames << " [avg: " << std::setprecision(4) << static_cast<float>(totalFrames) / (nowTicks - startTicks) * 1000  << "\ttotal frames: " << std::setw(5) << totalFrames << ", time: " << std::setprecision(5) <<  static_cast<float>(nowTicks - startTicks) / 1000 << "s]\tdt: " << std::setprecision(5) << dt << std::endl;
-        rasterizer->getProfile().print();
         rasterizer->getDebugInfo().print();
         rasterizer->resetDebugInfo();
       }
@@ -86,21 +87,21 @@ void DemoApp::run(int argc, char **argv) {
 		}
 
     SDL_Delay(0);
-  }  
+  }
 
   SDL_DestroyWindow(window);
 	SDL_Quit();
 }
 
 void DemoApp::blitSurface() {
-  auto blitProf = rasterizer->getProfile().startTiming("app.blit");
+  GFX1993_ZONE_N("app.blit");
 
   SDL_Surface* surface = SDL_GetWindowSurface(window);
   SDL_LockSurface(surface);
 
   // Resample buffer and switch to BGRA format.
   {
-    const auto resampleProf = rasterizer->getProfile().startTiming("app.blit.resample");
+    GFX1993_ZONE_N("app.blit.resample");
     #pragma omp parallel for
     for (unsigned int h = 0; h < height; ++h) {
       for (unsigned int w = 0; w < width; ++w) {
@@ -121,7 +122,7 @@ void DemoApp::blitSurface() {
   }
 
   {
-    auto copyProf = rasterizer->getProfile().startTiming("app.blit.copy");
+    GFX1993_ZONE_N("app.blit.copy");
     memcpy(surface->pixels, &pixels[0], pixels.size());
   }
 
@@ -129,7 +130,7 @@ void DemoApp::blitSurface() {
 }
 
 void DemoApp::handleEvents() {
-  auto eventProf = rasterizer->getProfile().startTiming("app.events");
+  GFX1993_ZONE_N("app.events");
 
   SDL_Event event;
   while (SDL_PollEvent(&event)) {
@@ -137,9 +138,7 @@ void DemoApp::handleEvents() {
       running = false;
     }
     handleEvent(event);
-  }   
-
-  rasterizer->getProfile().endTiming(eventProf);
+  }
 }
 
 void DemoApp::handleEvent(const SDL_Event& event) {

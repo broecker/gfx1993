@@ -4,6 +4,7 @@
 #include "Shader.h"
 #include "Framebuffer.h"
 #include "Depthbuffer.h"
+#include "Profiler.h"
 #include "Viewport.h"
 #include <iostream>
 #include <memory>
@@ -35,10 +36,11 @@ int main() {
     Rasterizer rasterizer;
 
     std::cout << "Starting Headless Benchmark (100 iterations)..." << std::endl;
+    std::cout << "Connect a Tracy profiler to capture per-stage timings." << std::endl;
     for(int i = 0; i < 100; ++i) {
         rasterizer.drawTriangles(config, sphere.getVertices(), sphere.getIndices());
+        GFX1993_FRAME_MARK();
     }
 
-    rasterizer.getProfile().print();
     return 0;
 }

@@ -10,6 +10,7 @@
 #include "DemoUtils.h"
 #include "Geometry.h"
 #include "Pipeline.h"
+#include "Profiler.h"
 #include "Shader.h"
 #include "Camera.h"
 
@@ -40,7 +41,7 @@ protected:
   void renderFrame() override {
     // Clear the buffers.
     {
-      auto clearProf = rasterizer->getProfile().startTiming("app.clearBuffers");
+      GFX1993_ZONE_N("app.clearBuffers");
       renderConfig.clearBuffers(glm::vec4(1, 0, 0, 1));
     }
 

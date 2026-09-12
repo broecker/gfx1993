@@ -3,6 +3,7 @@
 #include "config.h"
 #include "Depthbuffer.h"
 #include "Framebuffer.h"
+#include "Profiler.h"
 #include "Viewport.h"
 #include "Shader.h"
 
@@ -21,16 +22,6 @@ using glm::vec4;
 
 namespace gfx1993 {
 
-#if GFX1993_ENABLE_PROFILING
-  #if GFX1993_ENABLE_DEBUG_PROFILING
-    #define START_PROFILE(name) const auto profile_##name_start = profileInfo.startTiming(name); std::clog << "[Rasterizer stage]: " << name << std::endl;
-  #else
-    #define START_PROFILE(name) const auto profile_##name_start = profileInfo.startTiming(name)    
-  #endif // GFX1993_ENABLE_DEBUG_PROFILING
-#else 
-  #define START_PROFILE(name) {}
-#endif
-
 #define SAVE_COUNTER(rasterFunction, debugCounter) if (rasterFunction) {debugCounter.fragmentsDrawn++;} else {debugCounter.fragmentsDiscarded++;} 
 
 void Rasterizer::drawPoints(const RenderConfig &renderConfig,
@@ -39,20 +30,20 @@ void Rasterizer::drawPoints(const RenderConfig &renderConfig,
   if (!renderConfig.isValid()) {
     std::cerr << "Invalid render configuration!\n";
   }
-  START_PROFILE("rasterize.points");
+  GFX1993_ZONE_N("rasterize.points");
   debugInfo.points.processed += indices.size();
 
   // Vertex transform.
   VertexOutList transformedVertices;
   {
-    START_PROFILE("rasterize.points.transform");
+    GFX1993_ZONE_N("rasterize.points.transform");
     transformedVertices = transformVertices(vertices, renderConfig.vertexShader);
   }
 
   // Primitive assembly
   PointPrimitiveList points;
   {
-    START_PROFILE("rasterize.points.assembly");
+    GFX1993_ZONE_N("rasterize.points.assembly");
     for (size_t i = 0; i < indices.size(); ++i) {
       points.push_back(PointPrimitive(transformedVertices[indices[i]]));
     }
@@ -61,7 +52,7 @@ void Rasterizer::drawPoints(const RenderConfig &renderConfig,
   // Clipping
   PointPrimitiveList clipped;
   {
-    START_PROFILE("rasterize.points.clip");
+    GFX1993_ZONE_N("rasterize.points.clip");
     clipped = clipper.clipPointsToNdc(points);
 
 
@@ -76,7 +67,7 @@ void Rasterizer::drawPoints(const RenderConfig &renderConfig,
 
   // Rasterization
   {
-    START_PROFILE("rasterize.points.shade");
+    GFX1993_ZONE_N("rasterize.points.shade");
     for (const auto &p : clipped) {
       const vec3 pos_win =
           renderConfig.viewport->calculateWindowCoordinates(p.p.clipPosition);
@@ -156,14 +147,14 @@ void Rasterizer::drawLines(const RenderConfig &renderConfig,
     return;
   }
 
-  START_PROFILE("rasterize.lines");
+  GFX1993_ZONE_N("rasterize.lines");
   debugInfo.lines.processed++;
 
   // Vertex transformation
   VertexOutList transformedVertices;
   transformedVertices.reserve(vertices.size());
   {
-    START_PROFILE("rasterize.lines.transform");
+    GFX1993_ZONE_N("rasterize.lines.transform");
     transformedVertices = transformVertices(vertices, renderConfig.vertexShader);
   }
 
@@ -171,7 +162,7 @@ void Rasterizer::drawLines(const RenderConfig &renderConfig,
   LinePrimitiveList lines;
   lines.reserve(indices.size()/2);
   {
-    START_PROFILE("rasterize.lines.assembly");
+    GFX1993_ZONE_N("rasterize.lines.assembly");
     for (size_t i = 0; i < indices.size(); i += 2) {
       const VertexOut &a = transformedVertices[indices[i + 0]];
       const VertexOut &b = transformedVertices[indices[i + 1]];
@@ -182,7 +173,7 @@ void Rasterizer::drawLines(const RenderConfig &renderConfig,
   // Clipping
   LinePrimitiveList clipped;
   {
-    START_PROFILE("rasterize.lines.clip");
+    GFX1993_ZONE_N("rasterize.lines.clip");
     clipped = clipper.clipLines(lines);
 
     // Perspective divide
@@ -226,13 +217,13 @@ void Rasterizer::drawTriangles(const RenderConfig &renderConfig,
     std::cerr << "Invalid render configuration!\n";
     return;
   }
-  START_PROFILE("rasterize.tris");
+  GFX1993_ZONE_N("rasterize.tris");
   debugInfo.triangles.processed++;
 
   // transform vertices
   VertexOutList transformedVertices;
   {
-    START_PROFILE("rasterize.tris.transform");
+    GFX1993_ZONE_N("rasterize.tris.transform");
     transformedVertices =
         transformVertices(vertices, renderConfig.vertexShader);
   }
@@ -240,7 +231,7 @@ void Rasterizer::drawTriangles(const RenderConfig &renderConfig,
   // Primitive assembly.
   TrianglePrimitiveList triangles;
   {
-    START_PROFILE("rasterize.tris.assembly");
+    GFX1993_ZONE_N("rasterize.tris.assembly");
     
     // https://www.gamasutra.com/view/news/168577/Indepth_Software_rasterizer_and_triangle_clipping.php
     // https://fgiesen.wordpress.com/2011/07/05/a-trip-through-the-graphics-pipeline-2011-part-5/
@@ -257,7 +248,7 @@ void Rasterizer::drawTriangles(const RenderConfig &renderConfig,
   TrianglePrimitiveList clipped;
   IndexList trianglesToDraw;
   {
-    START_PROFILE("rasterize.tris.clip");
+    GFX1993_ZONE_N("rasterize.tris.clip");
     clipped = clipper.clipTrianglesToNdc(triangles);
 
     // Perspective divide
@@ -268,7 +259,7 @@ void Rasterizer::drawTriangles(const RenderConfig &renderConfig,
       triangle.c.clipPosition /= triangle.c.clipPosition.w;
 
       if (renderConfig.cullBackFaces) {
-        START_PROFILE("rasterize.tris.clip.cullface");
+        GFX1993_ZONE_N("rasterize.tris.clip.cullface");
         vec3 clipNormal = glm::normalize(glm::cross(vec3(triangle.b.clipPosition) - vec3(triangle.a.clipPosition),
                                                       vec3(triangle.c.clipPosition) - vec3(triangle.a.clipPosition)));
         if (clipNormal.z <= 0) {
@@ -297,7 +288,7 @@ void Rasterizer::drawScreenFillingQuad(const RenderConfig& renderConfig) {
     return;
   }
 
-  START_PROFILE("rasterize.screenQuad");
+  GFX1993_ZONE_N("rasterize.screenQuad");
   debugInfo.screenFillingQuad.processed++;
   debugInfo.screenFillingQuad.drawn++;
 
@@ -333,7 +324,7 @@ void Rasterizer::drawScreenFillingQuad(const RenderConfig& renderConfig) {
 void Rasterizer::drawLine(const RenderConfig &renderConfig,
                           const LinePrimitive &line) const {
   assert(renderConfig.fragmentShader);
-  START_PROFILE("rasterize.lines.draw");
+  GFX1993_ZONE_N("rasterize.lines.draw");
 
   using namespace glm;
 
@@ -369,7 +360,7 @@ void Rasterizer::drawLine(const RenderConfig &renderConfig,
     sgeo.depth = depth;
 
     {
-      START_PROFILE("rasterize.lines.shade");
+      GFX1993_ZONE_N("rasterize.lines.shade");
       SAVE_COUNTER(drawFragment(renderConfig, sgeo), debugInfo.lines);
     }
 
@@ -405,7 +396,7 @@ static inline int pointInHalfspace(const glm::ivec2 &a, const glm::ivec2 &b,
 void Rasterizer::drawTriangle(const RenderConfig &renderConfig,
                               const TrianglePrimitive &t) const {
   assert(renderConfig.fragmentShader);
-  START_PROFILE("rasterize.tris.shade");
+  GFX1993_ZONE_N("rasterize.tris.shade");
 
   using namespace glm;
 
@@ -434,7 +425,7 @@ void Rasterizer::drawTriangle(const RenderConfig &renderConfig,
       renderConfig.viewport->origin + renderConfig.viewport->size - 1, max);
 
   if (renderConfig.drawTriangleBounds && renderConfig.framebuffer) {
-    START_PROFILE("rasterize.tris.shade.bbox");
+    GFX1993_ZONE_N("rasterize.tris.shade.bbox");
     // draw bounding box
     vec4 bboxColour(1, 0, 0, 1);
     for (int x = min.x; x <= max.x; ++x) {
@@ -454,7 +445,7 @@ void Rasterizer::drawTriangle(const RenderConfig &renderConfig,
 
   // Rasterize -- loop over the screen-space bounding box.
   {
-    START_PROFILE("rasterize.tris.shade.fill");
+    GFX1993_ZONE_N("rasterize.tris.shade.fill");
 #if GFX1993_PARALLEL_SHADE_TRIANGLE
     // TODO(mbroecker): Maybe an additional metric would be the size of the
     // bounding box and whether one dimension is much larger than the other.
