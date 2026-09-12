@@ -2,7 +2,6 @@
 #include "Pipeline.h"
 
 #include <algorithm>
-#include <cassert>
 #include <cstdio>
 #include <fstream>
 #include <iostream>
@@ -37,12 +36,18 @@ bool PlyGeometry::loadPly(const std::string &filename) {
         readHeader = false;
 
       if (buffer.find("element vertex") != std::string::npos) {
-        assert(sscanf(buffer.c_str(), "element vertex %i", &vertexCount) == 1);
+        if (sscanf(buffer.c_str(), "element vertex %i", &vertexCount) != 1) {
+          std::cerr << "[PlyGeometry] Malformed header line: \"" << buffer << "\"\n";
+          return false;
+        }
         vertices.reserve(vertexCount);
       }
 
       if (buffer.find("element face") != std::string::npos) {
-        assert(sscanf(buffer.c_str(), "element face %i", &faceCount) == 1);
+        if (sscanf(buffer.c_str(), "element face %i", &faceCount) != 1) {
+          std::cerr << "[PlyGeometry] Malformed header line: \"" << buffer << "\"\n";
+          return false;
+        }
         indices.reserve(faceCount * 3);
       }
 
@@ -51,8 +56,15 @@ bool PlyGeometry::loadPly(const std::string &filename) {
 
     // read number of vertices
     if (readVertices < vertexCount) {
-      float x, y, z, c, i;
-      assert(sscanf(buffer.c_str(), "%f %f %f %f %f", &x, &y, &z, &c, &i) == 5);
+      float x, y, z, confidence, intensity;
+      if (sscanf(buffer.c_str(), "%f %f %f %f %f", &x, &y, &z, &confidence,
+                &intensity) != 5) {
+        std::cerr << "[PlyGeometry] Malformed vertex line: \"" << buffer << "\"\n";
+        continue;
+      }
+      // confidence/intensity are PLY vertex properties this loader doesn't use.
+      (void)confidence;
+      (void)intensity;
 
       vertices.push_back(Vertex(glm::vec4(x, y, z, 1)));
 
@@ -65,7 +77,10 @@ bool PlyGeometry::loadPly(const std::string &filename) {
     // and then the faces
     else {
       unsigned int a, b, c;
-      assert(sscanf(buffer.c_str(), "3 %i %i %i", &a, &b, &c) == 3);
+      if (sscanf(buffer.c_str(), "3 %i %i %i", &a, &b, &c) != 3) {
+        std::cerr << "[PlyGeometry] Malformed face line: \"" << buffer << "\"\n";
+        continue;
+      }
 
       indices.push_back(a);
       indices.push_back(b);
