@@ -19,9 +19,9 @@
 using namespace gfx1993;
 using namespace glm;
 
-class Demo11 : public DemoApp {
+class Demo12 : public DemoApp {
 public:
-  Demo11() : DemoApp("Demo 11 - BVH"), skybox(vec4(1.f)), octTreeBboxes(Cube::makeLines()) {}
+  Demo12() : DemoApp("Demo 12 - BVH"), skybox(vec4(1.f)), octTreeBboxes(Cube::makeLines()) {}
 
 protected:
   void init() override {
@@ -84,7 +84,9 @@ protected:
     renderConfig.depthTest = false;
     renderConfig.fragmentShader = colorShader;
     renderConfig.pointSize = 3;
-    rasterizer->drawPoints(renderConfig, teapot.getVertices(), teapot.getIndices());
+
+
+    rasterizer->drawTriangles(renderConfig, teapot.getVertices(), teapot.getIndices());
   }
 
   void handleKeyboard(unsigned char key, const glm::ivec2& mouse) override { 
@@ -117,7 +119,7 @@ private:
 };
 
 int main(int argc, char **argv) {
-  Demo11 demo;
+  Demo12 demo;
   demo.run(argc, argv);
 
   return 0;

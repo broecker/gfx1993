@@ -22,27 +22,43 @@
 using namespace gfx1993;
 using namespace glm;
 
-// Variant of 10-skybox.cpp that bakes the physically based atmosphere (see
-// that file for the paper reference and the physical model itself) into a
-// small equirectangular (lat/long) texture every few frames -- optionally on
-// a background thread -- instead of ray-marching it per pixel every frame.
-// The sky's appearance only depends on view direction and the (slowly
-// changing) sun direction, not on scene geometry or camera position, so
-// baking it at low resolution and reusing it across several frames trades a
-// small amount of visual fidelity for a large drop in per-frame cost.
+// Physically based sky, based on:
+//   Sebastien Hillaire, "A Scalable and Production Ready Sky and Atmosphere
+//   Rendering Technique", EGSR 2020.
+//   https://sebh.github.io/publications/egsr2020.pdf
 //
-// Press 'n' to compare the baked texture lookup against the original
-// per-pixel raymarch directly.
+// The paper's real-time trick is to precompute a transmittance LUT, a
+// multi-scattering LUT, and a sky-view LUT on the GPU so the actual sky
+// pixel shader is just a couple of texture fetches. gfx1993 is a CPU
+// software rasterizer with no compute-shader/texture-write stage, so this
+// instead ray-marches the single-scattering integral directly (the paper's
+// core physical model, Section 4). Multiple scattering (Section 5.2's
+// precomputed LUT, built from an iterative dual-scattering approximation)
+// is out of scope for a per-pixel shader with no prepass, so it's replaced
+// with a simple ambient fudge term (see multiScatteringFactor below).
+//
+// Ray-marching the sky per pixel every frame turned out too slow, so instead
+// this bakes it into a small equirectangular (lat/long) texture every few
+// frames -- optionally on a background thread -- and has the skybox (and
+// the bunny's reflection) look it up instead of ray-marching every pixel
+// every frame. The sky's appearance only depends on view direction and the
+// (slowly changing) sun direction, not on scene geometry or camera
+// position, so baking it at low resolution and reusing it across several
+// frames trades a small amount of visual fidelity for a large drop in
+// per-frame cost.
+//
+// Press 'n' to compare the baked texture lookup against a live per-pixel
+// raymarch directly.
 namespace {
   constexpr unsigned int kSkyLatLongWidth = 128;
   constexpr unsigned int kSkyLatLongHeight = kSkyLatLongWidth / 2; // equirectangular, 2:1
   constexpr unsigned int kSkyBakeEveryNFrames = 8;
 }
 
-// The physics itself, exactly as in 10-skybox.cpp's AtmosphereFragmentShader,
-// but factored into free functions that take every input explicitly. This
-// makes it safe to call from a background bake thread: it touches no shared
-// mutable state, only its by-value arguments and compile-time constants.
+// The physics itself, factored into free functions that take every input
+// explicitly. This makes it safe to call from a background bake thread: it
+// touches no shared mutable state, only its by-value arguments and
+// compile-time constants.
 namespace atmosphere {
 
 struct Medium {
@@ -164,8 +180,8 @@ inline vec3 sampleSunDisk(const vec3 &rayOrigin, const vec3 &rayDir, const vec3 
 
 // The single-scattering raymarch itself (Hillaire EGSR2020, Section 4),
 // plus the ambient multi-scattering fudge term and exposure/Reinhard
-// tonemap described in 10-skybox.cpp. Pure function of its arguments and
-// compile-time constants -- safe to call from any thread.
+// tonemap described in the file comment above. Pure function of its
+// arguments and compile-time constants -- safe to call from any thread.
 inline vec3 computeRadiance(const vec3 &rayDir, const vec3 &sunDir,
                             float exposure, float multiScatteringFactor) {
   const vec3 planetCenter(0.f);
@@ -251,9 +267,8 @@ static vec2 directionToEquirectUv(const vec3 &dir) {
   return vec2(azimuth / glm::two_pi<float>() + 0.5f, 0.5f - elevation / glm::pi<float>());
 }
 
-// Renders the atmosphere per pixel, every frame -- identical to
-// 10-skybox.cpp's AtmosphereFragmentShader, kept here so this demo can
-// compare it directly against the baked lat/long version below.
+// Renders the atmosphere per pixel, every frame -- kept alongside the baked
+// version below so this demo can compare the two directly.
 class AtmosphereFragmentShader : public FragmentShader {
 public:
   Fragment shadeSingle(const ShadingGeometry &in) override {
@@ -278,7 +293,7 @@ public:
 };
 
 // Looks up the sky color from a baked equirectangular texture instead of
-// computing it. The texture is produced by Demo10b::bakeSkyTexture below and
+// computing it. The texture is produced by Demo11::bakeSkyTexture below and
 // handed to us once per frame; see that function for the lat/long layout.
 class LatLongSkyboxFragmentShader : public FragmentShader {
 public:
@@ -291,7 +306,7 @@ public:
     return out;
   }
 
-  // Set once per frame by Demo10b before drawing. Safe to read for the
+  // Set once per frame by Demo11 before drawing. Safe to read for the
   // whole frame: Texture is immutable after construction, and holding our
   // own shared_ptr keeps that instance alive even if the bake thread
   // publishes a newer texture mid-frame.
@@ -324,7 +339,7 @@ public:
     return out;
   }
 
-  // All set once per frame by Demo10b before drawing; see LatLongSkyboxFragmentShader
+  // All set once per frame by Demo11 before drawing; see LatLongSkyboxFragmentShader
   // above for why holding our own shared_ptr to `texture` is safe.
   vec3 eyePosition = vec3(0.f);
   vec3 sunDirection = vec3(0.f, 1.f, 0.f);
@@ -334,11 +349,11 @@ public:
   std::shared_ptr<Texture> texture;
 };
 
-class Demo10b : public DemoApp {
+class Demo11 : public DemoApp {
 public:
-  Demo10b() : DemoApp("Demo 10b - Hillaire Skybox (baked)"), skybox(vec4(1.f)) {}
+  Demo11() : DemoApp("Demo 11 - Dynamic Sky"), skybox(vec4(1.f)) {}
 
-  ~Demo10b() override {
+  ~Demo11() override {
     if (bakeThread.joinable()) {
       bakeThread.join();
     }
@@ -546,7 +561,7 @@ private:
 };
 
 int main(int argc, char **argv) {
-  Demo10b demo;
+  Demo11 demo;
   demo.run(argc, argv);
 
   return 0;

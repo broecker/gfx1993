@@ -100,9 +100,9 @@ private:
   std::unique_ptr<HeightMap> heightmap;
 };
 
-class Demo12 : public DemoApp {
+class Demo13 : public DemoApp {
 public:
-  Demo12() : DemoApp("Demo 12 - Frustum / AABB Culling"), frustum(mat4(1.f), mat4(1.f)) {
+  Demo13() : DemoApp("Demo 13 - Frustum / AABB Culling"), frustum(mat4(1.f), mat4(1.f)) {
       camera = std::make_unique<FreeCamera>(
           glm::perspective(30.f, static_cast<float>(width) / height, 1.f, 200.f), 
           vec3(0, 2, 10));
@@ -212,10 +212,10 @@ protected:
         delta.z = -1;
         break;
       case 'a':
-        delta.x = -1;
+        delta.x = 1;
         break;
       case 'd':
-        delta.x = 1;
+        delta.x = -1;
         break;
       case 'q':
         delta.y = 1;
@@ -249,7 +249,7 @@ private:
 };
 
 int main(int argc, char **argv) {
-  Demo12 demo;
+  Demo13 demo;
   demo.run(argc, argv);
 
   return 0;

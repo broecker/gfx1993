@@ -63,16 +63,16 @@ add_executable(10-skybox 10-skybox.cpp)
 target_link_libraries(10-skybox gfx93-demo-app)
 
 # Physically based sky, baked into a lat/long texture on a background thread.
-add_executable(10b-hillaire-skybox 10b-hillaire-skybox.cpp)
-target_link_libraries(10b-hillaire-skybox gfx93-demo-app)
+add_executable(11-dynamic-sky 11-dynamic-sky.cpp)
+target_link_libraries(11-dynamic-sky gfx93-demo-app)
 
 # Frustum / BVH interactions
-add_executable(11-bvh 11-bvh.cpp)
-target_link_libraries(11-bvh gfx93-demo-app)
+add_executable(12-bvh 12-bvh.cpp)
+target_link_libraries(12-bvh gfx93-demo-app)
 
 # Frustum / AABB culling
-add_executable(12-frustum-aabb 12-frustum-aabb.cpp)
-target_link_libraries(12-frustum-aabb gfx93-demo-app)
+add_executable(13-frustum-aabb 13-frustum-aabb.cpp)
+target_link_libraries(13-frustum-aabb gfx93-demo-app)
 
 # Headless performance benchmark (True headless - no SDL dependency)
 add_executable(headless_benchmark headless_benchmark.cpp)
