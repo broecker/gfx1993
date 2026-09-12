@@ -13,8 +13,8 @@
 #include <glm/gtx/transform.hpp>
 #include <iostream>
 #include <list>
-#include <omp.h>
-#include <string>
+#include <utility>
+#include <vector>
 
 using glm::ivec2;
 using glm::vec2;
@@ -24,26 +24,6 @@ using glm::vec4;
 namespace gfx1993 {
 
 #define SAVE_COUNTER(rasterFunction, debugCounter) if (rasterFunction) {debugCounter.fragmentsDrawn++;} else {debugCounter.fragmentsDiscarded++;}
-
-// Names the calling OpenMP worker thread exactly once, so Tracy captures show
-// a distinct, stable lane per OpenMP thread instead of an anonymous blob.
-// Named separately from gfx1993::ThreadPool's "gfx1993-worker-*" threads
-// (used for clipping) so the two thread pools are easy to tell apart.
-static void nameOmpWorkerThread() {
-  // Thread 0 in an OpenMP team is always the thread that entered the
-  // parallel region -- gfx1993's main/calling thread here, not one OpenMP
-  // actually spawned. Leave its existing identity alone.
-  if (omp_get_thread_num() == 0) {
-    return;
-  }
-
-  thread_local bool named = false;
-  if (!named) {
-    std::string name = "omp-worker-" + std::to_string(omp_get_thread_num());
-    GFX1993_SET_THREAD_NAME(name.c_str());
-    named = true;
-  }
-}
 
 void Rasterizer::drawPoints(const RenderConfig &renderConfig,
                             const VertexList &vertices,
@@ -136,15 +116,14 @@ VertexOutList Rasterizer::transformVertices(
   VertexOutList out(vertices.size());
 
 #if GFX1993_PARALLEL_TRANSFORM
-  #pragma omp parallel
-  {
-    nameOmpWorkerThread();
-    GFX1993_ZONE_N("rasterize.transform.worker");
-    #pragma omp for
-    for (int i = 0; i < vertices.size(); ++i) {
-      out[i] = vertexShader->transformSingle(vertices[i]);
-    }
-  }
+  threadPool.parallelFor(
+      vertices.size(),
+      [&](size_t /*worker*/, size_t begin, size_t end) {
+        GFX1993_ZONE_N("rasterize.transform.worker");
+        for (size_t i = begin; i < end; ++i) {
+          out[i] = vertexShader->transformSingle(vertices[i]);
+        }
+      });
 #else
   std::transform(vertices.begin(), vertices.end(), out.begin(),
                  [vertexShader](const auto &v) {
@@ -275,7 +254,7 @@ void Rasterizer::drawTriangles(const RenderConfig &renderConfig,
   IndexList trianglesToDraw;
   {
     GFX1993_ZONE_N("rasterize.tris.clip");
-    clipped = clipper.clipTrianglesToNdc(triangles);
+    clipped = clipper.clipTrianglesToNdc(triangles, threadPool);
 
     // Perspective divide
     for (size_t i = 0; i < clipped.size(); ++i) {
@@ -318,7 +297,8 @@ void Rasterizer::drawScreenFillingQuad(const RenderConfig& renderConfig) {
   debugInfo.screenFillingQuad.processed++;
   debugInfo.screenFillingQuad.drawn++;
 
-  auto shadeScreenQuadRow = [&](int y) {
+  auto shadeScreenQuadRow = [&](int y, uint32_t &fragmentsDrawn,
+                                uint32_t &fragmentsDiscarded) {
     for (int x = 0; x < renderConfig.viewport->size.x; ++x) {
       ShadingGeometry sgeo;
       sgeo.color = vec4(1);
@@ -329,31 +309,41 @@ void Rasterizer::drawScreenFillingQuad(const RenderConfig& renderConfig) {
       sgeo.position = vec3(pos, 0.0);
       sgeo.texcoord = pos;
 
-      bool drawn = drawFragment(renderConfig, sgeo);
-      if (drawn) {
-        #pragma omp atomic
-        debugInfo.screenFillingQuad.fragmentsDrawn++;
+      if (drawFragment(renderConfig, sgeo)) {
+        ++fragmentsDrawn;
       } else {
-        #pragma omp atomic
-        debugInfo.screenFillingQuad.fragmentsDiscarded++;
+        ++fragmentsDiscarded;
       }
     }
   };
 
 #if GFX1993_PARALLEL_SHADE_SCREENQUAD
-  #pragma omp parallel
-  {
-    nameOmpWorkerThread();
-    GFX1993_ZONE_N("rasterize.screenQuad.worker");
-    #pragma omp for
-    for (int y = 0; y < renderConfig.viewport->size.y; ++y) {
-      shadeScreenQuadRow(y);
-    }
+  // Each worker accumulates its own counts -- merged into debugInfo once
+  // every worker has finished, instead of an atomic increment per fragment.
+  std::vector<std::pair<uint32_t, uint32_t>> perWorkerCounts(
+      threadPool.getThreadCount(), std::make_pair(0u, 0u));
+
+  threadPool.parallelFor(
+      renderConfig.viewport->size.y,
+      [&](size_t worker, size_t begin, size_t end) {
+        GFX1993_ZONE_N("rasterize.screenQuad.worker");
+        auto &counts = perWorkerCounts[worker];
+        for (size_t y = begin; y < end; ++y) {
+          shadeScreenQuadRow(static_cast<int>(y), counts.first, counts.second);
+        }
+      });
+
+  for (const auto &counts : perWorkerCounts) {
+    debugInfo.screenFillingQuad.fragmentsDrawn += counts.first;
+    debugInfo.screenFillingQuad.fragmentsDiscarded += counts.second;
   }
 #else
+  uint32_t fragmentsDrawn = 0, fragmentsDiscarded = 0;
   for (int y = 0; y < renderConfig.viewport->size.y; ++y) {
-    shadeScreenQuadRow(y);
+    shadeScreenQuadRow(y, fragmentsDrawn, fragmentsDiscarded);
   }
+  debugInfo.screenFillingQuad.fragmentsDrawn += fragmentsDrawn;
+  debugInfo.screenFillingQuad.fragmentsDiscarded += fragmentsDiscarded;
 #endif
 }
 
@@ -484,7 +474,8 @@ void Rasterizer::drawTriangle(const RenderConfig &renderConfig,
   {
     GFX1993_ZONE_N("rasterize.tris.shade.fill");
 
-    auto shadeTriangleRow = [&](int y) {
+    auto shadeTriangleRow = [&](int y, uint32_t &fragmentsDrawn,
+                               uint32_t &fragmentsDiscarded) {
       for (int x = min.x; x <= max.x; ++x) {
         // position
         ivec2 p(x, y);
@@ -510,34 +501,47 @@ void Rasterizer::drawTriangle(const RenderConfig &renderConfig,
           sgeo.windowCoord = p;
           sgeo.depth = z;
 
-          bool drawn = drawFragment(renderConfig, sgeo);
-          if (drawn) {
-            #pragma omp atomic
-            debugInfo.triangles.fragmentsDrawn++;
+          if (drawFragment(renderConfig, sgeo)) {
+            ++fragmentsDrawn;
           } else {
-            #pragma omp atomic
-            debugInfo.triangles.fragmentsDiscarded++;
+            ++fragmentsDiscarded;
           }
         }
       }
     };
 
+    const int rowCount = max.y - min.y + 1;
+
 #if GFX1993_PARALLEL_SHADE_TRIANGLE
     // TODO(mbroecker): Maybe an additional metric would be the size of the
     // bounding box and whether one dimension is much larger than the other.
-    #pragma omp parallel
-    {
-      nameOmpWorkerThread();
-      GFX1993_ZONE_N("rasterize.tris.shade.fill.worker");
-      #pragma omp for
-      for (int y = min.y; y <= max.y; ++y) {
-        shadeTriangleRow(y);
-      }
+    // Each worker accumulates its own counts -- merged into debugInfo once
+    // every worker has finished, instead of an atomic increment per fragment.
+    std::vector<std::pair<uint32_t, uint32_t>> perWorkerCounts(
+        threadPool.getThreadCount(), std::make_pair(0u, 0u));
+
+    threadPool.parallelFor(
+        rowCount > 0 ? static_cast<size_t>(rowCount) : 0,
+        [&](size_t worker, size_t begin, size_t end) {
+          GFX1993_ZONE_N("rasterize.tris.shade.fill.worker");
+          auto &counts = perWorkerCounts[worker];
+          for (size_t i = begin; i < end; ++i) {
+            shadeTriangleRow(min.y + static_cast<int>(i), counts.first,
+                             counts.second);
+          }
+        });
+
+    for (const auto &counts : perWorkerCounts) {
+      debugInfo.triangles.fragmentsDrawn += counts.first;
+      debugInfo.triangles.fragmentsDiscarded += counts.second;
     }
 #else
+    uint32_t fragmentsDrawn = 0, fragmentsDiscarded = 0;
     for (int y = min.y; y <= max.y; ++y) {
-      shadeTriangleRow(y);
+      shadeTriangleRow(y, fragmentsDrawn, fragmentsDiscarded);
     }
+    debugInfo.triangles.fragmentsDrawn += fragmentsDrawn;
+    debugInfo.triangles.fragmentsDiscarded += fragmentsDiscarded;
 #endif
   }
 }

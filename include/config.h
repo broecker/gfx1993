@@ -23,20 +23,22 @@
 // or Vulkan) this can be left off (I think).
 #define GFX1993_DEMO_USE_OPENMP 1
 
-// If set, uses OpenMP parallel loops to transform vertices into clip space;
+// Rasterizer::threadPool is the single gfx1993::ThreadPool shared by every
+// parallel stage below plus triangle-vs-plane clipping
+// (Clipper::clipTrianglesToNdc) -- one set of worker threads for the whole
+// rasterizer, instead of each stage spinning up its own. Points and lines
+// are still processed serially; testing showed no performance increase.
+
+// If set, uses the shared thread pool to transform vertices into clip space;
 // i.e. it runs the Vertex Shader in parallel.
 #define GFX1993_PARALLEL_TRANSFORM 1
 
-// Note: triangle-vs-plane clipping (Clipper::clipTrianglesToNdc) always
-// parallelizes via its own gfx1993::ThreadPool, independent of these OpenMP
-// flags. Points and lines are still processed serially; testing showed no
-// performance increase.
-
+// If set, uses the shared thread pool to shade the screen-filling quad.
 #define GFX1993_PARALLEL_SHADE_SCREENQUAD 1
 
-// If set, uses OpenMP parallel lops to shade screen triangles. This is only
-// useful for large (in screen-space coverage) triangles. For smaller ones,
-// the additional setup cost outweighs the performance gains.
+// If set, uses the shared thread pool to shade screen triangles. This is
+// only useful for large (in screen-space coverage) triangles. For smaller
+// ones, the additional setup cost outweighs the performance gains.
 #define GFX1993_PARALLEL_SHADE_TRIANGLE 0
 
 // If enabled, adds another layer to the depth buffer that measures writes to

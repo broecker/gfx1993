@@ -7,6 +7,7 @@
 #include "Pipeline.h"
 #include "RenderConfig.h"
 #include "RenderDebugInfo.h"
+#include "ThreadPool.h"
 
 namespace gfx1993 {
 
@@ -77,6 +78,12 @@ private:
 
   Clipper           clipper;
   mutable DebugInfo debugInfo;
+
+  // Single pool backing every parallel stage in the rasterizer (vertex
+  // transform, triangle clipping, screen-quad and triangle-fill shading), so
+  // all of that work shares one set of worker threads instead of each stage
+  // spinning up its own.
+  mutable ThreadPool threadPool;
 };
 
 } // namespace gfx1993

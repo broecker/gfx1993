@@ -1,6 +1,7 @@
 #include "Clipper.h"
 #include "config.h"
 #include "Profiler.h"
+#include "ThreadPool.h"
 
 #include <algorithm>
 #include <iostream>
@@ -335,21 +336,21 @@ static TrianglePrimitiveList clipTriangle(const TrianglePrimitive &triangle,
 }
 
 TrianglePrimitiveList Clipper::clipTrianglesToNdc(
-    const TrianglePrimitiveList &clipspaceTriangles) const {
+    const TrianglePrimitiveList &clipspaceTriangles, ThreadPool &pool) const {
   GFX1993_ZONE_N("rasterize.tris.clip.ndc");
   TrianglePrimitiveList clipped = clipspaceTriangles;
 
   // Each worker accumulates into its own buffer -- no locking while the
   // actual clipping work happens. Buffers are reused across planes to avoid
   // reallocating every pass.
-  std::vector<TrianglePrimitiveList> perWorker(threadPool.getThreadCount());
+  std::vector<TrianglePrimitiveList> perWorker(pool.getThreadCount());
 
   for (const auto &plane : planes) {
     for (auto &local : perWorker) {
       local.clear();
     }
 
-    threadPool.parallelFor(
+    pool.parallelFor(
         clipped.size(),
         [&](size_t worker, size_t begin, size_t end) {
           TrianglePrimitiveList &local = perWorker[worker];

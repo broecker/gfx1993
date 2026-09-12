@@ -2,12 +2,13 @@
 #define GFX1993_CLIPPER_H
 
 #include "Pipeline.h"
-#include "ThreadPool.h"
 
 #include <glm/glm.hpp>
 #include <vector>
 
 namespace gfx1993 {
+
+class ThreadPool;
 
 class Clipper {
 public:
@@ -49,8 +50,13 @@ public:
 
   TrianglePrimitiveList clipTriangles(TrianglePrimitiveList triangles) const;
 
+  // Clips triangles plane-by-plane, parallelizing the per-plane work across
+  // `pool`. The caller owns the pool (typically the owning Rasterizer's
+  // single shared ThreadPool) so that all of a Rasterizer's parallel work
+  // shares one set of worker threads.
   TrianglePrimitiveList
-  clipTrianglesToNdc(const TrianglePrimitiveList &triangles) const;
+  clipTrianglesToNdc(const TrianglePrimitiveList &triangles,
+                     ThreadPool &pool) const;
 
   void toggleDebug() const { debugColorClips = !debugColorClips; }
 
@@ -60,11 +66,6 @@ private:
   // If set, colors created triangles in yellow;
   mutable bool debugColorClips = false;
   glm::vec4 debugClipColor = glm::vec4(1,0,1,1);
-
-  // Used by clipTrianglesToNdc() to parallelize triangle clipping across
-  // planes. Persistent (rather than spun up per call) since a Clipper
-  // typically lives for the lifetime of its owning Rasterizer.
-  mutable ThreadPool threadPool;
 };
 
 } // namespace gfx1993
