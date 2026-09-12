@@ -14,6 +14,7 @@
 #include <iostream>
 #include <list>
 #include <omp.h>
+#include <string>
 
 using glm::ivec2;
 using glm::vec2;
@@ -22,7 +23,27 @@ using glm::vec4;
 
 namespace gfx1993 {
 
-#define SAVE_COUNTER(rasterFunction, debugCounter) if (rasterFunction) {debugCounter.fragmentsDrawn++;} else {debugCounter.fragmentsDiscarded++;} 
+#define SAVE_COUNTER(rasterFunction, debugCounter) if (rasterFunction) {debugCounter.fragmentsDrawn++;} else {debugCounter.fragmentsDiscarded++;}
+
+// Names the calling OpenMP worker thread exactly once, so Tracy captures show
+// a distinct, stable lane per OpenMP thread instead of an anonymous blob.
+// Named separately from gfx1993::ThreadPool's "gfx1993-worker-*" threads
+// (used for clipping) so the two thread pools are easy to tell apart.
+static void nameOmpWorkerThread() {
+  // Thread 0 in an OpenMP team is always the thread that entered the
+  // parallel region -- gfx1993's main/calling thread here, not one OpenMP
+  // actually spawned. Leave its existing identity alone.
+  if (omp_get_thread_num() == 0) {
+    return;
+  }
+
+  thread_local bool named = false;
+  if (!named) {
+    std::string name = "omp-worker-" + std::to_string(omp_get_thread_num());
+    GFX1993_SET_THREAD_NAME(name.c_str());
+    named = true;
+  }
+}
 
 void Rasterizer::drawPoints(const RenderConfig &renderConfig,
                             const VertexList &vertices,
@@ -115,9 +136,14 @@ VertexOutList Rasterizer::transformVertices(
   VertexOutList out(vertices.size());
 
 #if GFX1993_PARALLEL_TRANSFORM
-  #pragma omp parallel for
-  for (int i = 0; i < vertices.size(); ++i) {
-    out[i] = vertexShader->transformSingle(vertices[i]);
+  #pragma omp parallel
+  {
+    nameOmpWorkerThread();
+    GFX1993_ZONE_N("rasterize.transform.worker");
+    #pragma omp for
+    for (int i = 0; i < vertices.size(); ++i) {
+      out[i] = vertexShader->transformSingle(vertices[i]);
+    }
   }
 #else
   std::transform(vertices.begin(), vertices.end(), out.begin(),
@@ -292,12 +318,7 @@ void Rasterizer::drawScreenFillingQuad(const RenderConfig& renderConfig) {
   debugInfo.screenFillingQuad.processed++;
   debugInfo.screenFillingQuad.drawn++;
 
-#if GFX1993_PARALLEL_SHADE_SCREENQUAD
-  #pragma omp parallel for
-  for (int y = 0; y < renderConfig.viewport->size.y; ++y) {
-#else
-  for (int y = 0; y < renderConfig.viewport->size.y; ++y) {
-#endif
+  auto shadeScreenQuadRow = [&](int y) {
     for (int x = 0; x < renderConfig.viewport->size.x; ++x) {
       ShadingGeometry sgeo;
       sgeo.color = vec4(1);
@@ -317,7 +338,23 @@ void Rasterizer::drawScreenFillingQuad(const RenderConfig& renderConfig) {
         debugInfo.screenFillingQuad.fragmentsDiscarded++;
       }
     }
+  };
+
+#if GFX1993_PARALLEL_SHADE_SCREENQUAD
+  #pragma omp parallel
+  {
+    nameOmpWorkerThread();
+    GFX1993_ZONE_N("rasterize.screenQuad.worker");
+    #pragma omp for
+    for (int y = 0; y < renderConfig.viewport->size.y; ++y) {
+      shadeScreenQuadRow(y);
+    }
   }
+#else
+  for (int y = 0; y < renderConfig.viewport->size.y; ++y) {
+    shadeScreenQuadRow(y);
+  }
+#endif
 }
 
 // Bresenham line drawing
@@ -446,14 +483,8 @@ void Rasterizer::drawTriangle(const RenderConfig &renderConfig,
   // Rasterize -- loop over the screen-space bounding box.
   {
     GFX1993_ZONE_N("rasterize.tris.shade.fill");
-#if GFX1993_PARALLEL_SHADE_TRIANGLE
-    // TODO(mbroecker): Maybe an additional metric would be the size of the
-    // bounding box and whether one dimension is much larger than the other.
-    #pragma omp parallel for
-    for (int y = min.y; y <= max.y; ++y) {
-#else
-    for (int y = min.y; y <= max.y; ++y) {
-#endif
+
+    auto shadeTriangleRow = [&](int y) {
       for (int x = min.x; x <= max.x; ++x) {
         // position
         ivec2 p(x, y);
@@ -489,7 +520,25 @@ void Rasterizer::drawTriangle(const RenderConfig &renderConfig,
           }
         }
       }
+    };
+
+#if GFX1993_PARALLEL_SHADE_TRIANGLE
+    // TODO(mbroecker): Maybe an additional metric would be the size of the
+    // bounding box and whether one dimension is much larger than the other.
+    #pragma omp parallel
+    {
+      nameOmpWorkerThread();
+      GFX1993_ZONE_N("rasterize.tris.shade.fill.worker");
+      #pragma omp for
+      for (int y = min.y; y <= max.y; ++y) {
+        shadeTriangleRow(y);
+      }
     }
+#else
+    for (int y = min.y; y <= max.y; ++y) {
+      shadeTriangleRow(y);
+    }
+#endif
   }
 }
 
