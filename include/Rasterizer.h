@@ -76,6 +76,16 @@ private:
   bool drawDepthFragment(const RenderConfig &renderConfig,
                          const ShadingGeometry &geometry) const;
 
+  // Commits an already-shaded fragment (produced ahead of time, e.g. by the
+  // parallel line-shading path in drawLines) to the depth/frame buffers:
+  // depth test, discard, depth write, blend, and color write -- everything
+  // drawFragment() does *after* invoking the fragment shader. Kept separate
+  // from drawFragment() so that method's early depth-reject-before-shading
+  // optimization (used by the hot triangle/quad fill paths) stays untouched.
+  bool commitShadedFragment(const RenderConfig &renderConfig,
+                            const glm::ivec2 &windowCoord, float depth,
+                            const Fragment &frag) const;
+
   Clipper           clipper;
   mutable DebugInfo debugInfo;
 

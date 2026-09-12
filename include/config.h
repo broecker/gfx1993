@@ -26,8 +26,8 @@
 // Rasterizer::threadPool is the single gfx1993::ThreadPool shared by every
 // parallel stage below plus triangle-vs-plane clipping
 // (Clipper::clipTrianglesToNdc) -- one set of worker threads for the whole
-// rasterizer, instead of each stage spinning up its own. Points and lines
-// are still processed serially; testing showed no performance increase.
+// rasterizer, instead of each stage spinning up its own. Points are still
+// processed serially; testing showed no performance increase.
 
 // If set, uses the shared thread pool to transform vertices into clip space;
 // i.e. it runs the Vertex Shader in parallel.
@@ -39,7 +39,15 @@
 // If set, uses the shared thread pool to shade screen triangles. This is
 // only useful for large (in screen-space coverage) triangles. For smaller
 // ones, the additional setup cost outweighs the performance gains.
-#define GFX1993_PARALLEL_SHADE_TRIANGLE 0
+#define GFX1993_PARALLEL_SHADE_TRIANGLE 1
+
+// If set, uses the shared thread pool to shade line fragments (drawLines).
+// Unlike the row-partitioned triangle/quad fill, different lines can
+// legitimately target the same pixel (e.g. shared wireframe/grid
+// endpoints), so workers only compute shading in parallel -- the actual
+// depth test and framebuffer/depthbuffer writes still happen serially
+// afterwards, in original line order, to avoid racing on shared pixels.
+#define GFX1993_PARALLEL_LINES 1
 
 // If enabled, adds another layer to the depth buffer that measures writes to
 // each pixel.

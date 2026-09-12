@@ -194,9 +194,108 @@ void Rasterizer::drawLines(const RenderConfig &renderConfig,
   }
 
   // Rasterization
+#if GFX1993_PARALLEL_LINES
+  {
+    GFX1993_ZONE_N("rasterize.lines.draw");
+
+    // Unlike the row-partitioned triangle/quad fill, two different lines can
+    // legitimately target the same pixel (e.g. shared wireframe/grid
+    // endpoints), so splitting the line list across workers and calling
+    // drawFragment() directly from each would race on the shared
+    // framebuffer/depthbuffer. Instead, workers only compute shading here
+    // (a pure function of each line's own geometry); the depth test and
+    // buffer writes happen serially afterwards, in original line order, so
+    // output is identical to the fully serial path.
+    struct PendingFragment {
+      ivec2 windowCoord;
+      float depth;
+      Fragment frag;
+    };
+
+    std::vector<std::vector<PendingFragment>> perWorkerFragments(
+        threadPool.getThreadCount());
+    std::vector<uint32_t> perWorkerLinesDrawn(threadPool.getThreadCount(), 0);
+
+    threadPool.parallelFor(
+        clipped.size(),
+        [&](size_t worker, size_t begin, size_t end) {
+          GFX1993_ZONE_N("rasterize.lines.shade.worker");
+          auto &pending = perWorkerFragments[worker];
+          uint32_t &linesDrawn = perWorkerLinesDrawn[worker];
+
+          for (size_t i = begin; i < end; ++i) {
+            const LinePrimitive &line = clipped[i];
+
+            const vec3 posA_win =
+                renderConfig.viewport->calculateWindowCoordinates(line.a.clipPosition);
+            const vec3 posB_win =
+                renderConfig.viewport->calculateWindowCoordinates(line.b.clipPosition);
+
+            ivec2 a = ivec2(posA_win);
+            ivec2 b = ivec2(posB_win);
+
+            float lineLength =
+                sqrtf((b.x - a.x) * (b.x - a.x) + (b.y - a.y) * (b.y - a.y));
+            if (lineLength == 0) {
+              // Invalid line.
+              // TODO(mbroecker): Report error?
+              continue;
+            }
+
+            unsigned int positionCounter = 0;
+            int dx = abs(a.x - b.x), sx = a.x < b.x ? 1 : -1;
+            int dy = abs(a.y - b.y), sy = a.y < b.y ? 1 : -1;
+            int err = (dx > dy ? dx : -dy) / 2, e2;
+
+            for (;;) {
+              float delta = std::min(1.f, positionCounter / lineLength);
+              float depth = glm::mix(posA_win.z, posB_win.z, delta);
+
+              ShadingGeometry sgeo = line.rasterize(positionCounter / lineLength);
+              sgeo.windowCoord = a;
+              sgeo.depth = depth;
+
+              pending.push_back(
+                  {a, depth, renderConfig.fragmentShader->shadeSingle(sgeo)});
+
+              // 'Core' Bresenham algorithm.
+              if (a.x == b.x && a.y == b.y)
+                break;
+              e2 = err;
+              if (e2 > -dx) {
+                err -= dy;
+                a.x += sx;
+              }
+              if (e2 < dy) {
+                err += dx;
+                a.y += sy;
+              }
+              ++positionCounter;
+            }
+            ++linesDrawn;
+          }
+        });
+
+    for (uint32_t linesDrawn : perWorkerLinesDrawn) {
+      debugInfo.lines.drawn += linesDrawn;
+    }
+
+    // Commit every worker's shaded fragments serially, in original line
+    // order (perWorkerFragments[0] holds the earliest lines, etc., since
+    // ThreadPool::parallelFor splits into contiguous, increasing ranges).
+    for (const auto &pending : perWorkerFragments) {
+      for (const auto &pf : pending) {
+        SAVE_COUNTER(
+            commitShadedFragment(renderConfig, pf.windowCoord, pf.depth, pf.frag),
+            debugInfo.lines);
+      }
+    }
+  }
+#else
   for (const auto &line : clipped) {
     drawLine(renderConfig, line);
   }
+#endif
 }
 
 void Rasterizer::drawLineStrip(const RenderConfig &renderConfig,
@@ -596,6 +695,55 @@ bool Rasterizer::drawFragment(const RenderConfig &renderConfig,
       renderConfig.framebuffer->plot(geometry.windowCoord, color);
     } else {
       renderConfig.framebuffer->plot(geometry.windowCoord, frag.color);
+    }
+    return true;
+  } else {
+    return false;
+  }
+}
+
+bool Rasterizer::commitShadedFragment(const RenderConfig &renderConfig,
+                                      const glm::ivec2 &windowCoord,
+                                      float depth, const Fragment &frag) const {
+  // No framebuffer -- write to depth buffer and that's it. Mirrors
+  // drawDepthFragment(), which only needs windowCoord/depth from a
+  // ShadingGeometry.
+  if (!renderConfig.framebuffer) {
+    if (!renderConfig.depthWrite) {
+      return false;
+    }
+    if (renderConfig.depthTest) {
+      return renderConfig.depthbuffer->conditionalPlot(windowCoord.x,
+                                                        windowCoord.y, depth);
+    } else {
+      renderConfig.depthbuffer->plot(windowCoord.x, windowCoord.y, depth);
+      return true;
+    }
+  }
+
+  if (!renderConfig.depthbuffer || !renderConfig.depthTest ||
+      (renderConfig.depthbuffer &&
+        renderConfig.depthbuffer->isVisible(windowCoord, depth))) {
+
+    // Fragment was discarded by the frag shader -- ignore and keep
+    // rasterizing.
+    if (frag.discard) {
+      return false;
+    } else {
+      // Fragment is valid -- write depth now.
+      if (renderConfig.depthbuffer && renderConfig.depthWrite)
+        renderConfig.depthbuffer->plot(windowCoord, depth);
+    }
+
+    // If we have enabled alpha blending and have a transparent fragment.
+    if (renderConfig.alphaBlending && frag.color.a < 1) {
+      glm::vec4 color =
+          renderConfig.framebuffer->getPixel(windowCoord) *
+              (1.f - frag.color.a) +
+          frag.color * frag.color.a;
+      renderConfig.framebuffer->plot(windowCoord, color);
+    } else {
+      renderConfig.framebuffer->plot(windowCoord, frag.color);
     }
     return true;
   } else {
