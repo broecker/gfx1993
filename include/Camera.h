@@ -86,6 +86,10 @@ private:
   float maxSpeed;
   float speedDecay;
 
+  // Recomputes `forward` from the current yaw/pitch. Called from both
+  // handleInputRotate and the constructors, so `forward` is always valid
+  // even before the first mouse-look input arrives.
+  void updateForward();
 
   inline glm::vec3 getRight() const {
     return glm::normalize(glm::cross(forward, up));

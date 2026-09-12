@@ -26,11 +26,17 @@ Camera::Camera(const glm::mat4& projectionMatrix, const glm::vec3& position) :
   projectionMatrix(projectionMatrix), position(position), up(vec3(0,1,0)) {}
 
 OrbitCamera::OrbitCamera(const glm::mat4& projectionMatrix, const glm::vec3& target, float radius) :
-  Camera(projectionMatrix, position),
-  target(target), radius(radius), phi(0), theta(0), mode(ROTATE) {}
+  // `target` seeds the base's position; updatePosition() below computes the
+  // real orbit position from phi/theta/radius before the first frame renders.
+  Camera(projectionMatrix, target),
+  target(target), radius(radius), phi(0), theta(0), mode(ROTATE) {
+  updatePosition();
+}
 
 OrbitCamera::OrbitCamera(const vec3 &t, float r) :
-    Camera(defaultProjectionMatrix, position), target(t), radius(r), phi(0.f), theta(0.f), mode(ROTATE) {}
+    Camera(defaultProjectionMatrix, t), target(t), radius(r), phi(0.f), theta(0.f), mode(ROTATE) {
+  updatePosition();
+}
 
 void OrbitCamera::handleInputTranslate(const vec3& delta) {
   radius += delta.z;
@@ -72,13 +78,17 @@ void OrbitCamera::updatePosition() {
   // std::cout << "Camera: phi: " << phi << " theta: " << theta << " delta: (" << delta.x << "," << delta.y << ") position: (" << position.x << "," << position.y << "," << position.z << ")\n";
 }
 
-FreeCamera::FreeCamera(const glm::vec3& position) : 
+FreeCamera::FreeCamera(const glm::vec3& position) :
   Camera(defaultProjectionMatrix, position), yaw(0), pitch(90),
-    movementSpeed(1), rotationSpeed(20), velocity(0.f), maxSpeed(250.f), speedDecay(0.5f) {};
+    movementSpeed(1), rotationSpeed(20), velocity(0.f), maxSpeed(250.f), speedDecay(0.5f) {
+  updateForward();
+}
 
-FreeCamera::FreeCamera(const glm::mat4& projectionMatrix, const glm::vec3& position) : 
+FreeCamera::FreeCamera(const glm::mat4& projectionMatrix, const glm::vec3& position) :
   Camera(projectionMatrix, position), yaw(0), pitch(0),
-    movementSpeed(1), rotationSpeed(20), velocity(0.f), maxSpeed(250.f), speedDecay(0.5f) {};
+    movementSpeed(1), rotationSpeed(20), velocity(0.f), maxSpeed(250.f), speedDecay(0.5f) {
+  updateForward();
+}
 
 
 void FreeCamera::handleInputTranslate(const vec3& delta) {
@@ -108,6 +118,10 @@ void FreeCamera::handleInputRotate(const vec3 &delta) {
 
   pitch = glm::clamp(pitch, MIN_PITCH, MAX_PITCH);
 
+  updateForward();
+}
+
+void FreeCamera::updateForward() {
   float yrad = glm::radians(yaw);
   float prad = glm::radians(pitch);
 
