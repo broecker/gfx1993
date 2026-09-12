@@ -121,7 +121,7 @@ bool PlyGeometry::loadPly(const std::string &filename) {
   std::clog << "[PlyGeometry] Renormalizing " << vertices.size() << " vertex normals."
             << std::endl;
   // scale normal to length 1;
-  for (auto v : vertices) {
+  for (auto &v : vertices) {
     v.normal = glm::normalize(v.normal);
   }
 
@@ -144,7 +144,7 @@ void PlyGeometry::center() {
 
   // update vertices and find new bounding sphere radius
   boundingSphereRadius = 0.f;
-  for (auto v : vertices) {
+  for (auto &v : vertices) {
     v.position =
         v.position - glm::vec4(min, 0.f) - glm::vec4((max - min) * 0.5f, 0.f);
     boundingSphereRadius =

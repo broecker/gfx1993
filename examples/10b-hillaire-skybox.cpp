@@ -11,9 +11,9 @@
 #include <glm/gtx/transform.hpp>
 
 #include "DemoApp.h"
-#include "DemoUtils.h"
 #include "Geometry.h"
 #include "Pipeline.h"
+#include "PlyGeometry.h"
 #include "Profiler.h"
 #include "Shader.h"
 #include "Camera.h"
@@ -241,6 +241,16 @@ inline vec3 computeRadiance(const vec3 &rayDir, const vec3 &sunDir,
 
 } // namespace atmosphere
 
+// Maps a (not necessarily normalized) world-space direction to the uv
+// coordinates of the equirectangular lat/long layout used by both
+// bakeSkyTexture below and the shaders that sample it.
+static vec2 directionToEquirectUv(const vec3 &dir) {
+  vec3 d = normalize(dir);
+  float elevation = asinf(glm::clamp(d.y, -1.f, 1.f));
+  float azimuth = atan2f(d.z, d.x);
+  return vec2(azimuth / glm::two_pi<float>() + 0.5f, 0.5f - elevation / glm::pi<float>());
+}
+
 // Renders the atmosphere per pixel, every frame -- identical to
 // 10-skybox.cpp's AtmosphereFragmentShader, kept here so this demo can
 // compare it directly against the baked lat/long version below.
@@ -273,10 +283,7 @@ public:
 class LatLongSkyboxFragmentShader : public FragmentShader {
 public:
   Fragment shadeSingle(const ShadingGeometry &in) override {
-    vec3 dir = normalize(vec3(in.varying[0]));
-    float elevation = asinf(glm::clamp(dir.y, -1.f, 1.f));
-    float azimuth = atan2f(dir.z, dir.x);
-    vec2 uv(azimuth / glm::two_pi<float>() + 0.5f, 0.5f - elevation / glm::pi<float>());
+    vec2 uv = directionToEquirectUv(vec3(in.varying[0]));
 
     Fragment out;
     out.color = texture ? texture->getTexel(uv) : vec4(0.f, 0.f, 0.f, 1.f);
@@ -288,6 +295,42 @@ public:
   // whole frame: Texture is immutable after construction, and holding our
   // own shared_ptr keeps that instance alive even if the bake thread
   // publishes a newer texture mid-frame.
+  std::shared_ptr<Texture> texture;
+};
+
+// Shades a surface as a perfect mirror reflecting the sky: reflects the view
+// direction off the (smooth, per-vertex-interpolated) surface normal and
+// looks the result up in the same sky representation the skybox itself is
+// currently using -- the baked lat/long texture in BakedAtmosphere mode, or
+// a direct raymarch in LiveAtmosphere mode -- so toggling 'n' compares the
+// two consistently for both the sky and its reflection.
+class ReflectiveSkyboxFragmentShader : public FragmentShader {
+public:
+  Fragment shadeSingle(const ShadingGeometry &in) override {
+    vec3 viewDir = normalize(in.position - eyePosition);
+    vec3 normal = normalize(in.normal);
+    vec3 reflectDir = glm::reflect(viewDir, normal);
+
+    vec3 radiance;
+    if (useLiveAtmosphere) {
+      radiance = atmosphere::computeRadiance(reflectDir, normalize(sunDirection), exposure, multiScatteringFactor);
+    } else {
+      radiance = texture ? vec3(texture->getTexel(directionToEquirectUv(reflectDir))) : vec3(0.f);
+    }
+
+    Fragment out;
+    out.color = vec4(radiance, 1.f);
+    out.discard = false;
+    return out;
+  }
+
+  // All set once per frame by Demo10b before drawing; see LatLongSkyboxFragmentShader
+  // above for why holding our own shared_ptr to `texture` is safe.
+  vec3 eyePosition = vec3(0.f);
+  vec3 sunDirection = vec3(0.f, 1.f, 0.f);
+  float exposure = 12.f;
+  float multiScatteringFactor = 0.5f;
+  bool useLiveAtmosphere = false;
   std::shared_ptr<Texture> texture;
 };
 
@@ -309,16 +352,24 @@ protected:
     skyboxVertShader = std::make_shared<SkyboxVertexShader>();
     atmosphereFragShader = std::make_shared<AtmosphereFragmentShader>();
     latLongSkyShader = std::make_shared<LatLongSkyboxFragmentShader>();
+    reflectiveShader = std::make_shared<ReflectiveSkyboxFragmentShader>();
+    reflectiveShader->exposure = atmosphereExposure;
+    reflectiveShader->multiScatteringFactor = atmosphereMultiScatter;
 
     grid = std::make_unique<GridGeometry>();
 
-    teapot.makeIndicesForPointCloud();
-    colorShader = std::make_unique<SingleColorShader>(vec4(1,0,1,1));
+    if (!bunny.loadPly("../models/bunny/reconstruction/bun_zipper_res3.ply")) {
+      std::cerr << "Failed to load the Stanford bunny model." << std::endl;
+    }
+    bunny.transform = glm::scale(vec3(125.f));
+    bunny.center();
+    dynamic_cast<OrbitCamera*>(camera.get())->setTarget(bunny.getCenter());
 
     // Bake once synchronously so the first frame isn't blank.
     vec3 initialSunDir = sunDirectionForDayTime(dayTime);
     bakeSkyTexture(initialSunDir);
     latLongSkyShader->texture = pendingSkyTexture;
+    reflectiveShader->texture = pendingSkyTexture;
 
     std::cout << "Press 'n' to toggle between the baked lat/long atmosphere and "
                  "the live per-pixel raymarch, "
@@ -337,6 +388,8 @@ protected:
 
     vec3 sunDir = sunDirectionForDayTime(dayTime);
     atmosphereFragShader->sunDirection = sunDir;
+    reflectiveShader->sunDirection = sunDir;
+    reflectiveShader->useLiveAtmosphere = (skyMode == SkyMode::LiveAtmosphere);
 
     ++frameCounter;
     if (!bakeInFlight.load() && (frameCounter % kSkyBakeEveryNFrames == 0)) {
@@ -357,6 +410,7 @@ protected:
       std::lock_guard<std::mutex> lock(skyTextureMutex);
       if (pendingSkyTexture) {
         latLongSkyShader->texture = pendingSkyTexture;
+        reflectiveShader->texture = pendingSkyTexture;
       }
     }
   }
@@ -390,19 +444,14 @@ protected:
     rasterizer->drawLines(renderConfig, grid->getVertices(),
                           grid->getIndices());
 
-    renderConfig.fragmentShader = colorShader;
-    rasterizer->drawPoints(renderConfig, teapot.getVertices(), teapot.getIndices());
+    // Draw the bunny, reflecting the current sky off its surface.
+    reflectiveShader->eyePosition = vec3(glm::inverse(camera->getViewMatrix()) * vec4(0.f, 0.f, 0.f, 1.f));
+    fixedFunctionTransform->modelMatrix = bunny.transform;
+    renderConfig.fragmentShader = reflectiveShader;
+    rasterizer->drawTriangles(renderConfig, bunny.getVertices(), bunny.getIndices());
   }
 
   void handleKeyboard(unsigned char key, const glm::ivec2& mouse) override {
-    if (key == '=') {
-      renderConfig.pointSize += 2;
-    }
-    if (key == '-') {
-      renderConfig.pointSize -= 2;
-    }
-    renderConfig.pointSize = glm::clamp(renderConfig.pointSize, 1u, 11u);
-
     if (key == 'n') {
       skyMode = skyMode == SkyMode::BakedAtmosphere ? SkyMode::LiveAtmosphere : SkyMode::BakedAtmosphere;
       std::cout << "Sky shader: "
@@ -462,14 +511,15 @@ private:
   }
 
   std::unique_ptr<GridGeometry> grid;
+  PlyGeometry bunny;
 
   std::shared_ptr<DefaultVertexTransform> fixedFunctionTransform;
   std::shared_ptr<FragmentShader> gridShader;
-  std::shared_ptr<SingleColorShader> colorShader;
 
   std::shared_ptr<SkyboxVertexShader> skyboxVertShader;
   std::shared_ptr<AtmosphereFragmentShader> atmosphereFragShader;
   std::shared_ptr<LatLongSkyboxFragmentShader> latLongSkyShader;
+  std::shared_ptr<ReflectiveSkyboxFragmentShader> reflectiveShader;
 
   enum class SkyMode { BakedAtmosphere, LiveAtmosphere };
   SkyMode skyMode = SkyMode::BakedAtmosphere;
@@ -493,8 +543,6 @@ private:
   bool daylightPaused = false;
   // Fixed compass direction the sun arcs through, in radians.
   float sunAzimuth = 0.6f;
-
-  Teapot teapot;
 };
 
 int main(int argc, char **argv) {
