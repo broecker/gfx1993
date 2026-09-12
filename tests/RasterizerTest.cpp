@@ -275,6 +275,44 @@ GTEST("Rasterizer Test") {
     }
   }
 
+  SHOULD("Count each triangle once when drawn, not once per scanline row") {
+    RenderConfig config;
+    config.framebuffer = frameBuffer;
+    config.depthbuffer = depthBuffer;
+    config.viewport = viewport;
+
+    frameBuffer->clear(vec4(0));
+    depthBuffer->clear();
+
+    config.vertexShader = std::make_shared<TestVertShader>();
+    config.fragmentShader = std::make_shared<TestFragShader>();
+
+    // Three separate triangles, each covering the full TEST_W x TEST_H
+    // framebuffer and therefore spanning every scanline row. Regression test
+    // for a bug where debugInfo.triangles.drawn was incremented once per
+    // scanline row inside the (parallel) row-fill loop instead of once per
+    // triangle -- with that bug, `drawn` would come out as (rows * 3) rather
+    // than 3.
+    VertexList vertices;
+    IndexList indices;
+    for (int t = 0; t < 3; ++t) {
+      vertices.push_back(Vertex(vec4(-1, -1, 0, 1), vec4(1, 1, 1, 1)));
+      vertices.push_back(Vertex(vec4(1, -1, 0, 1), vec4(1, 1, 1, 1)));
+      vertices.push_back(Vertex(vec4(0, 1, 0, 1), vec4(1, 1, 1, 1)));
+      indices.push_back(t * 3 + 0);
+      indices.push_back(t * 3 + 1);
+      indices.push_back(t * 3 + 2);
+    }
+
+    ASSERT(config.isValid());
+
+    rasterizer.drawTriangles(config, vertices, indices);
+
+    EXPECT(rasterizer.getDebugInfo().triangles.backfaceCulled == 0);
+    EXPECT(rasterizer.getDebugInfo().triangles.drawn == 3);
+    EXPECT(rasterizer.getDebugInfo().triangles.fragmentsDrawn > 0);
+  }
+
   SHOULD("Clip fat points against viewport") {
     RenderConfig config;
     config.framebuffer = frameBuffer;

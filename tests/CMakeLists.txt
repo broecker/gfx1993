@@ -37,3 +37,11 @@ add_test(NAME renderconfig COMMAND renderconfig-test)
 add_executable(texture-test TextureTest.cpp)
 target_link_libraries(texture-test PRIVATE gfx1993 gunit)
 add_test(NAME texture COMMAND texture-test)
+
+add_executable(camera-test CameraTest.cpp)
+target_link_libraries(camera-test PRIVATE gfx1993 gunit)
+add_test(NAME camera COMMAND camera-test)
+
+add_executable(plygeometry-test PlyGeometryTest.cpp)
+target_link_libraries(plygeometry-test PRIVATE gfx1993 gunit)
+add_test(NAME plygeometry COMMAND plygeometry-test)
