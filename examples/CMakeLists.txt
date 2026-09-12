@@ -15,7 +15,7 @@ include_directories(${SDL2_INCLUDE_DIRS})
 find_package(glm REQUIRED)
 
 # Library and demo app harness
-add_library(gfx93-demo-app STATIC DemoApp.cpp DemoUtils.cpp)
+add_library(gfx93-demo-app STATIC DemoApp.cpp DemoUtils.cpp StarField.cpp)
 target_link_libraries(gfx93-demo-app PUBLIC gfx1993 PRIVATE ${SDL2_LIBRARIES} glm::glm)
 
 # A simple rotating triangle
