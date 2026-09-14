@@ -10,7 +10,7 @@ namespace gfx1993 {
 class Framebuffer {
 public:
   Framebuffer(unsigned int w, unsigned int h);
-  Framebuffer(const Framebuffer &cp);
+  Framebuffer(const Framebuffer &cp) = default;
 
   virtual ~Framebuffer() = default;
 

@@ -46,7 +46,6 @@ This is an unsorted list of outstanding tasks.
 
 - Clean up the rasterizer. There's a lot of old, untouched code in there. Rasterizer should become an abstract class so 
 that specialized rasterizers can be easily implemented.
-- Add tests for Framebuffer and Depthbuffer.
 - Add true 256 color rendering. We can override the Framebuffer to do so. Add an
 RGB -> indexed color translation table
 and do a Voronoi triangulation on the input. Then, when plotting, pick the

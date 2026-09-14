@@ -36,7 +36,7 @@ public:
   inline float getDepth(const glm::vec2& t) const {
     assert(t.x >= 0 && t.x < 1.0);
     assert(t.y >= 0 && t.y < 1.0);
-    return getDepth(t.x*width, t.y*width);
+    return getDepth(t.x*width, t.y*height);
   }
 
   inline void plot(const glm::ivec2& coords, float depth) {
