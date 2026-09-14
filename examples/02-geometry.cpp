@@ -102,7 +102,7 @@ protected:
     depthShader = std::make_shared<DepthShader>();
     depthShader->depthBuffer = depthBuffer;
 
-    logFrameTime = false;
+    showStatsOverlay = false;
   }
 
   void renderFrame() override {
