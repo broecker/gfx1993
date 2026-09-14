@@ -75,6 +75,15 @@ private:
   float avgFPS = 0.f;
   float frameTimeMs = 0.f;
 
+  // Peak (highest instantaneous) FPS seen in the second currently being
+  // measured, and a ring buffer of one such peak per second covering the
+  // last minute, for the overlay's history graph.
+  float peakFpsThisSecond = 0.f;
+  static constexpr int kFpsHistorySeconds = 60;
+  float fpsHistory[kFpsHistorySeconds] = {};
+  int fpsHistoryCount = 0;
+  int fpsHistoryNext = 0;
+
   void updateFrameTexture();
 
   void drawStatsOverlay();

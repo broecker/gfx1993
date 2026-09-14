@@ -4,6 +4,9 @@
 #include "Profiler.h"
 #include "RenderDebugInfo.h"
 
+#include <algorithm>
+#include <cfloat>
+#include <cstdio>
 #include <cstdlib>
 #include <iostream>
 #include <iomanip>
@@ -93,6 +96,9 @@ void DemoApp::run(int argc, char **argv) {
     float dt = static_cast<float>(ticks) / 1000.f;
     lastTicks = nowTicks;
     frameTimeMs = dt * 1000.f;
+    if (dt > 0.f) {
+      peakFpsThisSecond = std::max(peakFpsThisSecond, 1.f / dt);
+    }
 
     handleEvents();
 
@@ -109,6 +115,11 @@ void DemoApp::run(int argc, char **argv) {
       avgFPS = static_cast<float>(totalFrames) / (nowTicks - startTicks) * 1000.f;
 			frames = 0;
 			lastSecond = nowTicks;
+
+      fpsHistory[fpsHistoryNext] = peakFpsThisSecond;
+      fpsHistoryNext = (fpsHistoryNext + 1) % kFpsHistorySeconds;
+      fpsHistoryCount = std::min(fpsHistoryCount + 1, kFpsHistorySeconds);
+      peakFpsThisSecond = 0.f;
 		}
 
     {
@@ -204,6 +215,17 @@ void DemoApp::drawStatsOverlay() {
   if (ImGui::Begin("Render Stats", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
     ImGui::Text("FPS: %.1f (avg %.1f)", currentFPS, avgFPS);
     ImGui::Text("Frame time: %.2f ms", frameTimeMs);
+
+    if (fpsHistoryCount > 0) {
+      const int lastIndex = (fpsHistoryNext - 1 + kFpsHistorySeconds) % kFpsHistorySeconds;
+      char overlay[32];
+      snprintf(overlay, sizeof(overlay), "peak %.0f fps", fpsHistory[lastIndex]);
+
+      const int offset = fpsHistoryCount < kFpsHistorySeconds ? 0 : fpsHistoryNext;
+      ImGui::PlotLines("##peakFps", fpsHistory, fpsHistoryCount, offset, overlay,
+                        0.f, FLT_MAX, ImVec2(0, 60));
+      ImGui::TextUnformatted("Peak FPS, last 60s");
+    }
 
     ImGui::Separator();
 
