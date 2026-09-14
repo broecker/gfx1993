@@ -38,6 +38,11 @@ protected:
   std::unique_ptr<gfx1993::Camera> camera;
 
   glm::ivec2 mousePosition;
+  // False until the first SDL_MOUSEMOTION event arrives. Lets handleMotion
+  // prime `mousePosition` from that event instead of computing a delta
+  // against the (0,0) default, which would otherwise read as a large,
+  // spurious mouse move the instant the cursor's real position is known.
+  bool hasMousePosition = false;
 
   virtual void init() = 0;
 

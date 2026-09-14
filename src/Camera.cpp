@@ -3,7 +3,6 @@
 #include <glm/gtx/polar_coordinates.hpp>
 #include <glm/gtx/transform.hpp>
 
-#include <iostream>
 #include <glm/ext.hpp>
 
 using glm::cross;
@@ -20,7 +19,7 @@ namespace gfx1993 {
 constexpr float MIN_PITCH = -88.f;
 constexpr float MAX_PITCH = 88.f;
 
-static const mat4 defaultProjectionMatrix = glm::perspective(90.f, 1.3f, 1.f, 100.f);
+static const mat4 defaultProjectionMatrix = glm::perspective(glm::radians(90.f), 1.3f, 1.f, 100.f);
 
 Camera::Camera(const glm::mat4& projectionMatrix, const glm::vec3& position) :
   projectionMatrix(projectionMatrix), position(position), up(vec3(0,1,0)) {}
@@ -75,7 +74,6 @@ glm::mat4 OrbitCamera::getViewMatrix() const {
 void OrbitCamera::updatePosition() {
   position = glm::euclidean(glm::radians(glm::vec2(phi, theta))) * radius;
   position += target;
-  // std::cout << "Camera: phi: " << phi << " theta: " << theta << " delta: (" << delta.x << "," << delta.y << ") position: (" << position.x << "," << position.y << "," << position.z << ")\n";
 }
 
 FreeCamera::FreeCamera(const glm::vec3& position) :
