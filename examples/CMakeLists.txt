@@ -74,6 +74,10 @@ target_link_libraries(12-bvh gfx93-demo-app)
 add_executable(13-frustum-aabb 13-frustum-aabb.cpp)
 target_link_libraries(13-frustum-aabb gfx93-demo-app)
 
+# Placeholder planet + sun, with a real positioned/volumetric atmosphere.
+add_executable(14-planet-atmosphere 14-planet-atmosphere.cpp)
+target_link_libraries(14-planet-atmosphere gfx93-demo-app)
+
 # Headless performance benchmark (True headless - no SDL dependency)
 add_executable(headless_benchmark headless_benchmark.cpp)
 target_link_libraries(headless_benchmark gfx1993 glm::glm)
