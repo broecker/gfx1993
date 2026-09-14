@@ -60,9 +60,6 @@ void Geometry::setRandomFaceColors() {
     Vertex& b = vertices[indices[i+1]];
     Vertex& c = vertices[indices[i+2]];
 
-    float r = static_cast<float>(std::rand()) / RAND_MAX;
-    float g = static_cast<float>(std::rand()) / RAND_MAX;
-   
     vec4 randomColor = getRandomColor();
 
     a.color = randomColor;
