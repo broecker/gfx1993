@@ -29,21 +29,24 @@ make install
 ```
 
 Unit tests can be found under `tests/` and run with `ctest`. Example binaries
-are found in `examples/` and can be ruindividually.
+are found in `examples/` and can be run individually.
 
 Dependencies: 
 - libglm
 - SDL2
 - libabsl
 
+The [Tracy](https://github.com/wolfpld/tracy) profiler client and
+[Dear ImGui](https://github.com/ocornut/imgui) (used by the example demo app
+for its FPS/rasterizer-stats overlay) are fetched and built automatically by
+CMake, so they don't need to be installed separately.
+
 ## TODOs
 This is an unsorted list of outstanding tasks.
 
 - Clean up the rasterizer. There's a lot of old, untouched code in there. Rasterizer should become an abstract class so 
 that specialized rasterizers can be easily implemented.
-- Write tests! Especially for framebuffer and rasterizer.
-- Implement bounding geometries and view frustum culling
-- Add FPS camera
+- Add tests for Framebuffer and Depthbuffer.
 - Add true 256 color rendering. We can override the Framebuffer to do so. Add an
 RGB -> indexed color translation table
 and do a Voronoi triangulation on the input. Then, when plotting, pick the
@@ -52,9 +55,7 @@ correct index color through triangulation.
 - Add png input/output
 - Add example with BSP tree traversal after disabling depth writes.
 - Add other rasterizers; for example a Span Renderer
-- Implement tile-based rendering and parallel/async rasterization
+- Implement tile-based rendering (rasterization is already parallelized across triangles, but not tiled)
 - Add WAD file loading :) 
 - Add Voxel and Voxelspace-like rendering
-- Add example with textures and programmatic skybox rendering
-- Add example about depth sorting
 - Add portal-based rendering demo
