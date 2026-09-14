@@ -189,9 +189,15 @@ void DemoApp::handleMouse(int button, int state, const glm::ivec2& mousePosition
 }
 
 void DemoApp::handleMotion(const glm::ivec2& newMousePosition) {
+  if (!hasMousePosition) {
+    mousePosition = newMousePosition;
+    hasMousePosition = true;
+    return;
+  }
+
   const glm::ivec2 delta = newMousePosition - mousePosition;
   this->mousePosition = newMousePosition;
-  
+
   camera->handleInputRotate(glm::vec3(delta.y, delta.x, 0.f));
 }
 

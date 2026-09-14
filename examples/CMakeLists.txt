@@ -15,7 +15,7 @@ include_directories(${SDL2_INCLUDE_DIRS})
 find_package(glm REQUIRED)
 
 # Library and demo app harness
-add_library(gfx93-demo-app STATIC DemoApp.cpp DemoUtils.cpp StarField.cpp)
+add_library(gfx93-demo-app STATIC Atmosphere.cpp DemoApp.cpp DemoUtils.cpp StarField.cpp)
 target_link_libraries(gfx93-demo-app PUBLIC gfx1993 PRIVATE ${SDL2_LIBRARIES} glm::glm)
 
 # A simple rotating triangle
@@ -73,6 +73,10 @@ target_link_libraries(12-bvh gfx93-demo-app)
 # Frustum / AABB culling
 add_executable(13-frustum-aabb 13-frustum-aabb.cpp)
 target_link_libraries(13-frustum-aabb gfx93-demo-app)
+
+# Placeholder planet + sun, with a real positioned/volumetric atmosphere.
+add_executable(14-planet-atmosphere 14-planet-atmosphere.cpp)
+target_link_libraries(14-planet-atmosphere gfx93-demo-app)
 
 # Headless performance benchmark (True headless - no SDL dependency)
 add_executable(headless_benchmark headless_benchmark.cpp)
