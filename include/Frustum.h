@@ -49,6 +49,8 @@ public:
 
   IntersectionResult testIntersection(const AABB& boundingBox) const;
 
+  IntersectionResult testIntersection(const OBB& box) const;
+
 private:
   glm::mat4   projectionMatrix, viewMatrix;
 

@@ -159,19 +159,24 @@ bool Frustum::isInside(const glm::vec3& pt) const {
 }
 
 Frustum::IntersectionResult Frustum::testIntersection(const BoundingSphere& sphere) const {
+  // Same convention as testIntersection(AABB): normals point inward, so
+  // check every plane and only return early on a definitive OUTSIDE.
+  IntersectionResult result = INSIDE;
   for (int i = 0; i < PLANES_COUNT; ++i) {
     const float d = planes[i].distance(sphere.center);
-    if (d > sphere.radius) {
+    if (d < -sphere.radius) {
       return OUTSIDE;
     } else if (d < sphere.radius) {
-      return INTERSECTING;
+      result = INTERSECTING;
     }
   }
-  return INSIDE;
+  return result;
 }
 
 Frustum::IntersectionResult Frustum::testIntersection(const AABB& box) const {
-  // Algorithm from Realtime-Rendering, 2nd ed. 16.10.1
+  // Algorithm from Realtime-Rendering, 2nd ed. 16.10.1. Our planes' normals
+  // point inward (positive half-space = inside the frustum, see
+  // Frustum::update), so the box is fully outside a plane once s + e < 0.
   const vec3 c = (box.max + box.min) / 2.f;
   const vec3 h = (box.max - box.min) / 2.f;
 
@@ -182,11 +187,35 @@ Frustum::IntersectionResult Frustum::testIntersection(const AABB& box) const {
     float e = h.x*abs(p.normal.x) + h.y*abs(p.normal.y) + h.z*abs(p.normal.z);
     float s = glm::dot(c, p.normal) + p.d;
 
-    // Our frustum is defined with the positive half-space pointing /out/. Hence
-    // the opposite return value as in the book.
     if (s - e > 0.f) {
       // Do not overwrite any existing INTERSECTING result!
       // result = INSIDE;
+    } else if (s + e < 0.f) {
+      return OUTSIDE;
+    } else {
+      result = INTERSECTING;
+    }
+  }
+  return result;
+}
+
+// Same projection-based test as testIntersection(const AABB&), generalized
+// to the box's own (possibly rotated/scaled) local axes.
+Frustum::IntersectionResult Frustum::testIntersection(const OBB& box) const {
+  const vec3 c  = box.getCenter();
+  const vec3 ax = box.axisX();
+  const vec3 ay = box.axisY();
+  const vec3 az = box.axisZ();
+
+  IntersectionResult result = INSIDE;
+  for (int i = 0; i < PLANES_COUNT; ++i) {
+    const Plane& p = planes[i];
+
+    float e = abs(dot(p.normal, ax)) + abs(dot(p.normal, ay)) + abs(dot(p.normal, az));
+    float s = glm::dot(c, p.normal) + p.d;
+
+    if (s - e > 0.f) {
+      // Do not overwrite any existing INTERSECTING result!
     } else if (s + e < 0.f) {
       return OUTSIDE;
     } else {
