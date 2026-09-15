@@ -68,8 +68,8 @@ Vertex RandomTriangleGeometry::createRandomVertex() const {
 
 PointField::PointField(std::shared_ptr<HeightMap> heightMap) :
   heightmap(heightMap) {
-    for (int x = 0; x < heightMap->getWidth(); x++) {
-      for (int z = 0; z < heightMap->getHeight(); z++) {
+    for (unsigned int x = 0; x < heightMap->getWidth(); x++) {
+      for (unsigned int z = 0; z < heightMap->getHeight(); z++) {
         Vertex v;
         v.color = glm::vec4(1,0,1,1);
         v.normal = glm::vec3(0);
@@ -132,7 +132,7 @@ Teapot::Teapot() {
       continue;
 
     glm::vec3 v;
-    if(!sscanf(buffer.c_str(), "%f %f %f", &v.x, &v.y, &v.z) == 3) {
+    if(sscanf(buffer.c_str(), "%f %f %f", &v.x, &v.y, &v.z) != 3) {
       std::cerr << "[Teapot] Unable to parse line: " << buffer;
       return;
     }
