@@ -20,7 +20,7 @@ struct BoundingSphere {
 // An alis-aligned bounding box with all coordinates in world space.
 struct AABB {
   glm::vec3 min = glm::vec3(std::numeric_limits<glm::vec3::value_type>::max());
-  glm::vec3 max = glm::vec3(std::numeric_limits<glm::vec3::value_type>::min());
+  glm::vec3 max = glm::vec3(std::numeric_limits<glm::vec3::value_type>::lowest());
 
   glm::vec3 getCenter() const { return (min + max) * 0.5f; }
 
