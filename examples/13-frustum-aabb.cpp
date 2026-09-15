@@ -124,7 +124,7 @@ protected:
       }
     }
 
-    logFrameTime = true;
+    showStatsOverlay = true;
     updateFrame(0);
   }
 

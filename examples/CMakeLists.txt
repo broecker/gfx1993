@@ -14,9 +14,35 @@ find_package(SDL2 REQUIRED)
 include_directories(${SDL2_INCLUDE_DIRS})
 find_package(glm REQUIRED)
 
+# Dear ImGui, used by the demo app harness to overlay FPS and rasterizer
+# stats. Built from source since upstream ships no CMake package; only the
+# core widgets plus the SDL2 + SDL_Renderer backends are needed.
+include(FetchContent)
+FetchContent_Declare(
+    imgui
+    GIT_REPOSITORY https://github.com/ocornut/imgui.git
+    GIT_TAG        v1.92.9b
+)
+FetchContent_MakeAvailable(imgui)
+
+add_library(imgui STATIC
+    ${imgui_SOURCE_DIR}/imgui.cpp
+    ${imgui_SOURCE_DIR}/imgui_draw.cpp
+    ${imgui_SOURCE_DIR}/imgui_tables.cpp
+    ${imgui_SOURCE_DIR}/imgui_widgets.cpp
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_sdl2.cpp
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_sdlrenderer2.cpp
+)
+target_include_directories(imgui PUBLIC
+    ${imgui_SOURCE_DIR}
+    ${imgui_SOURCE_DIR}/backends
+    ${SDL2_INCLUDE_DIRS}
+)
+target_link_libraries(imgui PUBLIC ${SDL2_LIBRARIES})
+
 # Library and demo app harness
 add_library(gfx93-demo-app STATIC DemoApp.cpp DemoUtils.cpp StarField.cpp)
-target_link_libraries(gfx93-demo-app PUBLIC gfx1993 PRIVATE ${SDL2_LIBRARIES} glm::glm)
+target_link_libraries(gfx93-demo-app PUBLIC gfx1993 PRIVATE ${SDL2_LIBRARIES} glm::glm imgui)
 
 # A simple rotating triangle
 add_executable(00-triangle 00-triangle.cpp)

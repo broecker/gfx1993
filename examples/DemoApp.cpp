@@ -2,12 +2,20 @@
 
 #include "config.h"
 #include "Profiler.h"
+#include "RenderDebugInfo.h"
 
+#include <algorithm>
+#include <cfloat>
+#include <cstdio>
 #include <cstdlib>
 #include <iostream>
 #include <iomanip>
 
 #include <glm/ext.hpp>
+
+#include <imgui.h>
+#include <backends/imgui_impl_sdl2.h>
+#include <backends/imgui_impl_sdlrenderer2.h>
 
 #if GFX1993_DEMO_USE_OPENMP
   #include <omp.h>
@@ -18,7 +26,7 @@ using namespace gfx1993;
 DemoApp *DemoApp::appInstance = nullptr;
 DemoApp::DemoApp(const std::string &name)
     : name(name), width(gfx1993::VGA_WIDTH), height(gfx1993::VGA_HEIGHT),
-      logFrameTime(true), mousePosition(0,0) {
+      showStatsOverlay(true), mousePosition(0,0) {
   rasterizer = std::make_unique<Rasterizer>();
 
   renderConfig.viewport =
@@ -46,6 +54,27 @@ void DemoApp::run(int argc, char **argv) {
 		return;
 	}
 
+  // No PRESENTVSYNC: this app deliberately runs uncapped so the FPS
+  // counter reflects the rasterizer's actual throughput.
+  renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+  if (renderer == nullptr) {
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
+  }
+  if (renderer == nullptr) {
+    std::cerr << "Error creating SDL renderer: " << SDL_GetError() << std::endl;
+    return;
+  }
+  createFrameTexture();
+
+  IMGUI_CHECKVERSION();
+  ImGui::CreateContext();
+  ImGuiIO& io = ImGui::GetIO();
+  // Demo app has no use for a persisted layout file.
+  io.IniFilename = nullptr;
+  ImGui::StyleColorsDark();
+  ImGui_ImplSDL2_InitForSDLRenderer(window, renderer);
+  ImGui_ImplSDLRenderer2_Init(renderer);
+
   // Ugly hack :-/
   appInstance = this;
 
@@ -66,38 +95,74 @@ void DemoApp::run(int argc, char **argv) {
     const int64_t ticks = nowTicks - lastTicks;
     float dt = static_cast<float>(ticks) / 1000.f;
     lastTicks = nowTicks;
+    frameTimeMs = dt * 1000.f;
+    if (dt > 0.f) {
+      peakFpsThisSecond = std::max(peakFpsThisSecond, 1.f / dt);
+    }
 
     handleEvents();
 
     appInstance->updateFrame(dt);
+
+    rasterizer->resetDebugInfo();
     appInstance->renderFrame();
 
-    blitSurface();
-    SDL_UpdateWindowSurface(window);
+    updateFrameTexture();
     GFX1993_FRAME_MARK();
 
 		if ((nowTicks - lastSecond) > 1000) {
-      if (appInstance->logFrameTime) {
-			  std::cout << "FPS: " << std::setw(3) << frames << " [avg: " << std::setprecision(4) << static_cast<float>(totalFrames) / (nowTicks - startTicks) * 1000  << "\ttotal frames: " << std::setw(5) << totalFrames << ", time: " << std::setprecision(5) <<  static_cast<float>(nowTicks - startTicks) / 1000 << "s]\tdt: " << std::setprecision(5) << dt << std::endl;
-        rasterizer->getDebugInfo().print();
-        rasterizer->resetDebugInfo();
-      }
+      currentFPS = static_cast<float>(frames) / (nowTicks - lastSecond) * 1000.f;
+      avgFPS = static_cast<float>(totalFrames) / (nowTicks - startTicks) * 1000.f;
 			frames = 0;
 			lastSecond = nowTicks;
+
+      fpsHistory[fpsHistoryNext] = peakFpsThisSecond;
+      fpsHistoryNext = (fpsHistoryNext + 1) % kFpsHistorySeconds;
+      fpsHistoryCount = std::min(fpsHistoryCount + 1, kFpsHistorySeconds);
+      peakFpsThisSecond = 0.f;
 		}
+
+    {
+      GFX1993_ZONE_N("app.imgui");
+      ImGui_ImplSDLRenderer2_NewFrame();
+      ImGui_ImplSDL2_NewFrame();
+      ImGui::NewFrame();
+
+      if (showStatsOverlay) {
+        drawStatsOverlay();
+      }
+
+      ImGui::Render();
+    }
+
+    SDL_RenderClear(renderer);
+    SDL_RenderCopy(renderer, frameTexture, nullptr, nullptr);
+    ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer);
+    SDL_RenderPresent(renderer);
 
     SDL_Delay(0);
   }
 
+  ImGui_ImplSDLRenderer2_Shutdown();
+  ImGui_ImplSDL2_Shutdown();
+  ImGui::DestroyContext();
+
+  SDL_DestroyTexture(frameTexture);
+  SDL_DestroyRenderer(renderer);
   SDL_DestroyWindow(window);
 	SDL_Quit();
 }
 
-void DemoApp::blitSurface() {
-  GFX1993_ZONE_N("app.blit");
+void DemoApp::createFrameTexture() {
+  if (frameTexture != nullptr) {
+    SDL_DestroyTexture(frameTexture);
+  }
+  frameTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
+                                    SDL_TEXTUREACCESS_STREAMING, width, height);
+}
 
-  SDL_Surface* surface = SDL_GetWindowSurface(window);
-  SDL_LockSurface(surface);
+void DemoApp::updateFrameTexture() {
+  GFX1993_ZONE_N("app.blit");
 
   // Resample buffer and switch to BGRA format.
   {
@@ -123,10 +188,67 @@ void DemoApp::blitSurface() {
 
   {
     GFX1993_ZONE_N("app.blit.copy");
-    memcpy(surface->pixels, &pixels[0], pixels.size());
+    SDL_UpdateTexture(frameTexture, nullptr, &pixels[0], width * sizeof(SDL_Color));
   }
+}
 
-  SDL_UnlockSurface(surface);
+namespace {
+
+void drawDebugInfoRow(const char* label, const gfx1993::PrimitiveDebugInfo& info) {
+  const uint32_t total = info.fragmentsDrawn + info.fragmentsDiscarded;
+  const float effective = total > 0 ? static_cast<float>(info.fragmentsDrawn) / total : 0.f;
+
+  ImGui::TableNextRow();
+  ImGui::TableNextColumn(); ImGui::TextUnformatted(label);
+  ImGui::TableNextColumn(); ImGui::Text("%u", info.drawn);
+  ImGui::TableNextColumn(); ImGui::Text("%u", info.backfaceCulled);
+  ImGui::TableNextColumn(); ImGui::Text("%u", info.fragmentsDrawn);
+  ImGui::TableNextColumn(); ImGui::Text("%u", info.fragmentsDiscarded);
+  ImGui::TableNextColumn(); ImGui::Text("%.1f%%", effective * 100.f);
+}
+
+}  // namespace
+
+void DemoApp::drawStatsOverlay() {
+  ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
+  ImGui::SetNextWindowBgAlpha(0.65f);
+  if (ImGui::Begin("Render Stats", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+    ImGui::Text("FPS: %.1f (avg %.1f)", currentFPS, avgFPS);
+    ImGui::Text("Frame time: %.2f ms", frameTimeMs);
+
+    if (fpsHistoryCount > 0) {
+      const int lastIndex = (fpsHistoryNext - 1 + kFpsHistorySeconds) % kFpsHistorySeconds;
+      char overlay[32];
+      snprintf(overlay, sizeof(overlay), "peak %.0f fps", fpsHistory[lastIndex]);
+
+      const int offset = fpsHistoryCount < kFpsHistorySeconds ? 0 : fpsHistoryNext;
+      ImGui::PlotLines("##peakFps", fpsHistory, fpsHistoryCount, offset, overlay,
+                        0.f, FLT_MAX, ImVec2(0, 60));
+      ImGui::TextUnformatted("Peak FPS, last 60s");
+    }
+
+    ImGui::Separator();
+
+    const gfx1993::DebugInfo& info = rasterizer->getDebugInfo();
+    if (ImGui::BeginTable("debugInfo", 6, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
+      ImGui::TableSetupColumn("Primitive");
+      ImGui::TableSetupColumn("Drawn");
+      ImGui::TableSetupColumn("Culled");
+      ImGui::TableSetupColumn("Frag drawn");
+      ImGui::TableSetupColumn("Frag discarded");
+      ImGui::TableSetupColumn("Effective");
+      ImGui::TableHeadersRow();
+
+      drawDebugInfoRow("Points", info.points);
+      drawDebugInfoRow("Lines", info.lines);
+      drawDebugInfoRow("Triangles", info.triangles);
+      drawDebugInfoRow("ScreenQuad", info.screenFillingQuad);
+      drawDebugInfoRow("AABBs", info.aabbs);
+
+      ImGui::EndTable();
+    }
+  }
+  ImGui::End();
 }
 
 void DemoApp::handleEvents() {
@@ -134,6 +256,8 @@ void DemoApp::handleEvents() {
 
   SDL_Event event;
   while (SDL_PollEvent(&event)) {
+    ImGui_ImplSDL2_ProcessEvent(&event);
+
     if (event.type == SDL_QUIT) {
       running = false;
     }
@@ -142,6 +266,8 @@ void DemoApp::handleEvents() {
 }
 
 void DemoApp::handleEvent(const SDL_Event& event) {
+  const ImGuiIO& io = ImGui::GetIO();
+
  if (event.type == SDL_KEYDOWN) {
   switch (event.key.keysym.sym) {
     case SDLK_ESCAPE:
@@ -151,19 +277,21 @@ void DemoApp::handleEvent(const SDL_Event& event) {
       break;
     }
 
-    appInstance->handleKeyboard(event.key.keysym.sym, mousePosition);
+    if (!io.WantCaptureKeyboard) {
+      appInstance->handleKeyboard(event.key.keysym.sym, mousePosition);
+    }
   }
 
   // TODO: handle keyup.
-  if (event.type == SDL_MOUSEMOTION) {
+  if (event.type == SDL_MOUSEMOTION && !io.WantCaptureMouse) {
     appInstance->handleMotion(glm::ivec2(event.motion.x, event.motion.y));
   }
 
-  if (event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP) {
+  if ((event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP) && !io.WantCaptureMouse) {
     appInstance->handleMouse(event.button.button, event.button.state, glm::ivec2(event.button.x, event.button.y));
   }
 
-  if (event.type == SDL_MOUSEWHEEL) {
+  if (event.type == SDL_MOUSEWHEEL && !io.WantCaptureMouse) {
     appInstance->handleMouseWheel(event.wheel.y, mousePosition);
   }
 
@@ -208,4 +336,10 @@ void DemoApp::handleResize(unsigned int w, unsigned int h) {
   pixels.resize(w*h*4);
   width = w;
   height = h;
+
+  // Renderer isn't created yet the first time this runs, from the
+  // constructor; the run() loop creates the initial texture itself.
+  if (renderer != nullptr) {
+    createFrameTexture();
+  }
 }

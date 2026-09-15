@@ -34,7 +34,7 @@ protected:
         std::make_shared<DefaultVertexTransform>();
     renderConfig.fragmentShader = colorShader;
 
-    logFrameTime = false;
+    showStatsOverlay = false;
 
     updateFrame(0);
   }
