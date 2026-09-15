@@ -45,3 +45,11 @@ add_test(NAME camera COMMAND camera-test)
 add_executable(plygeometry-test PlyGeometryTest.cpp)
 target_link_libraries(plygeometry-test PRIVATE gfx1993 gunit)
 add_test(NAME plygeometry COMMAND plygeometry-test)
+
+add_executable(framebuffer-test FramebufferTest.cpp)
+target_link_libraries(framebuffer-test PRIVATE gfx1993 gunit)
+add_test(NAME framebuffer COMMAND framebuffer-test)
+
+add_executable(depthbuffer-test DepthbufferTest.cpp)
+target_link_libraries(depthbuffer-test PRIVATE gfx1993 gunit)
+add_test(NAME depthbuffer COMMAND depthbuffer-test)
