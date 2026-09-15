@@ -46,25 +46,6 @@ constexpr int TEST_W=4;
 constexpr int TEST_H=4;
 constexpr int TEST_PIXELS=TEST_W*TEST_H;
 
-void printRenderedImage(std::shared_ptr<Framebuffer> frameBuffer,
-                        std::shared_ptr<Depthbuffer> depthBuffer) {
-  std::cout << "Rendered image:\n";
-  for (unsigned int x = 0; x < TEST_W; ++x) {
-    for (unsigned int y = 0; y < TEST_H; ++y) {
-      const glm::vec4& px = frameBuffer->getPixel(x,y);
-      std::cout << px.x << "," << px.y << "," << px.z << " ";
-    }
-    std::cout << std::endl;
-  }
-
-  std::cout << "Rendered depth:\n";
-  for ( int x = 0; x < TEST_W; ++x) {
-    for (unsigned int y = 0; y < TEST_H; ++y) {
-      std::cout << depthBuffer->getDepth(x,y) << " ";
-    }
-    std::cout << std::endl;
-  }
-}
 }  // namespace
 
 GTEST("Rasterizer Test") {
