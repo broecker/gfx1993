@@ -1,6 +1,7 @@
 #ifndef FRAMEBUFFER_INCLUDED
 #define FRAMEBUFFER_INCLUDED
 
+#include <cassert>
 #include <glm/glm.hpp>
 #include <memory>
 #include <vector>
@@ -31,6 +32,8 @@ public:
   }
 
   inline const glm::vec4 &getPixel(unsigned int x, unsigned int y) const {
+    assert(x <= (width-1));
+    assert(y <= (height-1));
     return data[x + y * width];
   }
 

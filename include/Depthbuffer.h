@@ -3,6 +3,7 @@
 
 #include "config.h"
 
+#include <cassert>
 #include <glm/glm.hpp>
 #include <limits>
 #include <vector>
