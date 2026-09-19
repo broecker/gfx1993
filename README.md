@@ -32,14 +32,17 @@ Unit tests can be found under `tests/` and run with `ctest`. Example binaries
 are found in `examples/` and can be run individually.
 
 Dependencies: 
-- libglm
+- glm
 - SDL2
-- libabsl
+- abseil
 
-The [Tracy](https://github.com/wolfpld/tracy) profiler client and
+CMake looks for these on the system first; any that aren't installed are
+fetched and built from source automatically instead, so a fresh checkout
+builds without installing anything by hand. The
+[Tracy](https://github.com/wolfpld/tracy) profiler client and
 [Dear ImGui](https://github.com/ocornut/imgui) (used by the example demo app
-for its FPS/rasterizer-stats overlay) are fetched and built automatically by
-CMake, so they don't need to be installed separately.
+for its FPS/rasterizer-stats overlay) are always fetched and built this way,
+since neither ships an installable CMake package.
 
 ## TODOs
 This is an unsorted list of outstanding tasks.

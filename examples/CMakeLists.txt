@@ -10,14 +10,26 @@ cmake_policy(SET CMP0015 NEW)
 # Local dependencies.
 include_directories(../include)
 
-find_package(SDL2 REQUIRED)
-include_directories(${SDL2_INCLUDE_DIRS})
-find_package(glm REQUIRED)
+include(FetchContent)
+
+# SDL2 is looked up on the system first; if it isn't installed, it's fetched
+# and built from source instead. glm is already resolved by the top-level
+# CMakeLists.txt (as glm::glm), which runs before this subdirectory.
+find_package(SDL2 CONFIG QUIET)
+if(NOT SDL2_FOUND)
+    message(STATUS "SDL2 not found on the system, fetching it instead")
+    set(SDL_TEST OFF CACHE BOOL "" FORCE)
+    FetchContent_Declare(
+        SDL2
+        GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
+        GIT_TAG        release-2.30.0
+    )
+    FetchContent_MakeAvailable(SDL2)
+endif()
 
 # Dear ImGui, used by the demo app harness to overlay FPS and rasterizer
 # stats. Built from source since upstream ships no CMake package; only the
 # core widgets plus the SDL2 + SDL_Renderer backends are needed.
-include(FetchContent)
 FetchContent_Declare(
     imgui
     GIT_REPOSITORY https://github.com/ocornut/imgui.git
@@ -36,13 +48,12 @@ add_library(imgui STATIC
 target_include_directories(imgui PUBLIC
     ${imgui_SOURCE_DIR}
     ${imgui_SOURCE_DIR}/backends
-    ${SDL2_INCLUDE_DIRS}
 )
-target_link_libraries(imgui PUBLIC ${SDL2_LIBRARIES})
+target_link_libraries(imgui PUBLIC SDL2::SDL2)
 
 # Library and demo app harness
 add_library(gfx93-demo-app STATIC DemoApp.cpp DemoUtils.cpp StarField.cpp)
-target_link_libraries(gfx93-demo-app PUBLIC gfx1993 PRIVATE ${SDL2_LIBRARIES} glm::glm imgui)
+target_link_libraries(gfx93-demo-app PUBLIC gfx1993 PRIVATE SDL2::SDL2 glm::glm imgui)
 
 # A simple rotating triangle
 add_executable(00-triangle 00-triangle.cpp)
