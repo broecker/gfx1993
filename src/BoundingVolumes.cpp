@@ -1,6 +1,8 @@
 #include "BoundingVolumes.h"
 #include "Pipeline.h"
 
+#include <cassert>
+#include <cmath>
 #include <vector>
 #include <iostream>
 #include <iomanip>
@@ -17,16 +19,62 @@ void AABB::extend(const glm::vec3& p) {
   max = glm::max(max, p);
 }
 
+// Corner-to-index convention must mirror Cube::makeVertices()'s own corner
+// layout exactly (min/max standing in for that function's -1/+1 signs),
+// or Cube::makeSolid()'s hardcoded triangle indices end up wound inward.
 void AABB::updateGeometry(Cube& cube) {
-  cube.getMutableVertexList()[0].position = vec4(max.x, max.y, min.z, 1.f);
+  cube.getMutableVertexList()[0].position = vec4(min.x, max.y, max.z, 1.f);
   cube.getMutableVertexList()[1].position = vec4(min.x, max.y, min.z, 1.f);
-  cube.getMutableVertexList()[2].position = vec4(min.x, max.y, max.z, 1.f);
+  cube.getMutableVertexList()[2].position = vec4(max.x, max.y, min.z, 1.f);
   cube.getMutableVertexList()[3].position = vec4(max, 1.f);
 
-  cube.getMutableVertexList()[4].position = vec4(max.x, min.y, min.z, 1.f);
+  cube.getMutableVertexList()[4].position = vec4(min.x, min.y, max.z, 1.f);
   cube.getMutableVertexList()[5].position = vec4(min, 1.f);
-  cube.getMutableVertexList()[6].position = vec4(min.x, min.y, max.z, 1.f);
+  cube.getMutableVertexList()[6].position = vec4(max.x, min.y, min.z, 1.f);
   cube.getMutableVertexList()[7].position = vec4(max.x, min.y, max.z, 1.f);
+}
+
+AABB AABB::fromOBB(const OBB& obb) {
+  AABB result;
+  for (const vec3& corner : obb.getCorners()) {
+    result.extend(corner);
+  }
+  return result;
+}
+
+void OBB::setTransform(const glm::mat4& t) {
+  const vec3 a0(t[0]), a1(t[1]), a2(t[2]);
+  assert(dot(a0,a1)*dot(a0,a1) < 1e-8f * dot(a0,a0) * dot(a1,a1) &&
+         dot(a0,a2)*dot(a0,a2) < 1e-8f * dot(a0,a0) * dot(a2,a2) &&
+         dot(a1,a2)*dot(a1,a2) < 1e-8f * dot(a1,a1) * dot(a2,a2) &&
+         "OBB::transform's 3x3 must have mutually orthogonal columns (no shear)");
+  transform = t;
+  inverseTransform = glm::inverse(t);
+}
+
+// Same corner-sign convention as AABB::updateGeometry above: +axisX/-axisX
+// etc. stand in for max.x/min.x.
+std::array<glm::vec3, 8> OBB::getCorners() const {
+  const vec3 c = getCenter();
+  const vec3 ax = axisX(), ay = axisY(), az = axisZ();
+  return {
+    c - ax + ay + az,  c - ax + ay - az,  c + ax + ay - az,  c + ax + ay + az,
+    c - ax - ay + az,  c - ax - ay - az,  c + ax - ay - az,  c + ax - ay + az,
+  };
+}
+
+bool OBB::isInside(const glm::vec3& pt) const {
+  const vec3 local = vec3(inverseTransform * vec4(pt, 1.f));
+  return std::abs(local.x) <= halfExtents.x &&
+         std::abs(local.y) <= halfExtents.y &&
+         std::abs(local.z) <= halfExtents.z;
+}
+
+void OBB::updateGeometry(Cube& cube) const {
+  const auto corners = getCorners();
+  for (int i = 0; i < 8; ++i) {
+    cube.getMutableVertexList()[i].position = vec4(corners[i], 1.f);
+  }
 }
 
 BoundingSphere fromGeometry(const Geometry& geo) {

@@ -53,3 +53,7 @@ add_test(NAME framebuffer COMMAND framebuffer-test)
 add_executable(depthbuffer-test DepthbufferTest.cpp)
 target_link_libraries(depthbuffer-test PRIVATE gfx1993 gunit)
 add_test(NAME depthbuffer COMMAND depthbuffer-test)
+
+add_executable(boundingvolumes-test BoundingVolumesTest.cpp)
+target_link_libraries(boundingvolumes-test PRIVATE gfx1993 gunit)
+add_test(NAME boundingvolumes COMMAND boundingvolumes-test)

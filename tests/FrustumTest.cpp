@@ -67,6 +67,18 @@ GTEST("Frustum Test") {
     EXPECT(frustum.testIntersection({vec3(0), 1.f}) == Frustum::INSIDE);
   }
 
+  SHOULD("Classify a small centered sphere as inside, not outside") {
+    // Regression test: testIntersection(BoundingSphere) used to compare the
+    // wrong way round (it returned OUTSIDE for any plane distance greater
+    // than the radius, which is actually the "fully inside this plane"
+    // case) and returned on the very first plane checked instead of testing
+    // all 6. A small sphere sitting at the exact center of the frustum used
+    // to come back OUTSIDE.
+    Frustum frustum(glm::ortho(-1, 1, -1, 1, -1, 1));
+
+    EXPECT(frustum.testIntersection(BoundingSphere{vec3(0), 0.5f}) == Frustum::INSIDE);
+  }
+
   SHOULD("Detect completely outside bounding boxes") {
     Frustum frustum(glm::ortho(-1, 1, -1, 1, -1, 1));
 
@@ -94,7 +106,25 @@ GTEST("Frustum Test") {
     AABB bbox{vec3(-1.5), vec3(1.5)};
     EXPECT(frustum.testIntersection(bbox) == Frustum::INTERSECTING);
   }
-  
+
+  SHOULD("Detect a rotated OBB intersecting a plane its local extents alone would miss") {
+    // Same box, same position, as the next test below -- only the rotation
+    // differs, and so does the correct answer. This proves the frustum test
+    // actually accounts for orientation instead of only using halfExtents
+    // as if the box were axis-aligned.
+    Frustum frustum(glm::ortho(-1, 1, -1, 1, -1, 1));
+
+    OBB box(glm::translate(vec3(1.36f, 0, 0)) * glm::rotate(glm::radians(45.f), vec3(0, 0, 1)),
+            vec3(0.3f, 0.3f, 0.9f));
+    EXPECT(frustum.testIntersection(box) == Frustum::INTERSECTING);
+  }
+
+  SHOULD("Classify the same unrotated box as fully outside") {
+    Frustum frustum(glm::ortho(-1, 1, -1, 1, -1, 1));
+
+    OBB box(glm::translate(vec3(1.36f, 0, 0)), vec3(0.3f, 0.3f, 0.9f));
+    EXPECT(frustum.testIntersection(box) == Frustum::OUTSIDE);
+  }
 };
 
 

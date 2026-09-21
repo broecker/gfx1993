@@ -1,6 +1,7 @@
 #ifndef GFX1993_UTIL_BOUNDING_VOLUMES_INCLUDED
 #define GFX1993_UTIL_BOUNDING_VOLUMES_INCLUDED
 
+#include <array>
 #include <glm/glm.hpp>
 #include <limits>
 #include <memory>
@@ -17,10 +18,12 @@ struct BoundingSphere {
   float       radius;
 };
 
+class OBB;  // AABB::fromOBB below needs this; OBB is defined further down.
+
 // An alis-aligned bounding box with all coordinates in world space.
 struct AABB {
   glm::vec3 min = glm::vec3(std::numeric_limits<glm::vec3::value_type>::max());
-  glm::vec3 max = glm::vec3(std::numeric_limits<glm::vec3::value_type>::min());
+  glm::vec3 max = glm::vec3(std::numeric_limits<glm::vec3::value_type>::lowest());
 
   glm::vec3 getCenter() const { return (min + max) * 0.5f; }
 
@@ -35,6 +38,57 @@ struct AABB {
   // Updates an existing geometry with these dimensions. Ideal for debug
   // drawing.
   void updateGeometry(Cube& cube);
+
+  // Computes the axis-aligned bounding box that contains an oriented box.
+  static AABB fromOBB(const OBB& obb);
+};
+
+// An oriented bounding box: a box of size 2*halfExtents centered at the
+// local origin, placed in world space by `transform`.
+class OBB {
+public:
+  OBB() = default;
+  OBB(const glm::mat4& transform, const glm::vec3& halfExtents)
+      : halfExtents(halfExtents) {
+    setTransform(transform);
+  }
+
+  // Sets the box's world-space placement and caches its inverse (used by
+  // isInside()), so the inverse isn't recomputed on every query. The
+  // transform's upper-left 3x3 may contain rotation and per-axis scale,
+  // but its 3 columns must stay mutually orthogonal (no shear) for this to
+  // represent a rectangular box rather than a general parallelepiped. If
+  // composing rotation with non-uniform scale, compose as
+  // `rotation * scale`, not `scale * rotation` (scale doesn't commute with
+  // rotation, and the wrong order breaks orthogonality).
+  void setTransform(const glm::mat4& t);
+
+  const glm::mat4& getTransform() const { return transform; }
+
+  glm::vec3 halfExtents = glm::vec3(0.5f);
+
+  glm::vec3 getCenter() const { return glm::vec3(transform[3]); }
+
+  // World-space half-extent vectors along each local axis, e.g.
+  // center + axisX() reaches the middle of the local +X face. Already
+  // incorporates any scale baked into transform's columns.
+  glm::vec3 axisX() const { return glm::vec3(transform[0]) * halfExtents.x; }
+  glm::vec3 axisY() const { return glm::vec3(transform[1]) * halfExtents.y; }
+  glm::vec3 axisZ() const { return glm::vec3(transform[2]) * halfExtents.z; }
+
+  // Same corner-to-index convention as AABB::updateGeometry (see that
+  // function's definition for why the convention matters).
+  std::array<glm::vec3, 8> getCorners() const;
+
+  bool isInside(const glm::vec3& pt) const;
+
+  // Updates an existing geometry with these dimensions. Ideal for debug
+  // drawing.
+  void updateGeometry(Cube& cube) const;
+
+private:
+  glm::mat4 transform        = glm::mat4(1.f);
+  glm::mat4 inverseTransform = glm::mat4(1.f);
 };
 
 // TODO(mbroecker) Extend with templates + generic stored data.
