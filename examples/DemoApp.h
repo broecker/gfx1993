@@ -75,6 +75,14 @@ private:
   float avgFPS = 0.f;
   float frameTimeMs = 0.f;
 
+  // Optional frame rate cap, toggled from the stats overlay. targetFrameTimeMs
+  // is 0 when uncapped (the default), otherwise the target frame budget in
+  // milliseconds, derived from targetFps (1000/targetFps) whenever the cap
+  // is on. targetFps itself is kept even while the cap is off, so toggling
+  // it back on remembers the last value instead of resetting.
+  float targetFrameTimeMs = 0.f;
+  int targetFps = 180;
+
   // Peak (highest instantaneous) FPS seen in the second currently being
   // measured, and a ring buffer of one such peak per second covering the
   // last minute, for the overlay's history graph.

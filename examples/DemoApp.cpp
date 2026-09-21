@@ -140,7 +140,16 @@ void DemoApp::run(int argc, char **argv) {
     ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer);
     SDL_RenderPresent(renderer);
 
-    SDL_Delay(0);
+    if (targetFrameTimeMs > 0.f) {
+      GFX1993_ZONE_N("app.frameLimiter");
+      float elapsedMs = static_cast<float>(SDL_GetTicks64() - nowTicks);
+      float remainingMs = targetFrameTimeMs - elapsedMs;
+      if (remainingMs > 0.f) {
+        SDL_Delay(static_cast<Uint32>(remainingMs));
+      }
+    } else {
+      SDL_Delay(0);
+    }
   }
 
   ImGui_ImplSDLRenderer2_Shutdown();
@@ -225,6 +234,18 @@ void DemoApp::drawStatsOverlay() {
       ImGui::PlotLines("##peakFps", fpsHistory, fpsHistoryCount, offset, overlay,
                         0.f, FLT_MAX, ImVec2(0, 60));
       ImGui::TextUnformatted("Peak FPS, last 60s");
+    }
+
+    bool frameLimitEnabled = targetFrameTimeMs > 0.f;
+    if (ImGui::Checkbox("Limit FPS", &frameLimitEnabled)) {
+      targetFrameTimeMs = frameLimitEnabled ? (1000.f / static_cast<float>(targetFps)) : 0.f;
+    }
+    if (frameLimitEnabled) {
+      ImGui::SameLine();
+      ImGui::SetNextItemWidth(90);
+      if (ImGui::DragInt("##targetFps", &targetFps, 1.f, 1, 1000, "%d fps")) {
+        targetFrameTimeMs = 1000.f / static_cast<float>(targetFps);
+      }
     }
 
     ImGui::Separator();
