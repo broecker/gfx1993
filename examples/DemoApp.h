@@ -10,6 +10,7 @@
 #include "Camera.h"
 #include "Depthbuffer.h"
 #include "Framebuffer.h"
+#include "Palette.h"
 #include "RenderConfig.h"
 #include "Rasterizer.h"
 #include "Shader.h"
@@ -82,6 +83,13 @@ private:
   // it back on remembers the last value instead of resetting.
   float targetFrameTimeMs = 0.f;
   int targetFps = 180;
+
+  // Optional post-process: quantizes the final image to a fixed 256-color
+  // VGA-style palette instead of displaying it at full float RGB. Toggled
+  // from the stats overlay; off by default. See Palette.h -- the palette
+  // and its lookup table are built once, here, not per-frame.
+  gfx1993::Palette palette = gfx1993::Palette::makeStandardVga();
+  bool paletteEnabled = false;
 
   // Peak (highest instantaneous) FPS seen in the second currently being
   // measured, and a ring buffer of one such peak per second covering the

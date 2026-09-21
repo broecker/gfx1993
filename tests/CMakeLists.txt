@@ -57,3 +57,7 @@ add_test(NAME depthbuffer COMMAND depthbuffer-test)
 add_executable(boundingvolumes-test BoundingVolumesTest.cpp)
 target_link_libraries(boundingvolumes-test PRIVATE gfx1993 gunit)
 add_test(NAME boundingvolumes COMMAND boundingvolumes-test)
+
+add_executable(palette-test PaletteTest.cpp)
+target_link_libraries(palette-test PRIVATE gfx1993 gunit)
+add_test(NAME palette COMMAND palette-test)
