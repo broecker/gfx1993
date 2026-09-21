@@ -11,6 +11,16 @@ inline glm::vec3 rgb8(int r, int g, int b) {
   return glm::vec3(r, g, b) / 255.f;
 }
 
+// A simple saturation proxy (matches HSL's "chroma"): 0 for any neutral
+// gray, growing with how far a color is from the gray diagonal. Used to
+// keep the nearest-color search from favoring the densely-packed grayscale
+// ramp just because it's numerically close in raw RGB distance.
+inline float saturation(const glm::vec3 &c) {
+  float lo = glm::min(c.r, glm::min(c.g, c.b));
+  float hi = glm::max(c.r, glm::max(c.g, c.b));
+  return hi - lo;
+}
+
 }  // namespace
 
 Palette Palette::makeStandardVga() {
@@ -58,14 +68,19 @@ void Palette::buildLut() {
     for (int y = 0; y < kLutResolution; ++y) {
       for (int x = 0; x < kLutResolution; ++x) {
         glm::vec3 cellCenter = (glm::vec3(x, y, z) + 0.5f) / static_cast<float>(kLutResolution);
+        float querySaturation = saturation(cellCenter);
 
         uint8_t nearest = 0;
-        float nearestDistSq = std::numeric_limits<float>::max();
+        float bestScore = std::numeric_limits<float>::max();
         for (size_t i = 0; i < colors.size(); ++i) {
           glm::vec3 diff = colors[i] - cellCenter;
           float distSq = glm::dot(diff, diff);
-          if (distSq < nearestDistSq) {
-            nearestDistSq = distSq;
+
+          float saturationDiff = saturation(colors[i]) - querySaturation;
+          float score = distSq + kSaturationPenaltyWeight * saturationDiff * saturationDiff;
+
+          if (score < bestScore) {
+            bestScore = score;
             nearest = static_cast<uint8_t>(i);
           }
         }

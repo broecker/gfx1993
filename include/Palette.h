@@ -30,6 +30,16 @@ public:
   static constexpr int kLutResolution = 32;
   static constexpr int kLutSize = kLutResolution * kLutResolution * kLutResolution;
 
+  // How strongly the nearest-color search in buildLut() penalizes a
+  // candidate whose saturation (max-min channel spread) differs from the
+  // query's. Without this, the 24-entry grayscale ramp -- spaced roughly
+  // 5x finer than the 6x6x6 color cube -- wins the raw-distance search for
+  // any pale, low-saturation color (e.g. the demos' (0.7,0.7,0.9)
+  // background), snapping it to a flat gray instead of a tinted cube
+  // entry. 1.0 weighs a saturation mismatch the same as an equivalent
+  // Euclidean color distance; see buildLut() for the full scoring.
+  static constexpr float kSaturationPenaltyWeight = 1.f;
+
   // Builds the classic default VGA/Mode-13h-style 256 color palette: the
   // 16 standard EGA colors, a 6x6x6 RGB color cube (the same level steps
   // as the "web safe" palette), and a 24-step grayscale ramp filling the
