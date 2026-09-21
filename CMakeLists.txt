@@ -75,6 +75,7 @@ add_library(gfx1993
     src/Framebuffer.cpp
     src/Frustum.cpp
     src/Geometry.cpp
+    src/Palette.cpp
     src/Pipeline.cpp
     src/PlyGeometry.cpp
     src/Rasterizer.cpp

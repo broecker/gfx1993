@@ -183,13 +183,18 @@ void DemoApp::updateFrameTexture() {
                         static_cast<float>(h) / height);
 
         const glm::vec4& pixel = renderConfig.framebuffer->getPixel(coord);
+        glm::vec3 rgb(pixel.r, pixel.g, pixel.b);
+        if (paletteEnabled) {
+          rgb = ditherEnabled ? palette.quantizeDithered(rgb, w, h) : palette.quantize(rgb);
+        }
+
         // Also flip the y-axis.
         SDL_Color& c = pixels[w + h*width];
 
         // Also switch to BGRA.
-        c.r = static_cast<Uint8>(pixel.b * 255);
-        c.g = static_cast<Uint8>(pixel.g * 255);
-        c.b = static_cast<Uint8>(pixel.r * 255);
+        c.r = static_cast<Uint8>(rgb.b * 255);
+        c.g = static_cast<Uint8>(rgb.g * 255);
+        c.b = static_cast<Uint8>(rgb.r * 255);
         c.a = static_cast<Uint8>(pixel.a * 255);
       }
     }
@@ -246,6 +251,12 @@ void DemoApp::drawStatsOverlay() {
       if (ImGui::DragInt("##targetFps", &targetFps, 1.f, 1, 1000, "%d fps")) {
         targetFrameTimeMs = 1000.f / static_cast<float>(targetFps);
       }
+    }
+
+    ImGui::Checkbox("256-color VGA palette", &paletteEnabled);
+    if (paletteEnabled) {
+      ImGui::SameLine();
+      ImGui::Checkbox("Dither", &ditherEnabled);
     }
 
     ImGui::Separator();
