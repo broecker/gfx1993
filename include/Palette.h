@@ -1,8 +1,8 @@
 #ifndef GFX1993_PALETTE_INCLUDED
 #define GFX1993_PALETTE_INCLUDED
 
+#include <array>
 #include <cstdint>
-#include <vector>
 
 #include <glm/glm.hpp>
 
@@ -28,6 +28,7 @@ public:
   // Per-channel resolution of the nearest-color lookup table, i.e. the
   // table has kLutResolution^3 cells.
   static constexpr int kLutResolution = 32;
+  static constexpr int kLutSize = kLutResolution * kLutResolution * kLutResolution;
 
   // Builds the classic default VGA/Mode-13h-style 256 color palette: the
   // 16 standard EGA colors, a 6x6x6 RGB color cube (the same level steps
@@ -47,7 +48,7 @@ public:
     return lut[lutCellIndex(color)];
   }
 
-  inline const std::vector<glm::vec3> &getColors() const { return colors; }
+  inline const std::array<glm::vec3, kColorCount> &getColors() const { return colors; }
 
 private:
   Palette() = default;
@@ -63,8 +64,8 @@ private:
     return cell.x + kLutResolution * (cell.y + kLutResolution * cell.z);
   }
 
-  std::vector<glm::vec3> colors;  // kColorCount entries, linear RGB in [0,1]
-  std::vector<uint8_t> lut;       // kLutResolution^3 entries, indices into colors
+  std::array<glm::vec3, kColorCount> colors{};  // linear RGB in [0,1]
+  std::array<uint8_t, kLutSize> lut{};          // indices into colors
 };
 
 }  // namespace gfx1993

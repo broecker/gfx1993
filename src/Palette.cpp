@@ -1,5 +1,6 @@
 #include "Palette.h"
 
+#include <cassert>
 #include <limits>
 
 namespace gfx1993 {
@@ -14,7 +15,7 @@ inline glm::vec3 rgb8(int r, int g, int b) {
 
 Palette Palette::makeStandardVga() {
   Palette p;
-  p.colors.reserve(kColorCount);
+  int idx = 0;
 
   // The 16 standard CGA/EGA/VGA text-mode colors.
   static constexpr int kEga[16][3] = {
@@ -24,7 +25,7 @@ Palette Palette::makeStandardVga() {
       {255, 85, 85},   {255, 85, 255},  {255, 255, 85},  {255, 255, 255},
   };
   for (const auto &c : kEga) {
-    p.colors.push_back(rgb8(c[0], c[1], c[2]));
+    p.colors[idx++] = rgb8(c[0], c[1], c[2]);
   }
 
   // A 6x6x6 RGB color cube -- the same level steps (0, 51, 102, 153, 204,
@@ -33,7 +34,7 @@ Palette Palette::makeStandardVga() {
   for (int r = 0; r < 6; ++r) {
     for (int g = 0; g < 6; ++g) {
       for (int b = 0; b < 6; ++b) {
-        p.colors.push_back(rgb8(kLevels[r], kLevels[g], kLevels[b]));
+        p.colors[idx++] = rgb8(kLevels[r], kLevels[g], kLevels[b]);
       }
     }
   }
@@ -41,19 +42,18 @@ Palette Palette::makeStandardVga() {
   // Fill the remaining slots (256 - 16 - 216 = 24) with a grayscale ramp
   // strictly between black and white (both already present above, as EGA
   // black/white and the color cube's (0,0,0)/(255,255,255) corners).
-  const int grayCount = kColorCount - static_cast<int>(p.colors.size());
+  const int grayCount = kColorCount - idx;
   for (int i = 1; i <= grayCount; ++i) {
     int level = i * 255 / (grayCount + 1);
-    p.colors.push_back(rgb8(level, level, level));
+    p.colors[idx++] = rgb8(level, level, level);
   }
+  assert(idx == kColorCount);
 
   p.buildLut();
   return p;
 }
 
 void Palette::buildLut() {
-  lut.resize(kLutResolution * kLutResolution * kLutResolution);
-
   for (int z = 0; z < kLutResolution; ++z) {
     for (int y = 0; y < kLutResolution; ++y) {
       for (int x = 0; x < kLutResolution; ++x) {
