@@ -90,6 +90,9 @@ private:
   // and its lookup table are built once, here, not per-frame.
   gfx1993::Palette palette = gfx1993::Palette::makeStandardVga();
   bool paletteEnabled = false;
+  // Ordered (Bayer) dithering applied before quantization, only relevant
+  // while paletteEnabled is set. Off by default so the two can be compared.
+  bool ditherEnabled = false;
 
   // Peak (highest instantaneous) FPS seen in the second currently being
   // measured, and a ring buffer of one such peak per second covering the

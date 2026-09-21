@@ -21,6 +21,19 @@ inline float saturation(const glm::vec3 &c) {
   return hi - lo;
 }
 
+// The standard 8x8 Bayer ordered-dither threshold matrix (values 0..63,
+// recursively defined so no two nearby pixels share a threshold rank).
+constexpr uint8_t kBayer8x8[Palette::kDitherSize][Palette::kDitherSize] = {
+    { 0, 48, 12, 60,  3, 51, 15, 63},
+    {32, 16, 44, 28, 35, 19, 47, 31},
+    { 8, 56,  4, 52, 11, 59,  7, 55},
+    {40, 24, 36, 20, 43, 27, 39, 23},
+    { 2, 50, 14, 62,  1, 49, 13, 61},
+    {34, 18, 46, 30, 33, 17, 45, 29},
+    {10, 58,  6, 54,  9, 57,  5, 53},
+    {42, 26, 38, 22, 41, 25, 37, 21},
+};
+
 }  // namespace
 
 Palette Palette::makeStandardVga() {
@@ -89,6 +102,13 @@ void Palette::buildLut() {
       }
     }
   }
+}
+
+glm::vec3 Palette::quantizeDithered(const glm::vec3 &color, unsigned int x, unsigned int y) const {
+  uint8_t threshold = kBayer8x8[y % kDitherSize][x % kDitherSize];
+  // Map the 0..63 rank to (-0.5, 0.5), then scale to the dither amplitude.
+  float offset = ((threshold + 0.5f) / (kDitherSize * kDitherSize) - 0.5f) * kDitherAmplitude;
+  return quantize(color + glm::vec3(offset));
 }
 
 }  // namespace gfx1993

@@ -76,6 +76,71 @@ GTEST("Palette Test") {
     EXPECT(result.g >= 0.f && result.g <= 1.f);
     EXPECT(result.b >= 0.f && result.b <= 1.f);
   }
+
+  SHOULD("Dither to an actual palette entry at every pixel") {
+    Palette palette = Palette::makeStandardVga();
+    const auto& colors = palette.getColors();
+
+    vec3 sample(0.6f, 0.8f, 0.9f);
+    for (unsigned int y = 0; y < 8; ++y) {
+      for (unsigned int x = 0; x < 8; ++x) {
+        vec3 out = palette.quantizeDithered(sample, x, y);
+        bool isRealEntry = false;
+        for (const vec3& c : colors) {
+          if (c == out) {
+            isRealEntry = true;
+            break;
+          }
+        }
+        EXPECT(isRealEntry);
+      }
+    }
+  }
+
+  SHOULD("Spread a color that falls between two palette levels across a pattern") {
+    Palette palette = Palette::makeStandardVga();
+
+    // Deliberately not a palette entry itself -- roughly midway between
+    // adjacent color-cube levels on more than one channel.
+    vec3 sample(0.6f, 0.8f, 0.9f);
+
+    int distinctCount = 0;
+    vec3 seen[64];
+    for (unsigned int y = 0; y < 8; ++y) {
+      for (unsigned int x = 0; x < 8; ++x) {
+        vec3 out = palette.quantizeDithered(sample, x, y);
+        bool isNew = true;
+        for (int i = 0; i < distinctCount; ++i) {
+          if (seen[i] == out) {
+            isNew = false;
+            break;
+          }
+        }
+        if (isNew) {
+          seen[distinctCount++] = out;
+        }
+      }
+    }
+
+    EXPECT(distinctCount > 1);
+  }
+
+  SHOULD("Average closer to the true color than a single flat quantize") {
+    Palette palette = Palette::makeStandardVga();
+
+    vec3 sample(0.6f, 0.8f, 0.9f);
+    vec3 flat = palette.quantize(sample);
+
+    vec3 sum(0.f);
+    for (unsigned int y = 0; y < 8; ++y) {
+      for (unsigned int x = 0; x < 8; ++x) {
+        sum += palette.quantizeDithered(sample, x, y);
+      }
+    }
+    vec3 average = sum / 64.f;
+
+    EXPECT(distance2(average, sample) < distance2(flat, sample));
+  }
 }
 
 }  // namespace gfx1993

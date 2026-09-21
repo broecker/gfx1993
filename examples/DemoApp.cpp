@@ -185,7 +185,7 @@ void DemoApp::updateFrameTexture() {
         const glm::vec4& pixel = renderConfig.framebuffer->getPixel(coord);
         glm::vec3 rgb(pixel.r, pixel.g, pixel.b);
         if (paletteEnabled) {
-          rgb = palette.quantize(rgb);
+          rgb = ditherEnabled ? palette.quantizeDithered(rgb, w, h) : palette.quantize(rgb);
         }
 
         // Also flip the y-axis.
@@ -254,6 +254,10 @@ void DemoApp::drawStatsOverlay() {
     }
 
     ImGui::Checkbox("256-color VGA palette", &paletteEnabled);
+    if (paletteEnabled) {
+      ImGui::SameLine();
+      ImGui::Checkbox("Dither", &ditherEnabled);
+    }
 
     ImGui::Separator();
 

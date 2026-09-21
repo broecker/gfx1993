@@ -40,6 +40,16 @@ public:
   // Euclidean color distance; see buildLut() for the full scoring.
   static constexpr float kSaturationPenaltyWeight = 1.f;
 
+  // Side length of the ordered-dither threshold matrix used by
+  // quantizeDithered() below (an 8x8 Bayer matrix).
+  static constexpr int kDitherSize = 8;
+
+  // How far quantizeDithered() perturbs a color before quantizing it,
+  // matching the 6x6x6 color cube's per-channel step (51/255) -- the
+  // densest non-gray region of the palette, and so a reasonable default
+  // "typical" quantization step to dither across.
+  static constexpr float kDitherAmplitude = 51.f / 255.f;
+
   // Builds the classic default VGA/Mode-13h-style 256 color palette: the
   // 16 standard EGA colors, a 6x6x6 RGB color cube (the same level steps
   // as the "web safe" palette), and a 24-step grayscale ramp filling the
@@ -57,6 +67,15 @@ public:
   inline uint8_t nearestIndex(const glm::vec3 &color) const {
     return lut[lutCellIndex(color)];
   }
+
+  // Like quantize(), but first nudges `color` by an 8x8 ordered (Bayer)
+  // dither offset selected by the fragment's (x,y) position. A flat region
+  // whose true color sits between two palette entries then quantizes to a
+  // structured mix of both -- alternating pixels -- rather than uniformly
+  // snapping to whichever entry happens to be nearest, trading a visible
+  // (period-correct) dither pattern for a closer average color. Callers
+  // pass window/screen-space pixel coordinates, not LUT cell coordinates.
+  glm::vec3 quantizeDithered(const glm::vec3 &color, unsigned int x, unsigned int y) const;
 
   inline const std::array<glm::vec3, kColorCount> &getColors() const { return colors; }
 
