@@ -294,6 +294,71 @@ GTEST("Rasterizer Test") {
     EXPECT(rasterizer.getDebugInfo().triangles.fragmentsDrawn > 0);
   }
 
+  SHOULD("Draw triangles of either winding when back-face culling is off") {
+    // Regression test: the coverage test in drawTriangle() only accepted one
+    // screen-space winding, so back faces were dropped even with
+    // cullBackFaces = false.
+    constexpr int W = 16, H = 16;
+    auto fb = std::make_shared<Framebuffer>(W, H);
+    auto db = std::make_shared<Depthbuffer>(W, H);
+    RenderConfig config;
+    config.framebuffer = fb;
+    config.depthbuffer = db;
+    config.viewport = std::make_shared<Viewport>(0, 0, W, H);
+    config.vertexShader = std::make_shared<TestVertShader>();
+    config.fragmentShader = std::make_shared<TestFragShader>();
+    ASSERT(config.isValid());
+
+    const vec4 white(1, 1, 1, 1);
+    const VertexList vertices{Vertex(vec4(-1, -1, 0, 1), white),
+                              Vertex(vec4(1, -1, 0, 1), white),
+                              Vertex(vec4(0, 1, 0, 1), white)};
+    auto coverage = [&](const IndexList &indices) {
+      fb->clear(vec4(0, 0, 0, 1));
+      db->clear();
+      rasterizer.drawTriangles(config, vertices, indices);
+      int pixels = 0;
+      for (int y = 0; y < H; ++y)
+        for (int x = 0; x < W; ++x)
+          pixels += fb->getPixel(x, y) == white;
+      return pixels;
+    };
+    const IndexList front{0, 1, 2}, back{0, 2, 1};
+
+    config.cullBackFaces = false;
+    const int frontPixels = coverage(front);
+    EXPECT(frontPixels > 0);
+    EXPECT(coverage(back) == frontPixels);
+
+    config.cullBackFaces = true;
+    EXPECT(coverage(front) == frontPixels);
+    EXPECT(coverage(back) == 0);
+    EXPECT(rasterizer.getDebugInfo().triangles.backfaceCulled == 1);
+  }
+
+  SHOULD("Not draw zero-area triangles") {
+    constexpr int W = 16, H = 16;
+    auto fb = std::make_shared<Framebuffer>(W, H);
+    RenderConfig config;
+    config.framebuffer = fb;
+    config.viewport = std::make_shared<Viewport>(0, 0, W, H);
+    config.depthTest = false;
+    config.depthWrite = false;
+    config.cullBackFaces = false;
+    config.vertexShader = std::make_shared<TestVertShader>();
+    config.fragmentShader = std::make_shared<TestFragShader>();
+    ASSERT(config.isValid());
+
+    // Three collinear points along the diagonal.
+    const vec4 white(1, 1, 1, 1);
+    const VertexList vertices{Vertex(vec4(-1, -1, 0, 1), white),
+                              Vertex(vec4(0, 0, 0, 1), white),
+                              Vertex(vec4(1, 1, 0, 1), white)};
+    rasterizer.drawTriangles(config, vertices, IndexList{0, 1, 2});
+
+    EXPECT(rasterizer.getDebugInfo().triangles.fragmentsDrawn == 0);
+  }
+
   SHOULD("Clip fat points against viewport") {
     RenderConfig config;
     config.framebuffer = frameBuffer;
