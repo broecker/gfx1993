@@ -569,6 +569,17 @@ void Rasterizer::drawTriangle(const RenderConfig &renderConfig,
     }
   }
 
+  // Inside a triangle, all three edge functions share the sign of its signed
+  // area: <= 0 for one screen-space winding, >= 0 for the other. Back faces
+  // were already culled in drawTriangles() if requested, so accept either
+  // winding here. Zero-area triangles cover no pixels (and their barycentric
+  // weights below would divide by zero).
+  const int area = pointInHalfspace(a, b, c);
+  if (area == 0) {
+    return;
+  }
+  const int orientation = area < 0 ? -1 : 1;
+
   // Rasterize -- loop over the screen-space bounding box.
   {
     GFX1993_ZONE_N("rasterize.tris.shade.fill");
@@ -595,7 +606,8 @@ void Rasterizer::drawTriangle(const RenderConfig &renderConfig,
         float z =
             lambda.x * posA_win.z + lambda.y * posB_win.z + lambda.z * posC_win.z;
 
-        if (w0 <= 0 && w1 <= 0 && w2 <= 0) {
+        if (orientation * w0 >= 0 && orientation * w1 >= 0 &&
+            orientation * w2 >= 0) {
           ShadingGeometry sgeo = t.rasterize(lambda);
           sgeo.windowCoord = p;
           sgeo.depth = z;
