@@ -1,11 +1,14 @@
 #ifndef GFX1993_BASE_CONFIG_INCLUDED
 #define GFX1993_BASE_CONFIG_INCLUDED
 
-// Enables or disables Tracy profiling zones in the rasterizer.
-// Profiling carries a small cost. Actual capture only happens when
-// the app is built with Tracy's client enabled (GFX1993_ENABLE_TRACY
-// CMake option) and a Tracy profiler GUI is connected.
-#define GFX1993_ENABLE_PROFILING 1
+// Enables or disables Tracy profiling zones in the rasterizer. Set by the
+// build: the GFX1993_ENABLE_TRACY CMake option (on by default) links Tracy's
+// client and defines this to 1; without it, the zones compile to nothing.
+// Profiling carries a small cost. Actual capture only happens when a Tracy
+// profiler GUI is connected.
+#ifndef GFX1993_ENABLE_PROFILING
+#define GFX1993_ENABLE_PROFILING 0
+#endif
 
 // If set, prints error messages to stdout on invalid configurations.
 #define GFX1993_VERBOSE_RENDER_CONFIG 1

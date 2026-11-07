@@ -93,6 +93,8 @@ target_include_directories(gfx1993 PUBLIC
 
 if(GFX1993_ENABLE_TRACY)
     target_link_libraries(gfx1993 PUBLIC TracyClient)
+    # Public, so code including Profiler.h agrees with the library.
+    target_compile_definitions(gfx1993 PUBLIC GFX1993_ENABLE_PROFILING=1)
 endif()
 
 include(GNUInstallDirs)
