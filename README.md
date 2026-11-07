@@ -31,6 +31,12 @@ make install
 Unit tests can be found under `tests/` and run with `ctest`. Example binaries
 are found in `examples/` and can be run individually.
 
+The examples and tests are built when gfx1993 is the top-level project. A
+project that includes gfx1993 (with `add_subdirectory` or `FetchContent`) gets
+just the library by default and doesn't download the examples' and tests'
+dependencies. The `GFX1993_BUILD_EXAMPLES` and `GFX1993_BUILD_TESTS` options
+override this either way.
+
 Dependencies: 
 - glm
 - SDL2
@@ -39,10 +45,11 @@ Dependencies:
 CMake looks for these on the system first; any that aren't installed are
 fetched and built from source automatically instead, so a fresh checkout
 builds without installing anything by hand. The
-[Tracy](https://github.com/wolfpld/tracy) profiler client and
-[Dear ImGui](https://github.com/ocornut/imgui) (used by the example demo app
-for its FPS/rasterizer-stats overlay) are always fetched and built this way,
-since neither ships an installable CMake package.
+[Tracy](https://github.com/wolfpld/tracy) profiler client (when
+`GFX1993_ENABLE_TRACY` is on) and [Dear ImGui](https://github.com/ocornut/imgui)
+(used by the example demo app for its FPS/rasterizer-stats overlay, when the
+examples are built) are always fetched and built this way, since neither ships
+an installable CMake package.
 
 ## TODOs
 This is an unsorted list of outstanding tasks.
