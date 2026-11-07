@@ -61,11 +61,6 @@ if(GFX1993_ENABLE_TRACY)
 endif()
 
 find_package(OpenMP)
-if (OPENMP_FOUND)
-    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-    set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
-endif()
 
 add_library(gfx1993
     src/BoundingVolumes.cpp
@@ -85,6 +80,21 @@ add_library(gfx1993
     src/ThreadPool.cpp
     src/Viewport.cpp
 )
+
+# glm is header-only. A glm found by find_package() provides the imported target
+# glm::glm. The glm fetched above is a regular build-tree target outside any export
+# set, which gfx1993's export()/install(EXPORT) can't reference; use its include path.
+if(DEFINED glm_SOURCE_DIR)
+    target_include_directories(gfx1993 SYSTEM PUBLIC $<BUILD_INTERFACE:${glm_SOURCE_DIR}>)
+elseif(TARGET glm::glm)
+    target_link_libraries(gfx1993 PUBLIC glm::glm)
+endif()
+
+# The #pragma omp loops need OpenMP at compile and link time, including in projects
+# that consume gfx1993 and therefore don't inherit this directory's compiler flags.
+if(OpenMP_CXX_FOUND)
+    target_link_libraries(gfx1993 PUBLIC OpenMP::OpenMP_CXX)
+endif()
 
 target_include_directories(gfx1993 PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>

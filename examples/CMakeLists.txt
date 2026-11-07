@@ -53,7 +53,8 @@ target_link_libraries(imgui PUBLIC SDL2::SDL2)
 
 # Library and demo app harness
 add_library(gfx93-demo-app STATIC DemoApp.cpp DemoUtils.cpp StarField.cpp)
-target_link_libraries(gfx93-demo-app PUBLIC gfx1993 PRIVATE SDL2::SDL2 glm::glm imgui)
+# DemoApp.h includes SDL, so programs built on the harness need SDL too.
+target_link_libraries(gfx93-demo-app PUBLIC gfx1993 SDL2::SDL2 PRIVATE glm::glm imgui)
 
 # A simple rotating triangle
 add_executable(00-triangle 00-triangle.cpp)
