@@ -5,6 +5,18 @@ set(DEFAULT_BUILD_TYPE "Debug")
 
 option(BUILD_SHARED_LIBS "Build using shared libraries" OFF)
 
+# The examples and tests are built by default only when gfx1993 is the top-level project.
+# A project that pulls gfx1993 in (add_subdirectory / FetchContent) then doesn't have to
+# download and configure their dependencies (Dear ImGui, SDL2 and GUnit with its
+# submodules), which can take minutes.
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+    set(GFX1993_IS_TOP_LEVEL ON)
+else()
+    set(GFX1993_IS_TOP_LEVEL OFF)
+endif()
+option(GFX1993_BUILD_EXAMPLES "Build the examples" ${GFX1993_IS_TOP_LEVEL})
+option(GFX1993_BUILD_TESTS "Build the unit tests" ${GFX1993_IS_TOP_LEVEL})
+
 # Compile + link setup
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O2 -DGLM_ENABLE_EXPERIMENTAL")
 set(CMAKE_CXX_STANDARD 17)
@@ -120,7 +132,11 @@ install(EXPORT gfx1993-config DESTINATION share/gfx1993/cmake)
 
 export(TARGETS ${PROJECT_NAME} FILE gfx1993-config.cmake)
 
-add_subdirectory(examples)
+if(GFX1993_BUILD_EXAMPLES)
+    add_subdirectory(examples)
+endif()
 
-enable_testing()
-add_subdirectory(tests)
+if(GFX1993_BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
+endif()
