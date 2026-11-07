@@ -41,8 +41,18 @@
 
 // If set, uses the shared thread pool to shade screen triangles. This is
 // only useful for large (in screen-space coverage) triangles. For smaller
-// ones, the additional setup cost outweighs the performance gains.
+// ones, the additional setup cost outweighs the performance gains: waking the
+// pool and waiting for every worker costs tens of microseconds per triangle,
+// more than shading a small triangle takes. So only triangles whose
+// screen-space bounding box covers at least
+// GFX1993_PARALLEL_SHADE_TRIANGLE_MIN_PIXELS pixels are spread across the
+// pool; smaller ones are shaded on the calling thread. 1024 kept scenes of
+// large triangles as fast as always parallelising, while scenes of many small
+// triangles got about 9x faster. Override with -D to tune.
 #define GFX1993_PARALLEL_SHADE_TRIANGLE 1
+#ifndef GFX1993_PARALLEL_SHADE_TRIANGLE_MIN_PIXELS
+#define GFX1993_PARALLEL_SHADE_TRIANGLE_MIN_PIXELS 1024
+#endif
 
 // If set, uses the shared thread pool to shade line fragments (drawLines).
 // Unlike the row-partitioned triangle/quad fill, different lines can

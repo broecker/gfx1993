@@ -624,36 +624,42 @@ void Rasterizer::drawTriangle(const RenderConfig &renderConfig,
     const int rowCount = max.y - min.y + 1;
 
 #if GFX1993_PARALLEL_SHADE_TRIANGLE
-    // TODO(mbroecker): Maybe an additional metric would be the size of the
-    // bounding box and whether one dimension is much larger than the other.
-    // Each worker accumulates its own counts -- merged into debugInfo once
-    // every worker has finished, instead of an atomic increment per fragment.
-    std::vector<std::pair<uint32_t, uint32_t>> perWorkerCounts(
-        threadPool.getThreadCount(), std::make_pair(0u, 0u));
+    // Only large triangles are worth spreading across the pool; see config.h.
+    // TODO(mbroecker): Maybe also consider whether one dimension of the
+    // bounding box is much larger than the other.
+    const long long boxPixels =
+        static_cast<long long>(rowCount) * static_cast<long long>(max.x - min.x + 1);
+    if (rowCount > 1 && threadPool.getThreadCount() > 1 &&
+        boxPixels >= GFX1993_PARALLEL_SHADE_TRIANGLE_MIN_PIXELS) {
+      // Each worker accumulates its own counts -- merged into debugInfo once
+      // every worker has finished, instead of an atomic increment per fragment.
+      std::vector<std::pair<uint32_t, uint32_t>> perWorkerCounts(
+          threadPool.getThreadCount(), std::make_pair(0u, 0u));
 
-    threadPool.parallelFor(
-        rowCount > 0 ? static_cast<size_t>(rowCount) : 0,
-        [&](size_t worker, size_t begin, size_t end) {
-          GFX1993_ZONE_N("rasterize.tris.shade.fill.worker");
-          auto &counts = perWorkerCounts[worker];
-          for (size_t i = begin; i < end; ++i) {
-            shadeTriangleRow(min.y + static_cast<int>(i), counts.first,
-                             counts.second);
-          }
-        });
+      threadPool.parallelFor(
+          static_cast<size_t>(rowCount),
+          [&](size_t worker, size_t begin, size_t end) {
+            GFX1993_ZONE_N("rasterize.tris.shade.fill.worker");
+            auto &counts = perWorkerCounts[worker];
+            for (size_t i = begin; i < end; ++i) {
+              shadeTriangleRow(min.y + static_cast<int>(i), counts.first,
+                               counts.second);
+            }
+          });
 
-    for (const auto &counts : perWorkerCounts) {
-      debugInfo.triangles.fragmentsDrawn += counts.first;
-      debugInfo.triangles.fragmentsDiscarded += counts.second;
+      for (const auto &counts : perWorkerCounts) {
+        debugInfo.triangles.fragmentsDrawn += counts.first;
+        debugInfo.triangles.fragmentsDiscarded += counts.second;
+      }
+      return;
     }
-#else
+#endif
     uint32_t fragmentsDrawn = 0, fragmentsDiscarded = 0;
     for (int y = min.y; y <= max.y; ++y) {
       shadeTriangleRow(y, fragmentsDrawn, fragmentsDiscarded);
     }
     debugInfo.triangles.fragmentsDrawn += fragmentsDrawn;
     debugInfo.triangles.fragmentsDiscarded += fragmentsDiscarded;
-#endif
   }
 }
 

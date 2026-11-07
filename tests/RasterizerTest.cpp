@@ -336,6 +336,43 @@ GTEST("Rasterizer Test") {
     EXPECT(rasterizer.getDebugInfo().triangles.backfaceCulled == 1);
   }
 
+  SHOULD("Fill small and large triangles completely") {
+    // Small triangles are shaded on the calling thread, large ones (bounding
+    // box of at least GFX1993_PARALLEL_SHADE_TRIANGLE_MIN_PIXELS pixels) across
+    // the thread pool. Both must cover every pixel of a quad exactly once and
+    // count every fragment.
+    for (const int size : {16, 128}) {
+      auto fb = std::make_shared<Framebuffer>(size, size);
+      auto db = std::make_shared<Depthbuffer>(size, size);
+      RenderConfig config;
+      config.framebuffer = fb;
+      config.depthbuffer = db;
+      config.depthTest = false;
+      config.viewport = std::make_shared<Viewport>(0, 0, size, size);
+      config.vertexShader = std::make_shared<TestVertShader>();
+      config.fragmentShader = std::make_shared<TestFragShader>();
+      ASSERT(config.isValid());
+
+      fb->clear(vec4(0, 0, 0, 1));
+      db->clear();
+      const vec4 white(1, 1, 1, 1);
+      const VertexList vertices{Vertex(vec4(-1, -1, 0, 1), white), Vertex(vec4(1, -1, 0, 1), white),
+                                Vertex(vec4(1, 1, 0, 1), white), Vertex(vec4(-1, 1, 0, 1), white)};
+      rasterizer.resetDebugInfo();
+      rasterizer.drawTriangles(config, vertices, IndexList{0, 1, 2, 0, 2, 3});
+
+      int pixels = 0;
+      for (int y = 0; y < size; ++y)
+        for (int x = 0; x < size; ++x)
+          pixels += fb->getPixel(x, y) == white;
+      EXPECT(pixels == size * size);
+      EXPECT(rasterizer.getDebugInfo().triangles.drawn == 2);
+      // Pixels on the shared diagonal are covered by both triangles.
+      EXPECT(rasterizer.getDebugInfo().triangles.fragmentsDrawn >= static_cast<uint32_t>(size * size));
+      EXPECT(rasterizer.getDebugInfo().triangles.fragmentsDrawn <= static_cast<uint32_t>(size * size + 2 * size));
+    }
+  }
+
   SHOULD("Not draw zero-area triangles") {
     constexpr int W = 16, H = 16;
     auto fb = std::make_shared<Framebuffer>(W, H);
