@@ -4,7 +4,6 @@ namespace gfx1993 {
 Framebuffer::Framebuffer(unsigned int w, unsigned int h) : width(w), height(h), data(w*h) {}
 
 void Framebuffer::clear(const glm::vec4 &c) {
-  #pragma omp parallel for
   for (unsigned int i = 0; i < width * height; ++i) {
     data[i] = c;
   }
