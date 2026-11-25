@@ -72,8 +72,6 @@ if(GFX1993_ENABLE_TRACY)
     FetchContent_MakeAvailable(tracy)
 endif()
 
-find_package(OpenMP)
-
 add_library(gfx1993
     src/BoundingVolumes.cpp
     src/Clipper.cpp
@@ -100,12 +98,6 @@ if(DEFINED glm_SOURCE_DIR)
     target_include_directories(gfx1993 SYSTEM PUBLIC $<BUILD_INTERFACE:${glm_SOURCE_DIR}>)
 elseif(TARGET glm::glm)
     target_link_libraries(gfx1993 PUBLIC glm::glm)
-endif()
-
-# The #pragma omp loops need OpenMP at compile and link time, including in projects
-# that consume gfx1993 and therefore don't inherit this directory's compiler flags.
-if(OpenMP_CXX_FOUND)
-    target_link_libraries(gfx1993 PUBLIC OpenMP::OpenMP_CXX)
 endif()
 
 target_include_directories(gfx1993 PUBLIC
